@@ -86,4 +86,4 @@ Returned only for observation inputs. A set of points on the above optimized bou
 Returned only for observation inputs. Classification accuracy for the observation samples, and for the individual samples a and b.
 <br><br/>
 
- ![alt text](https://github.com/abhranildas/classify/blob/master/summary_image.jpg)
+ ![Summary image](https://github.com/abhranildas/classify/blob/master/summary_image.png)
