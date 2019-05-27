@@ -109,9 +109,9 @@ if strcmp(p.Results.type,'obs')
         fun = @(x)accuracy_obs_optimize(dim,x,dist_a,dist_b);
         x=fminsearch(fun,[a2_gauss(:); a1_gauss(:); a0_gauss]);
 
-        a2_obs=reshape(x(1:dim^2),[dim dim])';
-        a1_obs=x(dim^2+1:dim^2+dim);
-        a0_obs=x(end);
+        a2=reshape(x(1:dim^2),[dim dim])';
+        a1=x(dim^2+1:dim^2+dim);
+        a0=x(end);
 %         if dim==1            
 %             a2_obs=x(1);
 %             a1_obs=x(2);
@@ -129,15 +129,14 @@ if strcmp(p.Results.type,'obs')
         bd_coeffs_obs_opt.a2=a2_obs;
         bd_coeffs_obs_opt.a1=a1_obs;
         bd_coeffs_obs_opt.a0=a0_obs;
-        results.bd_coeffs_obs_opt=bd_coeffs_obs_opt;
         
-        if dim<=3
-            % optimal boundary points
-            [~,bd_pts_obs_opt_a]=accuracy_gauss(mu_a,vcov_a,mu_b,vcov_b,p_a,bd_coeffs_obs_opt);
-            [~,bd_pts_obs_opt_b]=accuracy_gauss(mu_b,vcov_b,mu_a,vcov_a,p_b,bd_coeffs_obs_opt);
-            bd_pts_obs_opt=[bd_pts_obs_opt_a,bd_pts_obs_opt_b];
-            results.bd_pts_obs_opt=bd_pts_obs_opt;
-        end
+        % optimal boundary points
+        [~,bd_pts_obs_opt_a]=accuracy_gauss(mu_a,vcov_a,mu_b,vcov_b,p_a,bd_coeffs_obs_opt);
+        [~,bd_pts_obs_opt_b]=accuracy_gauss(mu_b,vcov_b,mu_a,vcov_a,p_b,bd_coeffs_obs_opt);
+        bd_pts_obs_opt=[bd_pts_obs_opt_a,bd_pts_obs_opt_b];
+        
+        results.bd_pts_obs_opt=bd_pts_obs_opt;
+        results.bd_coeffs_obs_opt=bd_coeffs_obs_opt;
         
         % accuracy with optimal data boundary
         [acc_obs,acc_obs_a,acc_obs_b]=accuracy_obs(dist_a,dist_b,bd_coeffs_obs_opt);        

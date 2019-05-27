@@ -110,25 +110,13 @@ v_b=[2 1 -1.5; 1 3 -2; -1.5 -2 4];
 
 results=classify([mu_a,v_a],[mu_b,v_b]);
 
-%% 4D, simple
+%% 3D, simple
 
-mu_a=[0;0;0;0];
-v_a=eye(4);
+mu_a=[0;0;0];
+v_a=eye(3);
 
-mu_b=[1;1;1;1];
-v_b=eye(4);
+mu_b=[2;1;1];
+v_b=2*eye(3);
 
 results=classify([mu_a,v_a],[mu_b,v_b]);
-
-%% 4D, input observations
-
-mu_a=[0;0;0;0];
-v_a=eye(4);
-obs_a = mvnrnd(mu_a,v_a,1000);
-
-mu_b=[1;1;1;1];
-v_b=eye(4);
-obs_b = mvnrnd(mu_b,v_b,1000);
-
-results=classify(obs_a,obs_b,'type','obs');
 
