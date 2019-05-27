@@ -41,16 +41,18 @@ For Gaussian parameter inputs,
 
  
 
-* `p_a`: prior probability of Gaussian a.
+* `p_a`: prior probability of Gaussian a. Unless specified, equal priors are assumed by default.
 
 For observation inputs,
 * `obs_a`, `obs_b`: matrices of observations. Rows are observations, columns are variables.
 <br><br/>
-* `type`: input type. Specify `obs` if inputs are observations instead of Gaussian parameters. 
+* `type`: input type. Specify as `obs` if inputs are observations instead of Gaussian parameters. 
 * `custom_bd_coeffs`: coefficients of a custom quadratic boundary.
 
 
 In the case of observation input, if you specify p_a, this will be interpreted as the prior probability of the fitted Gaussian a, and will be reflected in the gaussian outputs requested, i.e. d' gauss and acc gauss etc. But for the purely data outputs, category probabilities are implied simply by the counts of observations from each distribution, so they will not reflect any p_a input.
+
+* `bPlot`: specify 0 if you don't want a plot. 1 by default.
 
 ## Outputs
 The output is a `struct` with fields:
