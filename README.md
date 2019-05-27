@@ -85,3 +85,12 @@ Returned only for observation inputs. A set of points on the above optimized bou
 ### `acc_obs`,`acc_obs_a`, `acc_obs_b`
 Returned only for observation inputs. Classification accuracy for the observation samples, and for the individual samples a and b.
 <br><br/>
+
+<object data="https://github.com/abhranildas/classify/blob/master/summary_image.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://github.com/abhranildas/classify/blob/master/summary_image.pdf">
+        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
+    </embed>
+</object>
+
+<embed src="https://github.com/abhranildas/classify/blob/master/summary_image.pdf" width="500" height="375" 
+ type="application/pdf">
