@@ -70,7 +70,7 @@ Coefficients `a2`, `a1` and `a0` of the optimal quadratic boundary, written in m
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" title="\boldsymbol{x}' \boldsymbol{a_2} \boldsymbol{x} + \boldsymbol{a_1}' \boldsymbol{x} + a_0 = 0" /></a>
 
-If d is the number of dimensions, `a2` is a d x d matrix (scalar for 1D), `a1` is a length-d column vector (scalar for 1D), and `a0` is a scalar.
+If d is the number of dimensions, this is an equation of the length-d vector variable x. `a2` is a d x d matrix (scalar for 1D), `a1` is a length-d column vector (scalar for 1D), and `a0` is a scalar.
 
 For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
