@@ -90,7 +90,7 @@ Returned only if inputs are observations, and the two samples are of equal size.
 ### `bd_coeffs_obs_opt`
 Returned only for observation inputs. Matrix-form coefficients `a2`, `a1` and `a0` of the quadratic boundary that optimally separates the observations. We start with the optimal boundary between Gaussians fitted to the data, then optimize the quadratic coefficients to maximize the classification accuracy of the data.
 <br><br/>
-### `bd_pts_gauss_opt`
+### `bd_pts_obs_opt`
 Returned only for observation inputs. A set of points on the above optimized boundary between the observations.
 <br><br/>
 
