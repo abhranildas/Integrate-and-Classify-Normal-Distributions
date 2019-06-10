@@ -39,38 +39,31 @@ For Gaussian parameter inputs,
 * `mu_a`, `mu_b`: column vectors of means (scalars in 1D)
 * `v_a`, `v_b`: variance-covariance matrices (scalar variances in 1D)
 
- 
-
-* `p_a`: prior probability of Gaussian a. Unless specified, equal priors are assumed by default.
-
 For observation inputs,
 * `obs_a`, `obs_b`: matrices of observations. Rows are observations, columns are variables.
 <br><br/>
+* `p_a`: prior probability of distribution a. Default is 0.5. For observation inputs, prior probabilities are by default the relative sample sizes. If `p_a` is specified in this case, it is taken to be the prior of the Gaussian fitted to the data, and affects only the Gaussian-fit-based outputs, not the observation-based outputs.
 * `type`: input type. Specify as `obs` if inputs are observations instead of Gaussian parameters. 
 * `custom_bd_coeffs`: coefficients of a custom quadratic boundary.
-
-
-In the case of observation input, if you specify p_a, this will be interpreted as the prior probability of the fitted Gaussian a, and will be reflected in the gaussian outputs requested, i.e. d' gauss and acc gauss etc. But for the purely data outputs, category probabilities are implied simply by the counts of observations from each distribution, so they will not reflect any p_a input.
-
 * `bPlot`: specify 0 if you don't want a plot. 1 by default.
 
 ## Outputs
 The output is a `struct` with fields:
 
 ### `acc_gauss`
-Array of three numbers: classification accuracy for the Gaussians, for Gaussian a, and for Gaussian b.
+Array of three numbers: classification accuracy for the Gaussians, for Gaussian a, and for Gaussian b. For observation inputs, these correspond to Gaussians fitted to the data.
 <br><br/>
 ### `acc_gauss_min`
-The Chernoff lower bound for classification accuracy, see ch. 2 of 'Pattern Classification' by Duda, Hart and Stork.
+The Chernoff lower bound for classification accuracy of the Gaussians, see ch. 2 of 'Pattern Classification' by Duda, Hart and Stork. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `d_gauss`
-Discriminability/sensitivity index d' between the Gaussian distributions. This always assumes equal priors and the optimal boundary.
+Discriminability/sensitivity index d' between the Gaussian distributions. This always assumes equal priors and the optimal boundary. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `d_gauss_aprx`
-Approximate d' between the distributions. This takes the covariance matrix of each distribution to be equal to the average, and computes the Mahalanobis distance between the distributions using this average covariance matrix. This approximation is useful when the distributions have too little overlap to compute d' exactly, or in >3 dimensions.
+Approximate d' between the distributions. This takes the covariance matrix of each distribution to be equal to the average, and computes the Mahalanobis distance between the distributions using this average covariance matrix. This approximation is useful when the distributions have too little overlap to compute d' exactly, or in >3 dimensions. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `d_gauss_min`
-The lower bound for d' corresponding to the equal-prior Chernoff lower bound for accuracy.
+The lower bound for d' corresponding to the equal-prior Chernoff lower bound for Gaussian classification accuracy. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `bd_coeffs_gauss_opt`
 Coefficients `a2`, `a1` and `a0` of the optimal quadratic boundary, written in matrix form:
@@ -78,15 +71,17 @@ Coefficients `a2`, `a1` and `a0` of the optimal quadratic boundary, written in m
 <a href="https://www.codecogs.com/eqnedit.php?latex=\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" title="\boldsymbol{x}' \boldsymbol{a_2} \boldsymbol{x} + \boldsymbol{a_1}' \boldsymbol{x} + a_0 = 0" /></a>
 
 If d is the number of dimensions, `a2` is a d x d matrix (scalar for 1D), `a1` is a length-d column vector (scalar for 1D), and `a0` is a scalar.
+
+For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `bd_pts_gauss_opt`
-A set of points on the optimal boundary between the Gaussians.
+A set of points on the optimal boundary between the Gaussians. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `acc_obs`
 Returned only for observation inputs. Array of three numbers: classification accuracy for the observation samples, for sample a, and for sample b.
 <br><br/>
 ### `d_obs`
-Returned only if inputs are observations, and the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
+Returned only for observation inputs, and if the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
 ### `bd_coeffs_obs_opt`
 Returned only for observation inputs. Matrix-form coefficients `a2`, `a1` and `a0` of the quadratic boundary that optimally separates the observations. We start with the optimal boundary between Gaussians fitted to the data, then optimize the quadratic coefficients to maximize the classification accuracy of the data.
 <br><br/>
