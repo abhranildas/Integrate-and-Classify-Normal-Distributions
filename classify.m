@@ -1,4 +1,7 @@
 function results=classify(dist_a,dist_b,varargin)
+% Classification between two distributions.
+% Author: Abhranil Das <abhranil.das@utexas.edu>
+% Please cite if you use this code.
 
 % parse inputs
 p = inputParser;
@@ -14,19 +17,19 @@ parse(p,dist_a,dist_b,varargin{:});
 
 if strcmp(p.Results.type,'params')
     mu_a=dist_a(:,1);
-    vcov_a=dist_a(:,2:end);
+    v_a=dist_a(:,2:end);
     mu_b=dist_b(:,1);
-    vcov_b=dist_b(:,2:end);
+    v_b=dist_b(:,2:end);
 elseif strcmp(p.Results.type,'obs')
     mu_a=mean(dist_a)';
-    vcov_a=cov(dist_a);
+    v_a=cov(dist_a);
     mu_b=mean(dist_b)';
-    vcov_b=cov(dist_b);    
+    v_b=cov(dist_b);    
 end
 
 % if input obs and p_a is not specified,
 if strcmp(p.Results.type,'obs') && any(strcmp(p.UsingDefaults,'p_a'))
-    % set p_a according to input category frequencies
+    % set p_a according to input sample sizes
     p_a=size(dist_a,1)/(size(dist_a,1)+size(dist_b,1));
 else
     p_a=p.Results.p_a;
@@ -52,15 +55,28 @@ if ~isempty(custom_bd_coeffs_a)
 end
 
 % approximate d' (considering equal vcov)
-vcov_av=(vcov_a+vcov_b)/2; % assume each vcov = avg
+vcov_av=(v_a+v_b)/2; % assume each vcov = avg
 d_gauss_aprx=sqrt((mu_a-mu_b)'/(vcov_av)*(mu_a-mu_b)); % d' with equal avg vcov & equal priors
-%acc_opt_aprx=1-normcdf(d_aprx/2,'upper');
 results.d_gauss_aprx=d_gauss_aprx;
+% acc_opt_gauss_aprx=1-normcdf(d_gauss_aprx/2,'upper');
+% results.acc_opt_gauss_aprx=acc_opt_gauss_aprx;
+
+% Chernoff bound for error and d'
+fun = @(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,p_a);
+[~,k]=fminbnd(fun,0,1);
+acc_gauss_min=1-k;
+results.acc_gauss_min=acc_gauss_min;
+
+fun = @(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,0.5);
+[~,k]=fminbnd(fun,0,1);
+acc_opt_min_chernoff=1-k;
+d_gauss_min=2*norminv(acc_opt_min_chernoff);
+results.d_gauss_min=d_gauss_min;
 
 % Coefficients of optimal decision boundary:
-a2_gauss=inv(vcov_b)-inv(vcov_a);
-a1_gauss=2*(vcov_a\mu_a-vcov_b\mu_b);
-a0_gauss=mu_b'/vcov_b*mu_b-mu_a'/vcov_a*mu_a+log((p_a/p_b)^2*det(vcov_b)/det(vcov_a));
+a2_gauss=inv(v_b)-inv(v_a);
+a1_gauss=2*(v_a\mu_a-v_b\mu_b);
+a0_gauss=mu_b'/v_b*mu_b-mu_a'/v_a*mu_a+log((p_a/p_b)^2*det(v_b)/det(v_a));
 bd_coeffs_gauss_opt=struct;
 bd_coeffs_gauss_opt.a2=a2_gauss;
 bd_coeffs_gauss_opt.a1=a1_gauss;
@@ -69,14 +85,14 @@ results.bd_coeffs_gauss_opt=bd_coeffs_gauss_opt;
 
 if dim<=3
     % compute optimal accuracy and d' for gaussians
-    [acc_gauss_opt_a]=accuracy_gauss(mu_a,vcov_a,mu_b,vcov_b,.5,[]);
-    [acc_gauss_opt_b]=accuracy_gauss(mu_b,vcov_b,mu_a,vcov_a,.5,[]);
+    [acc_gauss_opt_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,.5,[]);
+    [acc_gauss_opt_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,.5,[]);
     acc_gauss_opt=mean([acc_gauss_opt_a,acc_gauss_opt_b]);
     d_gauss=2*norminv(acc_gauss_opt);
     
     % compute accuracy and boundary for each gaussian, and combine
-    [acc_gauss_a,dec_bd_a]=accuracy_gauss(mu_a,vcov_a,mu_b,vcov_b,p_a,custom_bd_coeffs_a);
-    [acc_gauss_b,dec_bd_b]=accuracy_gauss(mu_b,vcov_b,mu_a,vcov_a,p_b,custom_bd_coeffs_b);
+    [acc_gauss_a,dec_bd_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,custom_bd_coeffs_a);
+    [acc_gauss_b,dec_bd_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,p_b,custom_bd_coeffs_b);
     acc_gauss=p_a*acc_gauss_a+p_b*acc_gauss_b;
     bd_pts=[dec_bd_a,dec_bd_b];
     
@@ -91,9 +107,9 @@ if dim<=3
         acc_gauss=0.5;
     end
     
-    results.acc_gauss=acc_gauss;
-    results.acc_gauss_a=acc_gauss_a;
-    results.acc_gauss_b=acc_gauss_b;
+    results.acc_gauss=[acc_gauss, acc_gauss_a, acc_gauss_b];
+%     results.acc_gauss_a=acc_gauss_a;
+%     results.acc_gauss_b=acc_gauss_b;
     results.d_gauss=d_gauss;
 end
 
@@ -112,19 +128,7 @@ if strcmp(p.Results.type,'obs')
         a2_obs=reshape(x(1:dim^2),[dim dim])';
         a1_obs=x(dim^2+1:dim^2+dim);
         a0_obs=x(end);
-%         if dim==1            
-%             a2_obs=x(1);
-%             a1_obs=x(2);
-%             a0_obs=x(3);
-%         elseif dim==2
-%             a2_obs=[x(1) x(2); x(3) x(4)];
-%             a1_obs=[x(5); x(6)];
-%             a0_obs=x(7);
-%         elseif dim==3
-%             a2_obs=[x(1) x(2) x(3); x(4) x(5) x(6); x(7) x(8) x(9)];
-%             a1_obs=[x(10); x(11); x(12)];
-%             a0_obs=x(13);
-%         end
+
         bd_coeffs_obs_opt=struct;
         bd_coeffs_obs_opt.a2=a2_obs;
         bd_coeffs_obs_opt.a1=a1_obs;
@@ -133,8 +137,8 @@ if strcmp(p.Results.type,'obs')
         
         if dim<=3
             % optimal boundary points
-            [~,bd_pts_obs_opt_a]=accuracy_gauss(mu_a,vcov_a,mu_b,vcov_b,p_a,bd_coeffs_obs_opt);
-            [~,bd_pts_obs_opt_b]=accuracy_gauss(mu_b,vcov_b,mu_a,vcov_a,p_b,bd_coeffs_obs_opt);
+            [~,bd_pts_obs_opt_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,bd_coeffs_obs_opt);
+            [~,bd_pts_obs_opt_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,p_b,bd_coeffs_obs_opt);
             bd_pts_obs_opt=[bd_pts_obs_opt_a,bd_pts_obs_opt_b];
             results.bd_pts_obs_opt=bd_pts_obs_opt;
         end
@@ -146,30 +150,19 @@ if strcmp(p.Results.type,'obs')
             results.d_obs=d_obs;
         end
     end
-    results.acc_obs=acc_obs;
-    results.acc_obs_a=acc_obs_a;
-    results.acc_obs_b=acc_obs_b;
+    results.acc_obs=[acc_obs,acc_obs_a,acc_obs_b];
 end
 
 
 % Plot:
 if bPlot && dim<=3
     figure; hold on;
-    % title    
-    if isinf(d_gauss)
-        title(sprintf("d'~%.2f",d_gauss_aprx),'color','red')
+    % title
+    if strcmp(p.Results.type,'params')
+        title(sprintf("accuracy = %.2f",acc_gauss(1)))
     else
-        title(sprintf("d'=%.2f",d_gauss))
+        title(sprintf("accuracy = %.2f",acc_obs(1)))
     end
-    if strcmp(p.Results.type,'obs')
-        if exist('d_obs','var')
-            if ~isinf(d_obs)
-                title(sprintf("d'=%.2f",d_obs))
-            end
-        end
-    end
-    
-    %red=[196 52 38]/255; blue=[68 114 196]/255;
     
     if dim==1
         
@@ -182,12 +175,12 @@ if bPlot && dim<=3
         end
         
         % plot gaussians
-        x_a=linspace(mu_a-5*sqrt(vcov_a),mu_a+5*sqrt(vcov_a),100);
-        y_a=p_a*normpdf(x_a,mu_a,sqrt(vcov_a));
+        x_a=linspace(mu_a-5*sqrt(v_a),mu_a+5*sqrt(v_a),100);
+        y_a=p_a*normpdf(x_a,mu_a,sqrt(v_a));
         area(x_a,y_a,'facecolor','blue','facealpha',0.4,'edgecolor','blue','edgealpha',0.5,'linewidth',1)
         
-        x_b=linspace(mu_b-5*sqrt(vcov_b),mu_b+5*sqrt(vcov_b),100);
-        y_b=p_b*normpdf(x_b,mu_b,sqrt(vcov_b));
+        x_b=linspace(mu_b-5*sqrt(v_b),mu_b+5*sqrt(v_b),100);
+        y_b=p_b*normpdf(x_b,mu_b,sqrt(v_b));
         area(x_b,y_b,'facecolor','red','facealpha',0.4,'edgecolor','red','edgealpha',0.5,'linewidth',1)
         
         % plot boundary
@@ -213,11 +206,11 @@ if bPlot && dim<=3
         z=[cos(th);sin(th)];        
 
         %plot(mu_a(1),mu_a(2),'.','markersize',20,'color','blue');
-        C_a=chol(vcov_a,'lower');
+        C_a=chol(v_a,'lower');
         dist_a=C_a*z+repmat(mu_a,[1 length(th)]);
         
         %plot(mu_b(1),mu_b(2),'.','markersize',20,'color','red');
-        C_b=chol(vcov_b,'lower');
+        C_b=chol(v_b,'lower');
         dist_b=C_b*z+repmat(mu_b,[1 length(th)]);
         
         plot(dist_a(1,:),dist_a(2,:),'-','color','blue')
@@ -244,7 +237,7 @@ if bPlot && dim<=3
         end
         
         % plot gaussians (error ellipsoids)
-        [V,D] = eig(vcov_a); % V is the rotation matrix for the error ellipsoid.
+        [V,D] = eig(v_a); % V is the rotation matrix for the error ellipsoid.
         
         rot_angles=rad2deg(rotm2eul(V,'XYZ'));
         
@@ -257,7 +250,7 @@ if bPlot && dim<=3
         rotate(ellipsoid_a,[0 1 0],rot_angles(2),mu_a)
         rotate(ellipsoid_a,[0 0 1],rot_angles(3),mu_a)        
 
-        [V,D] = eig(vcov_b); % V is the rotation matrix for the error ellipsoid.
+        [V,D] = eig(v_b); % V is the rotation matrix for the error ellipsoid.
         
         rot_angles=rad2deg(rotm2eul(V,'XYZ'));
         
@@ -282,9 +275,9 @@ if bPlot && dim<=3
         
         axis image
         grid on
-        xlim([min(mu_a(1)-vcov_a(1,1),mu_b(1)-vcov_b(1,1)),max(mu_a(1)+vcov_a(1,1),mu_b(1)+vcov_b(1,1))])
-        ylim([min(mu_a(2)-vcov_a(2,2),mu_b(2)-vcov_b(2,2)),max(mu_a(2)+vcov_a(2,2),mu_b(2)+vcov_b(2,2))])
-        zlim([min(mu_a(3)-vcov_a(3,3),mu_b(3)-vcov_b(3,3)),max(mu_a(3)+vcov_a(3,3),mu_b(3)+vcov_b(3,3))])
+        xlim([min(mu_a(1)-v_a(1,1),mu_b(1)-v_b(1,1)),max(mu_a(1)+v_a(1,1),mu_b(1)+v_b(1,1))])
+        ylim([min(mu_a(2)-v_a(2,2),mu_b(2)-v_b(2,2)),max(mu_a(2)+v_a(2,2),mu_b(2)+v_b(2,2))])
+        zlim([min(mu_a(3)-v_a(3,3),mu_b(3)-v_b(3,3)),max(mu_a(3)+v_a(3,3),mu_b(3)+v_b(3,3))])
 
         xlabel('X')
         ylabel('Y')

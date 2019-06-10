@@ -1,4 +1,7 @@
 function [acc_obs, acc_obs_a, acc_obs_b]=accuracy_obs(obs_a,obs_b,bd_coeffs)
+% Classification accuracy between two samples.
+% Author: Abhranil Das <abhranil.das@utexas.edu>
+% Please cite if you use this code.
 
 a2=bd_coeffs.a2;
 a1=bd_coeffs.a1;

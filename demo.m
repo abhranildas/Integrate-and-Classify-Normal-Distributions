@@ -1,3 +1,7 @@
+% Examples for classify library.
+% Author: Abhranil Das <abhranil.das@utexas.edu>
+% Please cite if you use this code.
+
 %% 1D, unequal prior
 mu_a=0;
 v_a=1;
@@ -24,6 +28,16 @@ mu_a=[4; 5];
 v_a=[2 1.1; 1.1 1];
 
 mu_b=[4; 5];
+v_b=1.4*v_a;
+
+results=classify([mu_a,v_a],[mu_b,v_b]);
+
+%% 2D, simple
+
+mu_a=[4; 0];
+v_a=[2 0; 0 0];
+
+mu_b=[3; 0];
 v_b=1.4*v_a;
 
 results=classify([mu_a,v_a],[mu_b,v_b]);
@@ -55,31 +69,6 @@ results2=classify(obs_a,obs_b,'type','obs','custom_bd_coeffs',custom_bd_coeffs);
 axis image
 xlim([-10 10])
 ylim([-10 10])
-
-%% 2D, camouflage
-
-load('C:\Users\abhra\Google Drive\Geisler Lab\camouflage-detection\global_data\seed_energy_pn_gradbynorm.mat')
-load('C:\Users\abhra\Google Drive\Geisler Lab\camouflage-detection\global_data\edge_spectra_LLR.mat')
-load('C:\Users\abhra\Google Drive\Geisler Lab\camouflage-detection\global_data\seed_energy_pink_noise_whitened.mat')
-
-n_obs=size(LLR_spectrum_pink_b,1);
-obs_a = [seed_energy(1:n_obs,2),LLR_spectrum_pink_b];
-obs_b = [seed_energy(1:n_obs,3),LLR_spectrum_pink_t];
-
-results_pink=classify(obs_a,obs_b,'type','obs');
-
-axis normal
-xlim([-1 1])
-ylim([-.5 3])
-
-obs_a = [seed_energy_w(1:n_obs,2),LLR_spectrum_white_b];
-obs_b = [seed_energy_w(1:n_obs,3),LLR_spectrum_white_t];
-
-results_white=classify(obs_a,obs_b,'type','obs');
-
-axis normal
-xlim([-1 1])
-ylim([-.5 3])
 
 %% 3D, simple
 

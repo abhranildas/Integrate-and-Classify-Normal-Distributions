@@ -1,9 +1,12 @@
-function [mass,bd_pts,bd_sign]=accuracy_gauss(mu_a,vcov_a,mu_b,vcov_b,p_a,custom_bd_coeffs)
+function [mass,bd_pts,bd_sign]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,custom_bd_coeffs)
+% Compute classification accuracy between two Gaussians.
+% Author: Abhranil Das <abhranil.das@utexas.edu>
+% Please cite if you use this code.
 
 dim=length(mu_a);
 
 % Cholesky decomposition of distribution a:
-C_a=chol(vcov_a,'lower');
+C_a=chol(v_a,'lower');
 
 % if custom boundary is provided,
 if ~isempty(custom_bd_coeffs)
@@ -18,7 +21,7 @@ if ~isempty(custom_bd_coeffs)
 else
     % transformed distribution b:
     mu=C_a\(mu_b-mu_a);    
-    S=C_a\vcov_b*inv(C_a)';
+    S=C_a\v_b*inv(C_a)';
     
     %vx=sig(1,1); vy=sig(2,2); c=sig(1,2); D=det(sig);
     
