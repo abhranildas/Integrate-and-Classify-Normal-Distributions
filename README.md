@@ -70,8 +70,8 @@ If d is the number of dimensions, `a2` is a d x d matrix (scalar for 1D), `a1` i
 ### `bd_pts_gauss_opt`
 A set of points on the optimal boundary between the Gaussians.
 <br><br/>
-### `acc_gauss`,`acc_gauss_a`, `acc_gauss_b`
-Classification accuracy for the Gaussians, and for the individual Gaussians a and b.
+### `acc_gauss`
+Array of three numbers: classification accuracy for the Gaussians, for Gaussian a, and for Gaussian b.
 <br><br/>
 ### `d_gauss`
 Discriminability/sensitivity index d' between the Gaussian distributions. This always assumes equal priors and the optimal boundary.
@@ -82,8 +82,10 @@ Returned only for observation inputs. Matrix-form coefficients `a2`, `a1` and `a
 ### `bd_pts_gauss_opt`
 Returned only for observation inputs. A set of points on the above optimized boundary between the observations.
 <br><br/>
-### `acc_obs`,`acc_obs_a`, `acc_obs_b`
-Returned only for observation inputs. Classification accuracy for the observation samples, and for the individual samples a and b.
+### `acc_obs`
+Returned only for observation inputs. Array of three numbers: classification accuracy for the observation samples, for sample a, and for sample b.
 <br><br/>
+### `d_obs`
+Returned only if inputs are observations, and the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
 
  ![Summary image](https://github.com/abhranildas/classify/blob/master/summary_image.png)
