@@ -57,8 +57,20 @@ In the case of observation input, if you specify p_a, this will be interpreted a
 ## Outputs
 The output is a `struct` with fields:
 
+### `acc_gauss`
+Array of three numbers: classification accuracy for the Gaussians, for Gaussian a, and for Gaussian b.
+<br><br/>
+### `acc_gauss_min`
+The Chernoff lower bound for classification accuracy, see ch. 2 of 'Pattern Classification' by Duda, Hart and Stork.
+<br><br/>
+### `d_gauss`
+Discriminability/sensitivity index d' between the Gaussian distributions. This always assumes equal priors and the optimal boundary.
+<br><br/>
 ### `d_gauss_aprx`
 Approximate d' between the distributions. This takes the covariance matrix of each distribution to be equal to the average, and computes the Mahalanobis distance between the distributions using this average covariance matrix. This approximation is useful when the distributions have too little overlap to compute d' exactly, or in >3 dimensions.
+<br><br/>
+### `d_gauss_min`
+The lower bound for d' corresponding to the equal-prior Chernoff lower bound for accuracy.
 <br><br/>
 ### `bd_coeffs_gauss_opt`
 Coefficients `a2`, `a1` and `a0` of the optimal quadratic boundary, written in matrix form:
@@ -70,22 +82,16 @@ If d is the number of dimensions, `a2` is a d x d matrix (scalar for 1D), `a1` i
 ### `bd_pts_gauss_opt`
 A set of points on the optimal boundary between the Gaussians.
 <br><br/>
-### `acc_gauss`
-Array of three numbers: classification accuracy for the Gaussians, for Gaussian a, and for Gaussian b.
+### `acc_obs`
+Returned only for observation inputs. Array of three numbers: classification accuracy for the observation samples, for sample a, and for sample b.
 <br><br/>
-### `d_gauss`
-Discriminability/sensitivity index d' between the Gaussian distributions. This always assumes equal priors and the optimal boundary.
-<br><br/>
+### `d_obs`
+Returned only if inputs are observations, and the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
 ### `bd_coeffs_obs_opt`
 Returned only for observation inputs. Matrix-form coefficients `a2`, `a1` and `a0` of the quadratic boundary that optimally separates the observations. We start with the optimal boundary between Gaussians fitted to the data, then optimize the quadratic coefficients to maximize the classification accuracy of the data.
 <br><br/>
 ### `bd_pts_gauss_opt`
 Returned only for observation inputs. A set of points on the above optimized boundary between the observations.
 <br><br/>
-### `acc_obs`
-Returned only for observation inputs. Array of three numbers: classification accuracy for the observation samples, for sample a, and for sample b.
-<br><br/>
-### `d_obs`
-Returned only if inputs are observations, and the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
 
  ![Summary image](https://github.com/abhranildas/classify/blob/master/summary_image.png)
