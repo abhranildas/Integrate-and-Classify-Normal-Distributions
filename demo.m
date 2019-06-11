@@ -32,16 +32,6 @@ v_b=1.4*v_a;
 
 results=classify([mu_a,v_a],[mu_b,v_b]);
 
-%% 2D, simple
-
-mu_a=[4; 0];
-v_a=[2 0; 0 0];
-
-mu_b=[3; 0];
-v_b=1.4*v_a;
-
-results=classify([mu_a,v_a],[mu_b,v_b]);
-
 %% 2D, input observations
 
 mu_a=[2 4];
