@@ -50,11 +50,11 @@ For observation inputs,
 ## Outputs
 The output is a `struct` with fields:
 
-### `acc_gauss`
-Array of three numbers: classification accuracy for the Gaussians, for Gaussian a, and for Gaussian b. For observation inputs, these correspond to Gaussians fitted to the data.
+### `err_gauss`
+Array of three numbers: classification error for the Gaussians, for Gaussian a, and for Gaussian b. For observation inputs, these correspond to Gaussians fitted to the data.
 <br><br/>
-### `acc_gauss_min`
-The Chernoff lower bound for classification accuracy of the Gaussians, see ch. 2 of 'Pattern Classification' by Duda, Hart and Stork. For observation inputs, this corresponds to Gaussians fitted to the data.
+### `log_err_gauss_max`
+The log (base 10) of the Chernoff upper bound for classification error of the Gaussians, see ch. 2 of 'Pattern Classification' by Duda, Hart and Stork. This is expressed as the log to be able to represent very small errors. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
 ### `d_gauss`
 Discriminability/sensitivity index d' between the Gaussian distributions. This always assumes equal priors and the optimal boundary. For observation inputs, this corresponds to Gaussians fitted to the data.
@@ -77,8 +77,8 @@ For observation inputs, this corresponds to Gaussians fitted to the data.
 ### `bd_pts_gauss_opt`
 A set of points on the optimal boundary between the Gaussians. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
-### `acc_obs`
-Returned only for observation inputs. Array of three numbers: classification accuracy for the observation samples, for sample a, and for sample b.
+### `err_obs`
+Returned only for observation inputs. Array of three numbers: classification error for the observation samples, for sample a, and for sample b.
 <br><br/>
 ### `d_obs`
 Returned only for observation inputs, and if the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
