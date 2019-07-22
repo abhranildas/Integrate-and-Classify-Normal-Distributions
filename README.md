@@ -21,18 +21,18 @@ Download the repository, and check out `demo.m` for a set of examples.
 ## Syntax
 * Classify between two Gaussians with specified means `mu_a` and `mu_b`, and covariance matrices `v_a` and `v_b`:
 
-  `results=classify([mu_a,v_a],[mu_b,v_b])`  
+  `results=bayes_classify([mu_a,v_a],[mu_b,v_b])`  
 
 * Specify prior probability of distribution a (assumed equal by default):
 
-  `results=classify([mu_a,v_a],[mu_b,v_b],'p_a',.7)`  
+  `results=bayes_classify([mu_a,v_a],[mu_b,v_b],'p_a',.7)`  
 
 * Input observations instead of parameters:
-  `results=classify(obs_a,obs_b,'type','obs')`
+  `results=bayes_classify(obs_a,obs_b,'type','obs')`
   
 * Supply custom boundary coefficients:
   
-  `results=classify(obs_a,obs_b,'type','obs','custom_bd_coeffs',custom_bd_coeffs)`
+  `results=bayes_classify(obs_a,obs_b,'type','obs','custom_bd_coeffs',custom_bd_coeffs)`
 
 ## Inputs
 For Gaussian parameter inputs,
