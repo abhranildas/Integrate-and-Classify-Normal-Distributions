@@ -38,17 +38,17 @@ elseif dim==2
     dth=1e-3;
     th=-pi/2:dth:pi/2;
     n_list=[cos(th);sin(th)];    
-elseif dim==3    
-    dth=5e-2; dph=5e-2;
-    th=0:dth:pi/2;
-    ph=0:dph:2*pi;
-    n_list=[];
-    for i=1:length(th)
-        for j=1:length(ph)
-            n_list=[n_list,[sin(th(i))*cos(ph(j)); sin(th(i))*sin(ph(j)); cos(th(i))]];
-        end
-    end
-%     n_list=[sin(th).*cos(ph);sin(th).*sin(ph);cos(th)];
+elseif dim==3
+    n_list=fibonacci_sphere(1e4);
+%     dth=5e-2; dph=5e-2;
+%     th=0:dth:pi/2;
+%     ph=0:dph:2*pi;
+%     n_list=[];
+%     for i=1:length(th)
+%         for j=1:length(ph)
+%             n_list=[n_list,[sin(th(i))*cos(ph(j)); sin(th(i))*sin(ph(j)); cos(th(i))]];
+%         end
+%     end    
 end
 
 % Integrate
@@ -72,6 +72,7 @@ for i=1:length(n_list)
     
     rs=roots([q2 q1 a0])'; % quadratic coefficients
     rs=rs(~imag(rs)); % only real roots
+    %rs=rs(rs>0); % only positive roots
     for r=rs
         coords=n*r;
         bd_pts_white=[bd_pts_white,coords];
@@ -82,8 +83,8 @@ for i=1:length(n_list)
         elseif dim==2
             dm=r_sign*exp(-r^2/2);
         elseif dim==3
-            sinth=sqrt(1-n(3)^2);
-            dm=r_sign * (sqrt(pi)/2 * (1-erf(abs(r)/sqrt(2))) + abs(r)*exp(-abs(r)^2/2)/sqrt(2))*sinth;
+            %sinth=sqrt(1-n(3)^2);
+            dm=r_sign * (sqrt(pi)/2 * (1-erf(abs(r)/sqrt(2))) + abs(r)*exp(-abs(r)^2/2)/sqrt(2));%*sinth;
         end
         m=m+sum(dm);
     end
@@ -93,7 +94,8 @@ end
 if dim==2
     m=m*dth/(2*pi);
 elseif dim==3
-    m=m*dth*dph/(2*pi^(3/2));
+    %m=m*dth*dph/(2*pi^(3/2));
+    m=m*2*pi/(size(n_list,2)*2*pi^(3/2));
 end
 
 mass=mass+m;

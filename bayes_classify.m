@@ -1,4 +1,4 @@
-function results=classify(dist_a,dist_b,varargin)
+function results=bayes_classify(dist_a,dist_b,varargin)
 % Classification between two distributions.
 % Author: Abhranil Das <abhranil.das@utexas.edu>
 % Please cite if you use this code.
@@ -64,12 +64,12 @@ results.d_gauss_aprx=d_gauss_aprx;
 % Chernoff bound for error and d'
 fun = @(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,p_a);
 [~,k]=fminbnd(fun,0,1);
-acc_gauss_min=1-k;
-results.acc_gauss_min=acc_gauss_min;
+log_err_gauss_max=k;
+results.log_err_gauss_max=log_err_gauss_max;
 
 fun = @(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,0.5);
 [~,k]=fminbnd(fun,0,1);
-acc_opt_min_chernoff=1-k;
+acc_opt_min_chernoff=1-10^k;
 d_gauss_min=2*norminv(acc_opt_min_chernoff);
 results.d_gauss_min=d_gauss_min;
 
@@ -107,7 +107,7 @@ if dim<=3
         acc_gauss=0.5;
     end
     
-    results.acc_gauss=[acc_gauss, acc_gauss_a, acc_gauss_b];
+    results.err_gauss=[1-acc_gauss, 1-acc_gauss_a, 1-acc_gauss_b];
 %     results.acc_gauss_a=acc_gauss_a;
 %     results.acc_gauss_b=acc_gauss_b;
     results.d_gauss=d_gauss;
@@ -123,7 +123,7 @@ if strcmp(p.Results.type,'obs')
         %acc_obs_start=accuracy_obs(dist_a,dist_b,opt_bd_coeffs_gauss);
         % find boundary that optimizes observed accuracy
         fun = @(x)accuracy_obs_optimize(dim,x,dist_a,dist_b);
-        x=fminsearch(fun,[a2_gauss(:); a1_gauss(:); a0_gauss]);
+        x=fminsearch(fun,[a2_gauss(:); a1_gauss(:); a0_gauss],optimset('Display','iter'));
 
         a2_obs=reshape(x(1:dim^2),[dim dim])';
         a1_obs=x(dim^2+1:dim^2+dim);
@@ -145,12 +145,12 @@ if strcmp(p.Results.type,'obs')
         
         % accuracy with optimal data boundary
         [acc_obs,acc_obs_a,acc_obs_b]=accuracy_obs(dist_a,dist_b,bd_coeffs_obs_opt);        
-        if size(dist_a,1)==size(dist_b,1) % if both category frequencies same,
-            d_obs=2*norminv(acc_obs); % obs accuracy can be used to compute obs d'
-            results.d_obs=d_obs;
-        end
     end
-    results.acc_obs=[acc_obs,acc_obs_a,acc_obs_b];
+    results.err_obs=[1-acc_obs,1-acc_obs_a,1-acc_obs_b];
+    if size(dist_a,1)==size(dist_b,1) % if both category frequencies same,
+        d_obs=2*norminv(acc_obs); % obs accuracy can be used to compute obs d'
+        results.d_obs=d_obs;
+    end
 end
 
 
@@ -159,9 +159,9 @@ if bPlot && dim<=3
     figure; hold on;
     % title
     if strcmp(p.Results.type,'params')
-        title(sprintf("accuracy = %.2f",acc_gauss(1)))
+        title(sprintf("error = %.2f",1-acc_gauss(1)))
     else
-        title(sprintf("accuracy = %.2f",acc_obs(1)))
+        title(sprintf("error = %.2f",1-acc_obs(1)))
     end
     
     if dim==1
