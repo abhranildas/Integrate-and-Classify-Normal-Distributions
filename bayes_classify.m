@@ -159,9 +159,9 @@ if bPlot && dim<=3
     figure; hold on;
     % title
     if strcmp(p.Results.type,'params')
-        title(sprintf("error = %.2f",1-acc_gauss(1)))
+        title(sprintf("error = %g",1-acc_gauss(1)))
     else
-        title(sprintf("error = %.2f",1-acc_obs(1)))
+        title(sprintf("error = %g",1-acc_obs(1)))
     end
     
     if dim==1
