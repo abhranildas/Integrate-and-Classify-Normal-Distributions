@@ -6,7 +6,7 @@ Abhranil Das, R Calen Walshe and Wilson Geisler, Center for Perceptual Systems, 
 
 If you use this code, please cite: [A new method to compute classification error, Journal of Vision.](https://jov.arvojournals.org/article.aspx?articleid=2750251)
 
-Things you can do with this toolbox:
+## This toolbox lets you:
 
 * Given the parameters of two Gaussian distributions, and optionally their prior probabilities,
   * compute the optimal classification accuracy (up to 3D),
