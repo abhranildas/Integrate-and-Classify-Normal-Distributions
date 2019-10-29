@@ -1,7 +1,12 @@
 # Classify
 A set of tools related to computing classification accuracy between two Gaussian distributions or two sets of observations. This provides some functionalities that are not provided by the [classify function in MATLAB's Statistics and Machine Learning Toolbox](https://www.mathworks.com/help/stats/classify.html).
 
-Author: Abhranil Das, Wilson Geisler Lab, Center for Perceptual Systems, The University of Texas at Austin.
+## Authors
+Abhranil Das, R Calen Walshe and Wilson Geisler, Center for Perceptual Systems, The University of Texas at Austin.
+
+## Citation
+
+If you use this code, please cite: [A new method to compute classification error, Journal of Vision.](https://jov.arvojournals.org/article.aspx?articleid=2750251)
 
 Things you can do with this toolbox:
 
