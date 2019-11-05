@@ -12,11 +12,13 @@ If you use this code, please cite: [A new method to compute classification error
   * compute the optimal classification accuracy (up to 3D),
   * return the coefficients of the quadratic equation of the boundary, and a set of points on it,
   * compute the discriminability/sensitivity index d' between the distributions, both exactly (up to 3D) and approximately (any dimensions).
-  * produce a plot
+  * produce a plot of the distributions and the decision boundary.
 
-* Input two sets of observations instead of Gaussian parameters. Gaussian parameters are then estimated and the above results are computed. In addition, a second quadratic boundary is returned that is optimized to better separate the observations, than just the boundary between the fitted Gaussians. This is more useful when the data are less Gaussian.
+* Instead of Gaussian parameters, input sets of observations from the two distributions, whether or not Gaussian. Gaussian parameters are then estimated and the above results are computed. In addition, a second quadratic boundary is returned that is optimized to better separate the observations, than just the boundary between the fitted Gaussians. This is more useful when the data are less Gaussian.
 
-* Supply custom quadratic coefficients of the boundary.
+* Perform classification involving outcome rewards and penalties.
+
+* Supply a custom boundary.
 
 ## Quick start
 Download the repository, and check out `demo.m` for a set of examples.
