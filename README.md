@@ -86,7 +86,7 @@ A set of points on the optimal boundary between the Gaussians. For observation i
 Returned only for observation inputs. Array of three numbers: classification error for the observation samples, for sample a, and for sample b.
 <br><br/>
 ### `d_obs`
-Returned only for observation inputs, and if the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
+Returned when inputs are observations, if the two samples are of equal size, and no custom boundary is specified. d' between the observed samples based on the optimal classification accuracy.
 ### `bd_coeffs_obs_opt`
 Returned only for observation inputs. Matrix-form coefficients `a2`, `a1` and `a0` of the quadratic boundary that optimally separates the observations. We start with the optimal boundary between Gaussians fitted to the data, then optimize the quadratic coefficients to maximize the classification accuracy of the data.
 <br><br/>
