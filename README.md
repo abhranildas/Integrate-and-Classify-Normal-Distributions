@@ -1,19 +1,24 @@
 # Classify
 A set of tools related to computing classification accuracy between two Gaussian distributions or two sets of observations. This provides some functionalities that are not provided by the [classify function in MATLAB's Statistics and Machine Learning Toolbox](https://www.mathworks.com/help/stats/classify.html).
 
-Author: Abhranil Das, Wilson Geisler Lab, Center for Perceptual Systems, The University of Texas at Austin.
+## Credits
+Abhranil Das, R Calen Walshe and Wilson Geisler, Center for Perceptual Systems, The University of Texas at Austin.
 
-Things you can do with this toolbox:
+If you use this code, please cite: [A new method to compute classification error, Journal of Vision.](https://jov.arvojournals.org/article.aspx?articleid=2750251)
+
+## Things you can do with this toolbox
 
 * Given the parameters of two Gaussian distributions, and optionally their prior probabilities,
   * compute the optimal classification accuracy (up to 3D),
   * return the coefficients of the quadratic equation of the boundary, and a set of points on it,
   * compute the discriminability/sensitivity index d' between the distributions, both exactly (up to 3D) and approximately (any dimensions).
-  * produce a plot
+  * produce a plot of the distributions and the decision boundary.
 
-* Input two sets of observations instead of Gaussian parameters. Gaussian parameters are then estimated and the above results are computed. In addition, a second quadratic boundary is returned that is optimized to better separate the observations, than just the boundary between the fitted Gaussians. This is more useful when the data are less Gaussian.
+* Instead of Gaussian parameters, input sets of observations from the two distributions, whether or not Gaussian. Gaussian parameters are then estimated and the above results are computed. In addition, a second quadratic boundary is returned that is optimized to better separate the observations, than just the boundary between the fitted Gaussians. This is more useful when the data are less Gaussian.
 
-* Supply custom quadratic coefficients of the boundary.
+* Perform classification involving outcome rewards and penalties.
+
+* Supply a custom boundary.
 
 ## Quick start
 Download the repository, and check out `demo.m` for a set of examples.
@@ -77,16 +82,31 @@ For observation inputs, this corresponds to Gaussians fitted to the data.
 ### `bd_pts_gauss_opt`
 A set of points on the optimal boundary between the Gaussians. For observation inputs, this corresponds to Gaussians fitted to the data.
 <br><br/>
+### `outcome_counts_obs`
+Returned when inputs are observations. 2x2 matrix of counts of the four classification outcomes. Entry (1,1): true category was *a* and was classified as *a*, entry (1,2): true category was *a* but was classified as *b*, etc.
+<br><br/>
 ### `err_obs`
 Returned only for observation inputs. Array of three numbers: classification error for the observation samples, for sample a, and for sample b.
 <br><br/>
 ### `d_obs`
-Returned only for observation inputs, and if the two samples are of equal size. d' between the observed distributions based on the classification accuracy of the data.
+Returned when inputs are observations, if the two samples are of equal size, and no custom boundary is specified. d' between the observed samples based on the optimal classification accuracy.
+<br><br/>
 ### `bd_coeffs_obs_opt`
 Returned only for observation inputs. Matrix-form coefficients `a2`, `a1` and `a0` of the quadratic boundary that optimally separates the observations. We start with the optimal boundary between Gaussians fitted to the data, then optimize the quadratic coefficients to maximize the classification accuracy of the data.
 <br><br/>
 ### `bd_pts_obs_opt`
 Returned only for observation inputs. A set of points on the above optimized boundary between the observations.
 <br><br/>
+### `outcome_vals_gauss`
+Returned when outcome values are supplied in the input. A 2x2 matrix of the expected values of the four classification outcomes, given the masses of the two Gaussians in the two decision regions. Entry (1,1): true category was *a* and was classified as *a*, entry (1,2): true category was *a* but was classified as *b*, etc.
+<br><br/>
+### `val_ex_gauss`
+Returned when outcome values are supplied in the input. Overall expected classification outcome value given the masses of the two Gaussians in the two decision regions.
+<br><br/>
+### `outcome_vals_obs`
+Returned when inputs are observations and outcome values are supplied. A 2x2 matrix of total values from the four outcomes. Entry (1,1): true category was *a* and was classified as *a*, entry (1,2): true category was *a* but was classified as *b*, etc.
+<br><br/>
+### `val_ex_obs`
+Returned when inputs are observations and outcome values are supplied. Overall expected classification outcome value based on the observations and the observation-based boundary.
 
  ![Summary image](https://github.com/abhranildas/classify/blob/master/summary_image.png)
