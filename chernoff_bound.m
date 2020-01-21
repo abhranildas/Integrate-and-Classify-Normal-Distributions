@@ -1,7 +1,13 @@
 function k=chernoff_bound(b,mu_a,v_a,mu_b,v_b,p_a)
 % Log of Chernoff upper bound of classification error between two Gaussians.
-% Author: Abhranil Das <abhranil.das@utexas.edu>
-% Please cite if you use this code.
+% Credits:
+%   Abhranil Das <abhranil.das@utexas.edu>
+%	R Calen Walshe
+%	Wilson S Geisler
+%	Center for Perceptual Systems, University of Texas at Austin
+% If you use this code, please cite:
+%   A new method to compute classification error
+%   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 % k=p_a^b*(1-p_a)^(1-b)* exp(-...
 %     [b*(1-b)/2*((mu_b-mu_a)'*inv(b*v_a+(1-b)*v_b)*(mu_b-mu_a))...

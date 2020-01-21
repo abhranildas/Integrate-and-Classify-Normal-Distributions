@@ -2,8 +2,14 @@ function points=fibonacci_sphere(n_samples)
 % Fibonacci sphere algorithm for evenly distributed
 % points on a sphere, translated from:
 % https://stackoverflow.com/a/26127012/711017
-% to MATLAB by: Abhranil Das <abhranil.das@utexas.edu>
-% Please cite if you use this code.
+% Credits:
+%   Abhranil Das <abhranil.das@utexas.edu>
+%	R Calen Walshe
+%	Wilson S Geisler
+%	Center for Perceptual Systems, University of Texas at Austin
+% If you use this code, please cite:
+%   A new method to compute classification error
+%   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 points=nan(3,n_samples);
 offset=2./n_samples;

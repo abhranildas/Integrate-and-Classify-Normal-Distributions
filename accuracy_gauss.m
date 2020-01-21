@@ -1,7 +1,13 @@
-function [mass,bd_pts,bd_sign]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,custom_bd_coeffs)
+function [mass,bd_pts,bd_sign]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,vals,custom_bd_coeffs)
 % Compute classification accuracy between two Gaussians.
-% Author: Abhranil Das <abhranil.das@utexas.edu>
-% Please cite if you use this code.
+% Credits:
+%   Abhranil Das <abhranil.das@utexas.edu>
+%	R Calen Walshe
+%	Wilson S Geisler
+%	Center for Perceptual Systems, University of Texas at Austin
+% If you use this code, please cite:
+%   A new method to compute classification error
+%   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 dim=length(mu_a);
 
@@ -28,7 +34,7 @@ else
     % boundary coefficients:
     a2=inv(S)-eye(dim);
     a1=-2*(S\mu);
-    a0=mu'/S*mu+log((p_a/(1-p_a))^2*det(S));
+    a0=mu'/S*mu+log((((vals(1,1)-vals(1,2))*p_a)/((vals(2,2)-vals(2,1))*(1-p_a)))^2*det(S));
 end
 
 % Create grid of unit vectors

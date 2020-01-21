@@ -1,14 +1,20 @@
 function results=bayes_classify(dist_a,dist_b,varargin)
 % Classification between two distributions.
-% Author: Abhranil Das <abhranil.das@utexas.edu>
-% Please cite if you use this code.
+% Credits:
+%   Abhranil Das <abhranil.das@utexas.edu>
+%	R Calen Walshe
+%	Wilson S Geisler
+%	Center for Perceptual Systems, University of Texas at Austin
+% If you use this code, please cite:
+%   A new method to compute classification error
+%   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 % parse inputs
 p = inputParser;
-validNum = @(x) isnumeric(x);
-addRequired(p,'dist_a',validNum);
-addRequired(p,'dist_b',validNum);
+addRequired(p,'dist_a',@(x) isnumeric(x));
+addRequired(p,'dist_b',@(x) isnumeric(x));
 addParameter(p,'p_a',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
+addParameter(p,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(p,'custom_bd_coeffs',[]);
 addParameter(p,'type','params', @(s) strcmp(s,'params') || strcmp(s,'obs'));
 addParameter(p,'bPlot',1, @(x) (x == 0) || (x == 1));
@@ -36,6 +42,9 @@ else
 end    
 
 p_b=1-p_a;
+
+vals=p.Results.vals;
+
 custom_bd_coeffs_a=p.Results.custom_bd_coeffs;
 custom_bd_coeffs_b=custom_bd_coeffs_a;
 
@@ -45,13 +54,10 @@ dim=length(mu_a); % dimension
 
 % if custom boundary is provided,
 if ~isempty(custom_bd_coeffs_a)
-    a2_c=custom_bd_coeffs_a.a2;
-    a1_c=custom_bd_coeffs_a.a1;
-    a0_c=custom_bd_coeffs_a.a0;
     % flip custom boundary sign for b
-    custom_bd_coeffs_b.a2=-a2_c;
-    custom_bd_coeffs_b.a1=-a1_c;
-    custom_bd_coeffs_b.a0=-a0_c;
+    custom_bd_coeffs_b.a2=-custom_bd_coeffs_a.a2;
+    custom_bd_coeffs_b.a1=-custom_bd_coeffs_a.a1;
+    custom_bd_coeffs_b.a0=-custom_bd_coeffs_a.a0;
 end
 
 % approximate d' (considering equal vcov)
@@ -76,80 +82,102 @@ results.d_gauss_min=d_gauss_min;
 % Coefficients of optimal decision boundary:
 a2_gauss=inv(v_b)-inv(v_a);
 a1_gauss=2*(v_a\mu_a-v_b\mu_b);
-a0_gauss=mu_b'/v_b*mu_b-mu_a'/v_a*mu_a+log((p_a/p_b)^2*det(v_b)/det(v_a));
-bd_coeffs_gauss_opt=struct;
-bd_coeffs_gauss_opt.a2=a2_gauss;
-bd_coeffs_gauss_opt.a1=a1_gauss;
-bd_coeffs_gauss_opt.a0=a0_gauss;
-results.bd_coeffs_gauss_opt=bd_coeffs_gauss_opt;
+a0_gauss=mu_b'/v_b*mu_b-mu_a'/v_a*mu_a+log((((vals(1,1)-vals(1,2))*p_a)/((vals(2,2)-vals(2,1))*p_b))^2*det(v_b)/det(v_a));
+bd_coeffs_gauss_opt_a=struct;
+bd_coeffs_gauss_opt_a.a2=a2_gauss;
+bd_coeffs_gauss_opt_a.a1=a1_gauss;
+bd_coeffs_gauss_opt_a.a0=a0_gauss;
+results.bd_coeffs_gauss_opt=bd_coeffs_gauss_opt_a;
 
 if dim<=3
     % compute optimal accuracy and d' for gaussians
-    [acc_gauss_opt_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,.5,[]);
-    [acc_gauss_opt_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,.5,[]);
+    [acc_gauss_opt_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,.5,eye(2),[]);
+    [acc_gauss_opt_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,.5,eye(2),[]);
     acc_gauss_opt=mean([acc_gauss_opt_a,acc_gauss_opt_b]);
     d_gauss=2*norminv(acc_gauss_opt);
     
     % compute accuracy and boundary for each gaussian, and combine
-    [acc_gauss_a,dec_bd_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,custom_bd_coeffs_a);
-    [acc_gauss_b,dec_bd_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,p_b,custom_bd_coeffs_b);
+    [acc_gauss_a,bd_pts_gauss_opt_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,vals,custom_bd_coeffs_a);
+    [acc_gauss_b,bd_pts_gauss_opt_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,p_b,rot90(vals,2),custom_bd_coeffs_b);
     acc_gauss=p_a*acc_gauss_a+p_b*acc_gauss_b;
-    bd_pts=[dec_bd_a,dec_bd_b];
+    bd_pts_gauss_opt=[bd_pts_gauss_opt_a,bd_pts_gauss_opt_b];
     
     if isempty(custom_bd_coeffs_a)
-        results.bd_pts_gauss_opt=bd_pts;
+        results.bd_pts_gauss_opt=bd_pts_gauss_opt;
     else
-        results.bd_pts_custom=bd_pts;
+        results.bd_pts_custom=bd_pts_gauss_opt;
     end
     
     % if no bdry found, dists are identical:
-    if ~numel(bd_pts)
+    if ~numel(bd_pts_gauss_opt)
         acc_gauss=0.5;
     end
     
-    results.err_gauss=[1-acc_gauss, 1-acc_gauss_a, 1-acc_gauss_b];
+    results.errs_gauss=[1-acc_gauss, 1-acc_gauss_a, 1-acc_gauss_b];
 %     results.acc_gauss_a=acc_gauss_a;
 %     results.acc_gauss_b=acc_gauss_b;
-    results.d_gauss=d_gauss;
+    results.d_gauss=d_gauss;  
+    
+    if ~isequal(vals,eye(2)) % if outcome values are supplied
+        results.outcome_vals_gauss=[vals(1,1)*p_a*acc_gauss_a, vals(1,2)*p_a*(1-acc_gauss_a);...
+            vals(2,1)*p_b*(1-acc_gauss_b), vals(2,2)*p_b*acc_gauss_b];
+        results.val_ex_gauss=(vals(1,1)-vals(1,2))*p_a*acc_gauss_a + ...
+            (vals(2,2)-vals(2,1))*p_b*acc_gauss_b + vals(1,2)*p_a + vals(2,1)*p_b;
+    end
 end
 
 % if input is observations,
 if strcmp(p.Results.type,'obs')
     % if custom boundary is provided,
     if ~isempty(custom_bd_coeffs_a)
-        % compute observed accuracy with custom boundary
-        [acc_obs,acc_obs_a,acc_obs_b]=accuracy_obs(dist_a,dist_b,custom_bd_coeffs_a);
+        % compute accuracy and expected value with custom boundary
+        [acc_obs,acc_obs_a,acc_obs_b,outcome_counts_obs]=val_obs(dist_a,dist_b,custom_bd_coeffs_a,eye(size(dist_a,2)));
+        [val_ex_obs, val_ex_obs_a, val_ex_obs_b, outcome_vals_obs]=val_obs(dist_a,dist_b,custom_bd_coeffs_a,vals);
     else
         %acc_obs_start=accuracy_obs(dist_a,dist_b,opt_bd_coeffs_gauss);
-        % find boundary that optimizes observed accuracy
-        fun = @(x)accuracy_obs_optimize(dim,x,dist_a,dist_b);
+        % find boundary that optimizes expected value / accuracy
+        fun = @(x)-val_obs_flat(dim,x,dist_a,dist_b,vals);
         x=fminsearch(fun,[a2_gauss(:); a1_gauss(:); a0_gauss],optimset('Display','iter'));
 
         a2_obs=reshape(x(1:dim^2),[dim dim])';
         a1_obs=x(dim^2+1:dim^2+dim);
         a0_obs=x(end);
 
-        bd_coeffs_obs_opt=struct;
-        bd_coeffs_obs_opt.a2=a2_obs;
-        bd_coeffs_obs_opt.a1=a1_obs;
-        bd_coeffs_obs_opt.a0=a0_obs;
-        results.bd_coeffs_obs_opt=bd_coeffs_obs_opt;
+        bd_coeffs_obs_opt_a=struct;
+        bd_coeffs_obs_opt_a.a2=a2_obs;
+        bd_coeffs_obs_opt_a.a1=a1_obs;
+        bd_coeffs_obs_opt_a.a0=a0_obs;
+        results.bd_coeffs_obs_opt=bd_coeffs_obs_opt_a;
+        
+        % flip boundary sign for b
+        bd_coeffs_obs_opt_b.a2=-bd_coeffs_obs_opt_a.a2;
+        bd_coeffs_obs_opt_b.a1=-bd_coeffs_obs_opt_a.a1;
+        bd_coeffs_obs_opt_b.a0=-bd_coeffs_obs_opt_a.a0;
         
         if dim<=3
             % optimal boundary points
-            [~,bd_pts_obs_opt_a]=accuracy_gauss(mu_a,v_a,mu_b,v_b,p_a,bd_coeffs_obs_opt);
-            [~,bd_pts_obs_opt_b]=accuracy_gauss(mu_b,v_b,mu_a,v_a,p_b,bd_coeffs_obs_opt);
+            [~,bd_pts_obs_opt_a]=accuracy_gauss(mu_a,v_a,[],[],[],[],bd_coeffs_obs_opt_a);
+            [~,bd_pts_obs_opt_b]=accuracy_gauss(mu_b,v_b,[],[],[],[],bd_coeffs_obs_opt_b);
             bd_pts_obs_opt=[bd_pts_obs_opt_a,bd_pts_obs_opt_b];
             results.bd_pts_obs_opt=bd_pts_obs_opt;
         end
         
         % accuracy with optimal data boundary
-        [acc_obs,acc_obs_a,acc_obs_b]=accuracy_obs(dist_a,dist_b,bd_coeffs_obs_opt);        
+        [acc_obs,acc_obs_a,acc_obs_b,outcome_counts_obs]=val_obs(dist_a,dist_b,bd_coeffs_obs_opt_a,eye(2));
+        
+        % expected value with optimal data boundary
+        [val_ex_obs,~,~,outcome_vals_obs]=val_obs(dist_a,dist_b,bd_coeffs_obs_opt_a,vals);
+        
+        if size(dist_a,1)==size(dist_b,1) % if both category frequencies same,
+            d_obs=2*norminv(acc_obs); % obs accuracy can be used to compute obs d'
+            results.d_obs=d_obs;
+        end
     end
-    results.err_obs=[1-acc_obs,1-acc_obs_a,1-acc_obs_b];
-    if size(dist_a,1)==size(dist_b,1) % if both category frequencies same,
-        d_obs=2*norminv(acc_obs); % obs accuracy can be used to compute obs d'
-        results.d_obs=d_obs;
+    results.errs_obs=[1-acc_obs,1-acc_obs_a,1-acc_obs_b];
+    results.outcome_counts_obs=outcome_counts_obs;
+    if ~isequal(vals,eye(2)) % if outcome values are supplied
+        results.val_ex_obs=val_ex_obs;
+        results.outcome_vals_obs=outcome_vals_obs;
     end
 end
 
@@ -184,7 +212,7 @@ if bPlot && dim<=3
         area(x_b,y_b,'facecolor','red','facealpha',0.4,'edgecolor','red','edgealpha',0.5,'linewidth',1)
         
         % plot boundary
-        for x=bd_pts
+        for x=bd_pts_gauss_opt
             line([x x],ylim,'color','k','linewidth',1)
         end
         if strcmp(p.Results.type,'obs')&& isempty(custom_bd_coeffs_a)
@@ -217,14 +245,14 @@ if bPlot && dim<=3
         plot(dist_b(1,:),dist_b(2,:),'-','color','red')
         
         % plot boundary
-        if numel(bd_pts)
-            plot(bd_pts(1,:),bd_pts(2,:),'.k')
+        if numel(bd_pts_gauss_opt)
+            plot(bd_pts_gauss_opt(1,:),bd_pts_gauss_opt(2,:),'.k')
         end
         if strcmp(p.Results.type,'obs') && isempty(custom_bd_coeffs_a)
             plot(bd_pts_obs_opt(1,:),bd_pts_obs_opt(2,:),'.','color',.5*[1 1 1])
         end
         
-        axis image
+        %axis image
         %xlim([min(mu_a(1)-sig_a(1,1),mu_b(1)-sig_b(1,1)),max(mu_a(1)+sig_a(1,1),mu_b(1)+sig_b(1,1))])
         %ylim([min(mu_a(2)-sig_a(2,2),mu_b(2)-sig_b(2,2)),max(mu_a(2)+sig_a(2,2),mu_b(2)+sig_b(2,2))])
     
@@ -264,8 +292,8 @@ if bPlot && dim<=3
         rotate(ellipsoid_b,[0 0 1],rot_angles(3),mu_b)
         
         % plot boundary       
-        if numel(bd_pts)
-            plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.k','markersize',5);
+        if numel(bd_pts_gauss_opt)
+            plot3(bd_pts_gauss_opt(1,:),bd_pts_gauss_opt(2,:),bd_pts_gauss_opt(3,:),'.k','markersize',5);
             %[t]=MyCrustOpen(bd_pts');
             %trisurf(t,bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'facecolor',.5*[1 1 1],'facealpha',.1,'edgecolor','k','edgealpha',.2)
         end
@@ -273,7 +301,7 @@ if bPlot && dim<=3
             plot3(bd_pts_obs_opt(1,:),bd_pts_obs_opt(2,:),bd_pts_obs_opt(3,:),'.','color',.5*[1 1 1],'markersize',5)
         end
         
-        axis image
+        %axis image
         grid on
         xlim([min(mu_a(1)-v_a(1,1),mu_b(1)-v_b(1,1)),max(mu_a(1)+v_a(1,1),mu_b(1)+v_b(1,1))])
         ylim([min(mu_a(2)-v_a(2,2),mu_b(2)-v_b(2,2)),max(mu_a(2)+v_a(2,2),mu_b(2)+v_b(2,2))])
