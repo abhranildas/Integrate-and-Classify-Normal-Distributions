@@ -49,11 +49,7 @@ For observation inputs,
 <br><br/>
 * `p_a`: prior probability of distribution a. Default is 0.5. For observation inputs, prior probabilities are by default the relative sample sizes. If `p_a` is specified in this case, it is taken to be the prior of the Gaussian fitted to the data, and affects only the Gaussian-fit-based outputs, not the observation-based outputs.
 * `type`: input type. Specify as `obs` if inputs are observations instead of Gaussian parameters. 
-* `custom_bd_coeffs`: coefficients `a2`, `a1` and `a0` of a custom quadratic boundary, written in matrix form:
-
-<a href="https://www.codecogs.com/eqnedit.php?latex=\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" title="\boldsymbol{x}' \boldsymbol{a_2} \boldsymbol{x} + \boldsymbol{a_1}' \boldsymbol{x} + a_0 = 0" /></a>
-
-If d is the number of dimensions, this is an equation of the length-d vector variable x. `a2` is a d x d matrix (scalar for 1D), `a1` is a length-d column vector (scalar for 1D), and `a0` is a scalar.
+* `custom_bd_coeffs`: coefficients `a2`, `a1` and `a0` of a custom quadratic boundary, written in matrix form: <a href="https://www.codecogs.com/eqnedit.php?latex=\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\boldsymbol{x}'&space;\boldsymbol{a_2}&space;\boldsymbol{x}&space;&plus;&space;\boldsymbol{a_1}'&space;\boldsymbol{x}&space;&plus;&space;a_0&space;=&space;0" title="\boldsymbol{x}' \boldsymbol{a_2} \boldsymbol{x} + \boldsymbol{a_1}' \boldsymbol{x} + a_0 = 0" /></a>. If d is the number of dimensions, this is an equation of the length-d vector variable x. `a2` is a d x d matrix (scalar for 1D), `a1` is a length-d column vector (scalar for 1D), and `a0` is a scalar.
 * `bPlot`: specify 0 if you don't want a plot. 1 by default.
 
 ## Outputs
