@@ -18,15 +18,8 @@ parser = inputParser;
 addParameter(parser,'vals',[], @(x) isnumeric(x) && ismatrix(x)); % TODO default vals
 parse(parser,varargin{:});
 
-
-mu_a=dist_a(:,1);
-v_a=dist_a(:,2:end);
-mu_b=dist_b(:,1);
-v_b=dist_b(:,2:end);
-
-p_a=parser.Results.p_a;
-p_b=1-p_a;
-vals=parser.Results.vals;
+%vals=parser.Results.vals;
 
 % find boundary distance and sign
-[r,r_sign]=quad_bd(n,mu_a,v_a,coeffs);
+[r,r_sign]=opt_bd(n,[normals(1).mu, normals(1).v],[normals(2).mu, normals(2).v],...
+    'p_a',normals(1).p/(normals(1).p+normals(2).p));
