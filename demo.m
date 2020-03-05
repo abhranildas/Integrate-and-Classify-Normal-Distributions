@@ -62,13 +62,15 @@ v_b=1.4*v_a;
 results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
 
 %% 2D, input observations
+n_samp=1e2;
+
 mu_a=[2 4];
 v_a=[1 1.5; 1.5 3];
-obs_a = mvnrnd(mu_a,v_a,1e4);
+obs_a = mvnrnd(mu_a,v_a,n_samp);
 
 mu_b=[5 0];
 v_b=[3 0; 0 1];
-obs_b = mvnrnd(mu_b,v_b,1e4);
+obs_b = mvnrnd(mu_b,v_b,n_samp);
 
 results1=bayes_classify(obs_a,obs_b,'type','obs');
 
@@ -77,7 +79,7 @@ xlim([-10 10])
 ylim([-10 10])
 
 % modify boundary
-custom_bd_coeffs=results1.bd_coeffs_obs_opt;
+custom_bd_coeffs=results1.bd_coeffs_obs;
 custom_bd_coeffs.a2=custom_bd_coeffs.a2+.2;
 custom_bd_coeffs.a1=custom_bd_coeffs.a1-5;
 custom_bd_coeffs.a0=custom_bd_coeffs.a0+10;
@@ -90,13 +92,12 @@ xlim([-10 10])
 ylim([-10 10])
 
 %% 2D, input non-Gaussian observations
-n_samp=100;
+n_samp=1e3;
 obs_a=unifrnd(0,3,[n_samp 2]);
-obs_b=unifrnd(1,4,[n_samp 2]);
+obs_b=unifrnd(1,6,[n_samp 2]);
 
 results=bayes_classify(obs_a,obs_b,'type','obs');
-xlim([-1 5])
-ylim([-1 5])
+xlim([-1 5]); ylim([-1 5]); axis image
 
 %% 3D, simple
 mu_a=[0;0;0];
@@ -105,7 +106,17 @@ v_a=eye(3);
 mu_b=[2;1;1];
 v_b=2*eye(3);
 
+tic
 results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+toc
+
+% force grid method
+bd_fn_a=@(n) opt_bd(n,[mu_a,v_a],[mu_b,v_b]);
+bd_fn_b=@(n) opt_bd(n,[mu_b,v_b],[mu_a,v_a]);
+
+tic
+results_grid=bayes_classify([mu_a,v_a],[mu_b,v_b],'custom_bd_fns',{bd_fn_a,bd_fn_b});
+toc
 
 %% 3D, far apart
 mu_a=[0;0;0];
@@ -114,7 +125,7 @@ v_a=eye(3);
 mu_b=[100;0;0];
 v_b=1.5*eye(3);
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b])
+results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
 
 %% 3D, complex
 mu_a=[0;0;0];
@@ -143,7 +154,7 @@ mu_a=[0;0;0;0];
 v_a=eye(4);
 
 mu_b=[1;1;1;1];
-v_b=eye(4);
+v_b=2*eye(4);
 
 results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
 

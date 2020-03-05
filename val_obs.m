@@ -1,4 +1,4 @@
-function [val_ex_obs, val_ex_obs_a, val_ex_obs_b, outcome_vals_obs]=val_obs(obs_a,obs_b,bd_coeffs,vals)
+function [ex_val_obs, ex_val_obs_a, ex_val_obs_b, outcome_vals_obs]=val_obs(obs_a,obs_b,bd_coeffs,vals)
 % Expected value given two samples and a boundary. If outcome values
 % are not additionally specified, this is the classification accuracy.
 % Credits:
@@ -23,10 +23,10 @@ outcome_vals_obs(1,2)=sum(~correct_obs_a)*vals(1,2);
 outcome_vals_obs(2,2)=sum(correct_obs_b)*vals(2,2);
 outcome_vals_obs(2,1)=sum(~correct_obs_b)*vals(2,1);
 
-val_ex_obs_a=sum(outcome_vals_obs(1,:))/size(obs_a,1);
-val_ex_obs_b=sum(outcome_vals_obs(2,:))/size(obs_b,1);
+ex_val_obs_a=sum(outcome_vals_obs(1,:))/size(obs_a,1);
+ex_val_obs_b=sum(outcome_vals_obs(2,:))/size(obs_b,1);
 
-val_ex_obs=sum(outcome_vals_obs(:))/(size(obs_a,1)+size(obs_b,1));
+ex_val_obs=sum(outcome_vals_obs(:))/(size(obs_a,1)+size(obs_b,1));
 
 % acc_obs_a=mean(correct_obs_a);
 % acc_obs_b=mean(correct_obs_b);

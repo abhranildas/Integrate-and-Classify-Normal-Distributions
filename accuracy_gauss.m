@@ -41,7 +41,7 @@ end
 if dim==1
     n_list=[1];
 elseif dim==2
-    dth=1e-3;
+    dth=1e-4;
     th=-pi/2:dth:pi/2;
     n_list=[cos(th);sin(th)];    
 elseif dim==3
