@@ -15,10 +15,10 @@ v_a=1;
 mu_b=2.5;
 v_b=1.5;
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b]);
 
 % with outcome utilities
-results=bayes_classify([mu_a,v_a],[mu_b,v_b],'val',[2 0; 0 1]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b],'val',[2 0; 0 1]);
 
 %% 1D, unequal prior
 mu_a=0;
@@ -27,7 +27,7 @@ v_a=1;
 mu_b=0.5;
 v_b=1.5;
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b],'p_a',.7);
+results=classify_normals([mu_a,v_a],[mu_b,v_b],'p_a',.7);
 
 %% 1D, input observations, unequal occurrences
 mu_a=0;
@@ -38,7 +38,7 @@ mu_b=0.5;
 v_b=1.5;
 obs_b=normrnd(mu_b,sqrt(v_b),[300 1]);
 
-results=bayes_classify(obs_a,obs_b,'type','obs');
+results=classify_normals(obs_a,obs_b,'type','obs');
 
 %% 1D, input observations, outcome values
 mu_a=0;
@@ -49,7 +49,7 @@ mu_b=2.5;
 v_b=1.5;
 obs_b=normrnd(mu_b,sqrt(v_b),[1000 1]);
 
-results=bayes_classify(obs_a,obs_b,'type','obs',...
+results=classify_normals(obs_a,obs_b,'type','obs',...
     'val',[4 0; 0 1]);
 
 %% 2D, simple
@@ -59,7 +59,7 @@ v_a=[2 1.1; 1.1 1];
 mu_b=mu_a;
 v_b=1.4*v_a;
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b]);
 
 %% 2D, input observations
 n_samp=1e2;
@@ -72,7 +72,7 @@ mu_b=[5 0];
 v_b=[3 0; 0 1];
 obs_b = mvnrnd(mu_b,v_b,n_samp);
 
-results1=bayes_classify(obs_a,obs_b,'type','obs');
+results1=classify_normals(obs_a,obs_b,'type','obs');
 
 axis image
 xlim([-10 10])
@@ -84,7 +84,7 @@ custom_bd_coeffs.a2=custom_bd_coeffs.a2+.2;
 custom_bd_coeffs.a1=custom_bd_coeffs.a1-5;
 custom_bd_coeffs.a0=custom_bd_coeffs.a0+10;
 
-results2=bayes_classify(obs_a,obs_b,'type','obs',...
+results2=classify_normals(obs_a,obs_b,'type','obs',...
     'custom_bd_coeffs',custom_bd_coeffs);
 
 axis image
@@ -96,7 +96,7 @@ n_samp=1e3;
 obs_a=unifrnd(0,3,[n_samp 2]);
 obs_b=unifrnd(1,6,[n_samp 2]);
 
-results=bayes_classify(obs_a,obs_b,'type','obs');
+results=classify_normals(obs_a,obs_b,'type','obs');
 xlim([-1 5]); ylim([-1 5]); axis image
 
 %% 3D, simple
@@ -107,7 +107,7 @@ mu_b=[2;1;1];
 v_b=2*eye(3);
 
 tic
-results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b]);
 toc
 
 % force grid method
@@ -115,7 +115,7 @@ bd_fn_a=@(n) opt_bd(n,[mu_a,v_a],[mu_b,v_b]);
 bd_fn_b=@(n) opt_bd(n,[mu_b,v_b],[mu_a,v_a]);
 
 tic
-results_grid=bayes_classify([mu_a,v_a],[mu_b,v_b],'custom_bd_fns',{bd_fn_a,bd_fn_b});
+results_grid=classify_normals([mu_a,v_a],[mu_b,v_b],'custom_bd_fns',{bd_fn_a,bd_fn_b});
 toc
 
 %% 3D, far apart
@@ -125,7 +125,7 @@ v_a=eye(3);
 mu_b=[100;0;0];
 v_b=1.5*eye(3);
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b]);
 
 %% 3D, complex
 mu_a=[0;0;0];
@@ -134,7 +134,7 @@ v_a=[1 .5 0; .5 2 1; 0 1 4];
 mu_b=[2; 1; 2];
 v_b=[2 1 -1.5; 1 3 -2; -1.5 -2 4];
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b]);
 
 %% 3D, from actual detection experiment
 
@@ -144,7 +144,7 @@ absent = [dataArray{1:end-1}];
 dataArray = textscan(fopen('present.txt','r'), '%*q%f%f%f%[^\n\r]', 'Delimiter', ',', 'HeaderLines' ,1);
 present = [dataArray{1:end-1}];
 
-results=bayes_classify(absent,present,'type','obs');
+results=classify_normals(absent,present,'type','obs');
 axis normal
 xlim([0 1.5]); ylim([0 .5]); zlim([-200 200]);
 xlabel('edge'); ylabel('luminance'); zlabel('pattern');
@@ -156,7 +156,7 @@ v_a=eye(4);
 mu_b=[1;1;1;1];
 v_b=2*eye(4);
 
-results=bayes_classify([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_a,v_a],[mu_b,v_b]);
 
 %% 4D, input observations
 mu_a=[0;0;0;0];
@@ -167,5 +167,5 @@ mu_b=[1;1;1;1];
 v_b=eye(4);
 obs_b = mvnrnd(mu_b,v_b,1000);
 
-results=bayes_classify(obs_a,obs_b,'type','obs');
+results=classify_normals(obs_a,obs_b,'type','obs');
 

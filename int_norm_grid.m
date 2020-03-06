@@ -20,7 +20,7 @@ if dim==1
     n_list=[1];
 elseif dim==2
     dth=pi/n_points;
-    th=-pi/2:dth:pi/2;
+    th=0:dth:pi;
     n_list=[cos(th);sin(th)];    
 elseif dim==3
     n_list=fibonacci_sphere(n_points);

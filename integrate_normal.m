@@ -1,4 +1,4 @@
-function [p,bd_pts]=integrate_normal(mu,v,varargin)
+function [p,pc,bd_pts]=integrate_normal(mu,v,varargin)
 % Integrate a normal distribution over a specified region.
 %
 % How to use this command:
@@ -40,7 +40,7 @@ if ~isempty(parser.Results.bd_coeffs) % quadratic coefficients
     bd_coeffs_std.a1=C'*(2*bd_coeffs.a2*mu+bd_coeffs.a1);
     bd_coeffs_std.a0=mu'*bd_coeffs.a2*mu+bd_coeffs.a1'*mu+bd_coeffs.a0;
     % get integral from the generalized chi-squared method
-    p=int_stdnorm_quad_gx2(bd_coeffs_std);
+    [p,pc]=int_stdnorm_quad_gx2(bd_coeffs_std);
 end
 
 bd_pts=[];
