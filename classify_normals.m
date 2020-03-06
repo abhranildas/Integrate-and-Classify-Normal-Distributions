@@ -22,7 +22,7 @@ addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'custom_bd_coeffs',[]);
 addParameter(parser,'custom_bd_fns',[]);
 addParameter(parser,'type','params', @(s) strcmp(s,'params') || strcmp(s,'obs'));
-addParameter(parser,'bPlot',1, @(x) islogical(x));
+addParameter(parser,'bPlot',true, @(x) islogical(x));
 
 parse(parser,dist_a,dist_b,varargin{:});
 

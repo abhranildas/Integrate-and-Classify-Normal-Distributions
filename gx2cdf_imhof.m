@@ -34,4 +34,5 @@ imhof_integral=integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf);
 
 % compute the CDF
 Q=0.5-imhof_integral/pi;
+Q=max(0,Q); % sometimes the imhof_integral is slightly inaccurately below 0.
 end
