@@ -168,8 +168,8 @@ if strcmp(parser.Results.type,'obs')
         
         if dim<=3
             % boundary points
-            [~,bd_pts_obs_a]=integrate_normal(mu_a,v_a,'bd_coeffs',bd_coeffs_obs_a,'bPlot',false);
-            [~,bd_pts_obs_b]=integrate_normal(mu_b,v_b,'bd_coeffs',bd_coeffs_obs_b,'bPlot',false);
+            [~,~,bd_pts_obs_a]=integrate_normal(mu_a,v_a,'bd_coeffs',bd_coeffs_obs_a,'bPlot',false);
+            [~,~,bd_pts_obs_b]=integrate_normal(mu_b,v_b,'bd_coeffs',bd_coeffs_obs_b,'bPlot',false);
             bd_pts_obs=[bd_pts_obs_a,bd_pts_obs_b];
             results.bd_pts_obs=bd_pts_obs;
         end

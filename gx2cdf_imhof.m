@@ -26,13 +26,9 @@ function Q=gx2cdf_imhof(x,lambda,m,delta)
         % lambda, m, delta must be column vectors.
         theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
         rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
-        f=sin(theta)./(u.*rho);
+        f=exp(-u)/2-sin(theta)./(pi*u.*rho);
     end
 
 % compute the integral
-imhof_integral=integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf);
-
-% compute the CDF
-Q=0.5-imhof_integral/pi;
-Q=max(0,Q); % sometimes the imhof_integral is slightly inaccurately below 0.
+Q=integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf);
 end
