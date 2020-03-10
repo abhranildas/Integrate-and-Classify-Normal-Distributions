@@ -17,7 +17,7 @@ function results=classify_normals(dist_a,dist_b,varargin)
 parser = inputParser;
 addRequired(parser,'dist_a',@(x) isnumeric(x));
 addRequired(parser,'dist_b',@(x) isnumeric(x));
-addParameter(parser,'p_a',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
+addParameter(parser,'prior_a',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'custom_bd_coeffs',[]);
 addParameter(parser,'custom_bd_fns',[]);
@@ -38,19 +38,19 @@ elseif strcmp(parser.Results.type,'obs')
     v_b=cov(dist_b);    
 end
 
-% if input obs and p_a is not specified,
-if strcmp(parser.Results.type,'obs') && any(strcmp(parser.UsingDefaults,'p_a'))
-    % set p_a according to input sample sizes
-    p_a=size(dist_a,1)/(size(dist_a,1)+size(dist_b,1));
+% if input obs and prior_a is not specified,
+if strcmp(parser.Results.type,'obs') && any(strcmp(parser.UsingDefaults,'prior_a'))
+    % set prior_a according to input sample sizes
+    prior_a=size(dist_a,1)/(size(dist_a,1)+size(dist_b,1));
 else
-    p_a=parser.Results.p_a;
+    prior_a=parser.Results.prior_a;
 end
-p_b=1-p_a;
+prior_b=1-prior_a;
 
 vals=parser.Results.vals;
 
 % check if optimal case
-if p_a==0.5 && isequal(vals,eye(2)) && isempty(parser.Results.custom_bd_coeffs)
+if prior_a==0.5 && isequal(vals,eye(2)) && isempty(parser.Results.custom_bd_coeffs)
     optimal_case=true;
 else
     optimal_case=false;
@@ -72,7 +72,7 @@ else
         % compute boundary coefficients
         a2_norm=inv(v_b)-inv(v_a);
         a1_norm=2*(v_a\mu_a-v_b\mu_b);
-        a0_norm=mu_b'/v_b*mu_b-mu_a'/v_a*mu_a+log((((vals(1,1)-vals(1,2))*p_a)/((vals(2,2)-vals(2,1))*p_b))^2*det(v_b)/det(v_a));
+        a0_norm=mu_b'/v_b*mu_b-mu_a'/v_a*mu_a+log((((vals(1,1)-vals(1,2))*prior_a)/((vals(2,2)-vals(2,1))*prior_b))^2*det(v_b)/det(v_a));
         bd_coeffs_norm_a=struct;
         bd_coeffs_norm_a.a2=a2_norm;
         bd_coeffs_norm_a.a1=a1_norm;
@@ -86,21 +86,6 @@ else
     bd_coeffs_norm_b.a0=-bd_coeffs_norm_a.a0;
 end
 
-% approximate d' and Chernoff bound
-if optimal_case
-    % approximate d' (considering each vcov = avg)
-    vcov_av=(v_a+v_b)/2;
-    results.d_norm_aprx=sqrt((mu_a-mu_b)'/(vcov_av)*(mu_a-mu_b));    
-    % Chernoff bound for d'
-    [~,k]=fminbnd(@(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,0.5),0,1);
-    acc_opt_min_chernoff=1-10^k;
-    d_norm_min=2*norminv(acc_opt_min_chernoff);
-    results.d_norm_min=d_norm_min;
-end
-% Chernoff bound for error
-[~,k]=fminbnd(@(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,p_a),0,1);
-results.log_err_norm_max=k;
-
 bd_pts_norm=[];
 if isequal(mu_a,mu_b) && isequal(v_a,v_b)
     % if the dists are identical:
@@ -110,14 +95,14 @@ if isequal(mu_a,mu_b) && isequal(v_a,v_b)
 else
     % compute accuracy and boundary for each normal, and combine
     if isempty(parser.Results.custom_bd_fns) % if calculated or custom coefficients
-        [acc_norm_a,err_norm_a,bd_pts_norm_a]=integrate_normal(mu_a,v_a,'bd_coeffs',bd_coeffs_norm_a,'p_prior',p_a,'bPlot',parser.Results.bPlot,'plot_color','blue');
-        [acc_norm_b,err_norm_b,bd_pts_norm_b]=integrate_normal(mu_b,v_b,'bd_coeffs',bd_coeffs_norm_b,'p_prior',p_b,'bPlot',parser.Results.bPlot,'plot_color','red');
+        [acc_norm_a,err_norm_a,bd_pts_norm_a]=integrate_normal(mu_a,v_a,'bd_coeffs',bd_coeffs_norm_a,'p_prior',prior_a,'bPlot',parser.Results.bPlot,'plot_color','blue');
+        [acc_norm_b,err_norm_b,bd_pts_norm_b]=integrate_normal(mu_b,v_b,'bd_coeffs',bd_coeffs_norm_b,'p_prior',prior_b,'bPlot',parser.Results.bPlot,'plot_color','red');
     else % if arbitrary boundary functions
-        [acc_norm_a,err_norm_a,bd_pts_norm_a]=integrate_normal(mu_a,v_a,'bd_fn',bd_fn_a,'p_prior',p_a,'bPlot',parser.Results.bPlot,'plot_color','blue');
-        [acc_norm_b,err_norm_b,bd_pts_norm_b]=integrate_normal(mu_b,v_b,'bd_fn',bd_fn_b,'p_prior',p_b,'bPlot',parser.Results.bPlot,'plot_color','red');
+        [acc_norm_a,err_norm_a,bd_pts_norm_a]=integrate_normal(mu_a,v_a,'bd_fn',bd_fn_a,'p_prior',prior_a,'bPlot',parser.Results.bPlot,'plot_color','blue');
+        [acc_norm_b,err_norm_b,bd_pts_norm_b]=integrate_normal(mu_b,v_b,'bd_fn',bd_fn_b,'p_prior',prior_b,'bPlot',parser.Results.bPlot,'plot_color','red');
     end
-    acc_norm=p_a*acc_norm_a+p_b*acc_norm_b;
-    err_norm=p_a*err_norm_a+p_b*err_norm_b;
+    acc_norm=prior_a*acc_norm_a+prior_b*acc_norm_b;
+    err_norm=prior_a*err_norm_a+prior_b*err_norm_b;
     bd_pts_norm=[bd_pts_norm_a,bd_pts_norm_b];
 end
 
@@ -132,10 +117,10 @@ if optimal_case
 end
 
 if ~isequal(vals,eye(2)) % if outcome values are supplied
-    results.outcome_vals_norm=[vals(1,1)*p_a*acc_norm_a, vals(1,2)*p_a*(1-acc_norm_a);...
-        vals(2,1)*p_b*(1-acc_norm_b), vals(2,2)*p_b*acc_norm_b];
-    results.ex_val_norm=(vals(1,1)-vals(1,2))*p_a*acc_norm_a + ...
-        (vals(2,2)-vals(2,1))*p_b*acc_norm_b + vals(1,2)*p_a + vals(2,1)*p_b;
+    results.outcome_vals_norm=[vals(1,1)*prior_a*acc_norm_a, vals(1,2)*prior_a*(1-acc_norm_a);...
+        vals(2,1)*prior_b*(1-acc_norm_b), vals(2,2)*prior_b*acc_norm_b];
+    results.ex_val_norm=(vals(1,1)-vals(1,2))*prior_a*acc_norm_a + ...
+        (vals(2,2)-vals(2,1))*prior_b*acc_norm_b + vals(1,2)*prior_a + vals(2,1)*prior_b;
 end
     
 % if input is observations,
@@ -194,6 +179,21 @@ if strcmp(parser.Results.type,'obs')
     end
 end
 
+% approximate d' and Chernoff bound
+if optimal_case
+    % approximate d' (considering each vcov = avg)
+    vcov_av=(v_a+v_b)/2;
+    results.d_norm_aprx=sqrt((mu_a-mu_b)'/(vcov_av)*(mu_a-mu_b));    
+    % Chernoff bound for d'
+    [~,k]=fminbnd(@(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,0.5),0,1);
+    err_opt_min_chernoff=10^k;
+    d_norm_min=-2*norminv(err_opt_min_chernoff);
+    results.d_norm_min=d_norm_min;
+end
+% Chernoff bound for error
+[~,k]=fminbnd(@(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,prior_a),0,1);
+results.log_err_norm_max=k;
+
 %% Plot data
 if parser.Results.bPlot && dim<=3
     hold on;
@@ -208,9 +208,9 @@ if parser.Results.bPlot && dim<=3
         % plot data points
         if strcmp(parser.Results.type,'obs')
             [heights_a,edges_a]=histcounts(dist_a,'BinMethod','scott','normalization','pdf');
-            histogram('BinCounts',heights_a*p_a,'BinEdges',edges_a,'facecolor','blue','facealpha',0.3,'edgecolor','blue','edgealpha',0.3);
+            histogram('BinCounts',heights_a*prior_a,'BinEdges',edges_a,'facecolor','blue','facealpha',0.3,'edgecolor','blue','edgealpha',0.3);
             [heights_b,edges_b]=histcounts(dist_b,'BinMethod','scott','normalization','pdf');
-            histogram('BinCounts',heights_b*p_b,'BinEdges',edges_b,'facecolor','red','facealpha',0.3,'edgecolor','red','edgealpha',0.3);
+            histogram('BinCounts',heights_b*prior_b,'BinEdges',edges_b,'facecolor','red','facealpha',0.3,'edgecolor','red','edgealpha',0.3);
         end
         % plot data boundary
         if strcmp(parser.Results.type,'obs')&& isempty(parser.Results.custom_bd_coeffs)

@@ -1,4 +1,4 @@
-function [mass,bd_pts]=int_norm_grid(mu,v,bd_fn,n_points)
+function [p,pc,bd_pts]=int_norm_grid(mu,v,bd_fn,n_points)
 % Integrate a normal distribution (upto 3D) over a specified region, using
 % the grid method.
 %
@@ -36,26 +36,26 @@ elseif dim==3
 end
 
 % Integrate
-bd_pts_std=[];
-bd_sign=[];
+[~,p_origin]=bd_fn(zeros(dim,1)); % starting mass =1 if mu is in region.
+pc_origin=1-p_origin;
 
-[~,mass]=bd_fn(zeros(dim,1)); % starting mass =1 if mu is in region.
-
-m=0;
 [r,r_sign]=bd_fn(n_list);
 bd_pts_std=cellfun(@(x,y) x.*y,r,num2cell(n_list,1),'un',0);
 bd_pts_std=horzcat(bd_pts_std{:});
 r=horzcat(r{:});
 r_sign=horzcat(r_sign{:});
 if dim==1
-    dm=sum(r_sign.*normcdf(abs(r),'upper'));
+    p=sum(r_sign.*normcdf(abs(r),'upper'));
+    pc=sum(-r_sign.*normcdf(abs(r),'upper'));
 elseif dim==2
-    dm=sum(r_sign.*exp(-r.^2/2));
+    p=sum(r_sign.*exp(-r.^2/2));
+    pc=sum(-r_sign.*exp(-r.^2/2));
 elseif dim==3
     %sinth=sqrt(1-n(3)^2);
-    dm=sum(r_sign.*(sqrt(pi)/2 * (1-erf(abs(r)/sqrt(2))) + abs(r).*exp(-abs(r).^2/2)/sqrt(2)));%*sinth;
+    p=sum(r_sign.*(sqrt(pi)/2 * (1-erf(abs(r)/sqrt(2))) + abs(r).*exp(-abs(r).^2/2)/sqrt(2)));%*sinth;
+    pc=sum(-r_sign.*(sqrt(pi)/2 * (1-erf(abs(r)/sqrt(2))) + abs(r).*exp(-abs(r).^2/2)/sqrt(2)));%*sinth;
 end
-m=m+dm;
+
 % for i=1:length(n_list)
 %     n=n_list(:,i);
 %     [r,r_sign]=bd_fn(n);
@@ -75,12 +75,15 @@ m=m+dm;
 
 % factors
 if dim==2
-    m=m*dth/(2*pi);
+    p=p*dth/(2*pi);
+    pc=pc*dth/(2*pi);
 elseif dim==3
     %m=m*dth*dph/(2*pi^(3/2));
-    m=m/(n_points*sqrt(pi));
+    p=p/(n_points*sqrt(pi));
+    pc=pc/(n_points*sqrt(pi));
 end
-mass=mass+m;
+p=p+p_origin;
+pc=pc+pc_origin;
 
 % un-standardize boundary points:
 C=chol(v,'lower'); % Cholesky decomposition of vcov

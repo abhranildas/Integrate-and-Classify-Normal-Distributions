@@ -106,17 +106,13 @@ v_a=eye(3);
 mu_b=[2;1;1];
 v_b=2*eye(3);
 
-tic
 results=classify_normals([mu_a,v_a],[mu_b,v_b]);
-toc
 
 % force grid method
 bd_fn_a=@(n) opt_bd(n,[mu_a,v_a],[mu_b,v_b]);
 bd_fn_b=@(n) opt_bd(n,[mu_b,v_b],[mu_a,v_a]);
 
-tic
 results_grid=classify_normals([mu_a,v_a],[mu_b,v_b],'custom_bd_fns',{bd_fn_a,bd_fn_b});
-toc
 
 %% 3D, far apart
 mu_a=[0;0;0];

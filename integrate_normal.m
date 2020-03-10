@@ -47,10 +47,10 @@ bd_pts=[];
 if dim <=3
     if ~isempty(parser.Results.bd_coeffs) % quadratic coefficients
         % get boundary points from the grid method
-        [~,bd_pts]=int_norm_grid(mu,v,@(n) quad_bd(n,mu,v,bd_coeffs),n_points);
+        [~,~,bd_pts]=int_norm_grid(mu,v,@(n) quad_bd(n,mu,v,bd_coeffs),n_points);
     elseif ~isempty(parser.Results.bd_fn) % boundary function
         % get both integral and boundary points from the grid method
-        [p,bd_pts]=int_norm_grid(mu,v,bd_fn,n_points);
+        [p,pc,bd_pts]=int_norm_grid(mu,v,bd_fn,n_points);
     end
 end
 

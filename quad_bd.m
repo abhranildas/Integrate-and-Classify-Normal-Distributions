@@ -1,6 +1,7 @@
 function [r,r_sign]=quad_bd(n,mu,v,coeffs)
-% Return distances and signs of a standardized quadratic boundary in
-% the direction(s) of vector(s) n. For n=0, returns if mu is in the region.
+% Return distances and signs of a quadratic region boundary (defined by
+% coeffs), standardized wrt mu and v, in the direction(s) of vector(s) n.
+% For n=0, returns whether mu is in the region.
 %
 % How to use this command:
 % See github readme at https://github.com/abhranildas/classify
