@@ -1,4 +1,4 @@
-function plot_normal(mu,v,bd_pts,p_prior,color)
+function plot_normal(mu,v,bd_pts,prior,color)
 % Plot a normal distribution and a boundary.
 %
 % Credits:
@@ -10,41 +10,37 @@ function plot_normal(mu,v,bd_pts,p_prior,color)
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 if ~exist('color','var')
-    color='blue';
+    colors=colororder;
+    color=colors(1,:);
 end
-
-hold on
 
 dim=length(mu);
 
 if dim==1
     % plot normal
     x=linspace(mu-5*sqrt(v),mu+5*sqrt(v),100);
-    y=p_prior*normpdf(x,mu,sqrt(v));
+    y=prior*normpdf(x,mu,sqrt(v));
     area(x,y,'facecolor',color,'facealpha',0.4,'edgecolor',color,'edgealpha',0.5,'linewidth',1)
     
     % plot boundary
+    hold on
     for x=bd_pts
-        line([x x],ylim,'color','k','linewidth',1)
+        xline(x,'linewidth',1);
     end
     
 elseif dim==2
     % plot normal (error ellipse)
     th=0:.01:2*pi;
     z=[cos(th);sin(th)];
-    %plot(mu_a(1),mu_a(2),'.','markersize',20,'color','blue');
     C=chol(v,'lower');
     dist=C*z+repmat(mu,[1 length(th)]);
-    fill(dist(1,:),dist(2,:),color,'facealpha',.5);
+    fill(dist(1,:),dist(2,:),color,'linestyle','none','facealpha',.5);
     
     % plot boundary
+    hold on
     if numel(bd_pts)
-        plot(bd_pts(1,:),bd_pts(2,:),'.k')
+        plot(bd_pts(1,:),bd_pts(2,:),'.k','markersize',3)
     end
-    
-    %axis image
-    %xlim([min(mu_a(1)-sig_a(1,1),mu_b(1)-sig_b(1,1)),max(mu_a(1)+sig_a(1,1),mu_b(1)+sig_b(1,1))])
-    %ylim([min(mu_a(2)-sig_a(2,2),mu_b(2)-sig_b(2,2)),max(mu_a(2)+sig_a(2,2),mu_b(2)+sig_b(2,2))])
     
 elseif dim==3    
     % plot normal (error ellipsoid)
@@ -57,15 +53,10 @@ elseif dim==3
     rotate(err_ellipsoid,[0 0 1],rot_angles(3),mu)
     
     % plot boundary
+    hold on
     if numel(bd_pts)
-        plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.k','markersize',5);
-        %[t]=MyCrustOpen(bd_pts');
-        %trisurf(t,bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'facecolor',.5*[1 1 1],'facealpha',.1,'edgecolor','k','edgealpha',.2)
+        plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.k','markersize',1);
     end
-    %axis image
     grid on
-    xlabel x
-    ylabel y
-    zlabel z    
 end
 hold off

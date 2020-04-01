@@ -1,136 +1,117 @@
 % Examples for classify library.
-% Credits:
+% Author:
 %   Abhranil Das <abhranil.das@utexas.edu>
-%	R Calen Walshe
-%	Wilson S Geisler
 %	Center for Perceptual Systems, University of Texas at Austin
 % If you use this code, please cite:
 %   A new method to compute classification error
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 %% 1D, simple
-mu_a=0;
-v_a=1;
+mu_1=0;
+v_1=1;
 
-mu_b=2.5;
-v_b=1.5;
+mu_2=2.5;
+v_2=1.5;
 
-results=classify_normals([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 
-% with outcome utilities
-results=classify_normals([mu_a,v_a],[mu_b,v_b],'val',[2 0; 0 1]);
+% with unequal priors
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7);
 
-%% 1D, unequal prior
-mu_a=0;
-v_a=1;
+% with outcome values
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'vals',[3 0; 0 1]);
 
-mu_b=0.5;
-v_b=1.5;
+%% 1D, sample input (priors are taken to be prop. to sample sizes)
+mu_1=0;
+v_1=1;
+samp_1=normrnd(mu_1,sqrt(v_1),[700 1]);
 
-results=classify_normals([mu_a,v_a],[mu_b,v_b],'p_a',.7);
+mu_2=1.5;
+v_2=1.5;
+samp_2=normrnd(mu_2,sqrt(v_2),[300 1]);
 
-%% 1D, input observations, unequal occurrences
-mu_a=0;
-v_a=1;
-obs_a=normrnd(mu_a,sqrt(v_a),[700 1]);
+results=classify_normals(samp_1,samp_2,'type','samp');
 
-mu_b=0.5;
-v_b=1.5;
-obs_b=normrnd(mu_b,sqrt(v_b),[300 1]);
+%% 2D, one inside the other
+mu_1=[4; 5];
+v_1=[2 1.1; 1.1 1];
 
-results=classify_normals(obs_a,obs_b,'type','obs');
+mu_2=mu_1;
+v_2=1.4*v_1;
 
-%% 1D, input observations, outcome values
-mu_a=0;
-v_a=1;
-obs_a=normrnd(mu_a,sqrt(v_a),[1000 1]);
+results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 
-mu_b=2.5;
-v_b=1.5;
-obs_b=normrnd(mu_b,sqrt(v_b),[1000 1]);
+%% 2D, sample input
+n_samp=1e5;
 
-results=classify_normals(obs_a,obs_b,'type','obs',...
-    'val',[4 0; 0 1]);
+mu_1=[2 4];
+v_1=[1 1.5; 1.5 3];
+samp_1 = mvnrnd(mu_1,v_1,n_samp);
 
-%% 2D, simple
-mu_a=[4; 5];
-v_a=[2 1.1; 1.1 1];
+mu_2=[5 0];
+v_2=[3 0; 0 1];
+samp_2 = mvnrnd(mu_2,v_2,n_samp);
 
-mu_b=mu_a;
-v_b=1.4*v_a;
-
-results=classify_normals([mu_a,v_a],[mu_b,v_b]);
-
-%% 2D, input observations
-n_samp=1e2;
-
-mu_a=[2 4];
-v_a=[1 1.5; 1.5 3];
-obs_a = mvnrnd(mu_a,v_a,n_samp);
-
-mu_b=[5 0];
-v_b=[3 0; 0 1];
-obs_b = mvnrnd(mu_b,v_b,n_samp);
-
-results1=classify_normals(obs_a,obs_b,'type','obs');
+results=classify_normals(samp_1,samp_2,'type','samp');
 
 axis image
 xlim([-10 10])
 ylim([-10 10])
 
 % modify boundary
-custom_bd_coeffs=results1.bd_coeffs_obs;
-custom_bd_coeffs.a2=custom_bd_coeffs.a2+.2;
-custom_bd_coeffs.a1=custom_bd_coeffs.a1-5;
-custom_bd_coeffs.a0=custom_bd_coeffs.a0+10;
+custom_reg_quad=results.samp_opt_reg_quad;
+custom_reg_quad.a2=custom_reg_quad.a2+.2;
+custom_reg_quad.a1=custom_reg_quad.a1-5;
+custom_reg_quad.a0=custom_reg_quad.a0+10;
 
-results2=classify_normals(obs_a,obs_b,'type','obs',...
-    'custom_bd_coeffs',custom_bd_coeffs);
+results=classify_normals(samp_1,samp_2,'type','samp','reg',custom_reg_quad);
 
 axis image
 xlim([-10 10])
 ylim([-10 10])
 
-%% 2D, input non-Gaussian observations
+%% 2D, non-normal samples
 n_samp=1e3;
-obs_a=unifrnd(0,3,[n_samp 2]);
-obs_b=unifrnd(1,6,[n_samp 2]);
+samp_1=exp(mvnrnd([0 0],eye(2),n_samp));
+samp_2=exp(mvnrnd([1 1],eye(2),n_samp));
 
-results=classify_normals(obs_a,obs_b,'type','obs');
-xlim([-1 5]); ylim([-1 5]); axis image
+results=classify_normals(samp_1,samp_2,'type','samp');
 
 %% 3D, simple
-mu_a=[0;0;0];
-v_a=eye(3);
+mu_1=[0;0;0];
+v_1=eye(3);
 
-mu_b=[2;1;1];
-v_b=2*eye(3);
+mu_2=[2;1;1];
+v_2=2*eye(3);
 
-results=classify_normals([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 
-% force grid method
-bd_fn_a=@(n) opt_bd(n,[mu_a,v_a],[mu_b,v_b]);
-bd_fn_b=@(n) opt_bd(n,[mu_b,v_b],[mu_a,v_a]);
+% force ray method by supplying boundary functions
+reg_fn_1=@(n) ray_scan(opt_reg_quad([mu_1,v_1],[mu_2,v_2]),'quad',n,mu_1); % opt_reg(n,[mu_1,v_1],[mu_2,v_2]);  % optimum boundary function for normal 1
+reg_fn_2=@(n) ray_scan(opt_reg_quad([mu_2,v_2],[mu_1,v_1]),'quad',n,mu_2); % opt_reg(n,[mu_2,v_2],[mu_1,v_1]);  % optimum boundary function for normal 2
 
-results_grid=classify_normals([mu_a,v_a],[mu_b,v_b],'custom_bd_fns',{bd_fn_a,bd_fn_b});
+results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan');
 
-%% 3D, far apart
-mu_a=[0;0;0];
-v_a=eye(3);
+%% 3D, simple, for Calen
+d=44;
 
-mu_b=[100;0;0];
-v_b=1.5*eye(3);
+mu_1=[0;0;0];
+v_1=eye(3);
 
-results=classify_normals([mu_a,v_a],[mu_b,v_b]);
+mu_2=d*[1;1;1];
+d_true=d*sqrt(3)
 
-%% 3D, complex
-mu_a=[0;0;0];
-v_a=[1 .5 0; .5 2 1; 0 1 4];
+v_2=eye(3);
 
-mu_b=[2; 1; 2];
-v_b=[2 1 -1.5; 1 3 -2; -1.5 -2 4];
+results=classify_normals([mu_1,v_1],[mu_2,v_2]);
+d_gx2=results.norm_d
 
-results=classify_normals([mu_a,v_a],[mu_b,v_b]);
+% force ray method by supplying region functions
+reg_fn_1=@(n) ray_scan(opt_reg_quad([mu_1,v_1],[mu_2,v_2]),'quad',n,mu_1); % optimum region for normal 1
+reg_fn_2=@(n) ray_scan(opt_reg_quad([mu_2,v_2],[mu_1,v_1]),'quad',n,mu_2); % optimum region for normal 2
+
+results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan');
+d_ray=-2*norminv(results_ray.norm_err)
 
 %% 3D, from actual detection experiment
 
@@ -140,28 +121,82 @@ absent = [dataArray{1:end-1}];
 dataArray = textscan(fopen('present.txt','r'), '%*q%f%f%f%[^\n\r]', 'Delimiter', ',', 'HeaderLines' ,1);
 present = [dataArray{1:end-1}];
 
-results=classify_normals(absent,present,'type','obs');
+results=classify_normals(absent,present,'type','samp');
 axis normal
 xlim([0 1.5]); ylim([0 .5]); zlim([-200 200]);
 xlabel('edge'); ylabel('luminance'); zlabel('pattern');
 
 %% 4D, simple
-mu_a=[0;0;0;0];
-v_a=eye(4);
+mu_1=[0;0;0;0];
+v_1=eye(4);
 
-mu_b=[1;1;1;1];
-v_b=2*eye(4);
+mu_2=[1;1;1;1];
+v_2=2*eye(4);
 
-results=classify_normals([mu_a,v_a],[mu_b,v_b]);
+results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 
-%% 4D, input observations
-mu_a=[0;0;0;0];
-v_a=eye(4);
-obs_a = mvnrnd(mu_a,v_a,1000);
+% now input samples from these normals
+n_samp=1e3;
+results_samp=classify_normals(mvnrnd(mu_1,v_1,n_samp),mvnrnd(mu_2,v_2,n_samp),'type','samp');
 
-mu_b=[1;1;1;1];
-v_b=eye(4);
-obs_b = mvnrnd(mu_b,v_b,1000);
+%% Integrate non-quadratic function of a normal,
+% i.e. integrate normal in a non-quadratic region f(x)>0, using chebfun
 
-results=classify_normals(obs_a,obs_b,'type','obs');
+% first install chebfun
+% unzip('https://github.com/chebfun/chebfun/archive/master.zip')
+% movefile('chebfun-master', 'chebfun'), addpath(fullfile(cd,'chebfun')), savepath
 
+mu=[2;1];
+v=[1 -.5; -.5 2];
+e=5;
+
+reg_cheb=@(x,y) x*y^2/2-e; % define the region using a cheb function
+reg_ray_scan=@(n,orig)ray_scan(reg_cheb,'cheb',n,orig); % ray-scan the region
+
+integrate_normal(mu,v,@(n) reg_ray_scan(n,mu),'reg_type','ray_scan','n_rays',1e2);
+xlim([-5 20])
+ylim([-15 15])
+
+%% Multi-class, 1D, priors
+dists=struct;
+dists(1).mu=-1; dists(1).v=1;
+dists(2).mu=1; dists(2).v=2;
+dists(3).mu=4; dists(3).v=.5;
+
+results=classify_normals_multi(dists,'priors',[.4 .5 .1],'n_rays',1e3);
+%% Multi-class, 2D
+
+% define means and vcovs of the normals
+mus=[[1;0],[0;1],[-1;0],[0;-1]];
+vs=cat(3,2*eye(2),eye(2),eye(2),eye(2));
+
+% define struct of all normals
+dists=struct;
+for i=1:4
+    dists(i).mu=mus(:,i); dists(i).v=vs(:,:,i);
+end
+
+% plot the multi-class boundary of normal 3
+plot_boundary(@(n,orig) opt_reg_multi(n,mus,vs,'idx',3,'orig',orig),2,'orig',mus(:,3))
+
+% classify
+results=classify_normals_multi(dists,'n_rays',1e3);
+axis image
+
+% now input samples from these normals
+dists2=struct;
+for i=1:4
+    dists2(i).sample=mvnrnd(dists(i).mu,dists(i).v,1e2);
+end
+results_samp=classify_normals_multi(dists2,'type','samp','n_rays',1e3);
+axis image
+
+%% Multi-class, 3D
+
+dists=struct;
+dists(1).mu=[1;0;0]; dists(1).v=2*eye(3);
+dists(2).mu=[0;1;0]; dists(2).v=eye(3);
+dists(3).mu=[-1;0;0]; dists(3).v=eye(3);
+dists(4).mu=[0;-1;0]; dists(4).v=eye(3);
+
+results=classify_normals_multi(dists,'n_rays',1e3);

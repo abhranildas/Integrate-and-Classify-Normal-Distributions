@@ -1,13 +1,11 @@
-function results=classify_normals(dist_a,dist_b,varargin)
+function results=classify_normals(dist_1,dist_2,varargin)
 % Classification between two distributions.
 %
 % How to use this command:
 % See github readme at https://github.com/abhranildas/classify
 %
-% Credits:
+% Author:
 %   Abhranil Das <abhranil.das@utexas.edu>
-%	R Calen Walshe
-%	Wilson S Geisler
 %	Center for Perceptual Systems, University of Texas at Austin
 % If you use this code, please cite:
 %   A new method to compute classification error
@@ -15,232 +13,212 @@ function results=classify_normals(dist_a,dist_b,varargin)
 
 % parse inputs
 parser = inputParser;
-addRequired(parser,'dist_a',@(x) isnumeric(x));
-addRequired(parser,'dist_b',@(x) isnumeric(x));
-addParameter(parser,'prior_a',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
+addRequired(parser,'dist_1',@(x) isnumeric(x));
+addRequired(parser,'dist_2',@(x) isnumeric(x));
+addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
-addParameter(parser,'custom_bd_coeffs',[]);
-addParameter(parser,'custom_bd_fns',[]);
-addParameter(parser,'type','params', @(s) strcmp(s,'params') || strcmp(s,'obs'));
+addParameter(parser,'reg',[]);
+addParameter(parser,'reg_type','quad');
+addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
+addParameter(parser,'n_rays',1e4,@(x) isnumeric(x));
 addParameter(parser,'bPlot',true, @(x) islogical(x));
 
-parse(parser,dist_a,dist_b,varargin{:});
+parse(parser,dist_1,dist_2,varargin{:});
+reg=parser.Results.reg;
+reg_type=parser.Results.reg_type;
 
-if strcmp(parser.Results.type,'params')
-    mu_a=dist_a(:,1);
-    v_a=dist_a(:,2:end);
-    mu_b=dist_b(:,1);
-    v_b=dist_b(:,2:end);
-elseif strcmp(parser.Results.type,'obs')
-    mu_a=mean(dist_a)';
-    v_a=cov(dist_a);
-    mu_b=mean(dist_b)';
-    v_b=cov(dist_b);    
+if strcmp(parser.Results.type,'norm')
+    mu_1=dist_1(:,1);
+    v_1=dist_1(:,2:end);
+    mu_2=dist_2(:,1);
+    v_2=dist_2(:,2:end);
+elseif strcmp(parser.Results.type,'samp')
+    mu_1=mean(dist_1)';
+    v_1=cov(dist_1);
+    mu_2=mean(dist_2)';
+    v_2=cov(dist_2);
 end
 
-% if input obs and prior_a is not specified,
-if strcmp(parser.Results.type,'obs') && any(strcmp(parser.UsingDefaults,'prior_a'))
-    % set prior_a according to input sample sizes
-    prior_a=size(dist_a,1)/(size(dist_a,1)+size(dist_b,1));
+% if input samp and prior is not specified,
+if strcmp(parser.Results.type,'samp') && any(strcmp(parser.UsingDefaults,'prior_1'))
+    % set prior according to input sample sizes
+    priors(1)=size(dist_1,1)/(size(dist_1,1)+size(dist_2,1));
 else
-    prior_a=parser.Results.prior_a;
+    priors(1)=parser.Results.prior_1;
 end
-prior_b=1-prior_a;
+priors(2)=1-priors(1);
 
 vals=parser.Results.vals;
+n_rays=parser.Results.n_rays;
+bPlot=parser.Results.bPlot;
 
 % check if optimal case
-if prior_a==0.5 && isequal(vals,eye(2)) && isempty(parser.Results.custom_bd_coeffs)
+if priors(1)==0.5 && isequal(vals,eye(2)) && isempty(reg)
     optimal_case=true;
 else
     optimal_case=false;
 end
 
-dim=length(mu_a); % dimension
+dim=length(mu_1); % dimension
 
-if parser.Results.bPlot && dim<=3
-    figure; hold on;
-end
+colors=colororder;
+if bPlot && dim<=3, figure, hold on, end
 
-if ~isempty(parser.Results.custom_bd_fns) % arbitrary boundary functions
-    bd_fn_a=parser.Results.custom_bd_fns{1};
-    bd_fn_b=parser.Results.custom_bd_fns{2};
-else
-    if ~isempty(parser.Results.custom_bd_coeffs) % custom boundary coefficients
-        bd_coeffs_norm_a=parser.Results.custom_bd_coeffs;
-    else
-        % compute boundary coefficients
-        a2_norm=inv(v_b)-inv(v_a);
-        a1_norm=2*(v_a\mu_a-v_b\mu_b);
-        a0_norm=mu_b'/v_b*mu_b-mu_a'/v_a*mu_a+log((((vals(1,1)-vals(1,2))*prior_a)/((vals(2,2)-vals(2,1))*prior_b))^2*det(v_b)/det(v_a));
-        bd_coeffs_norm_a=struct;
-        bd_coeffs_norm_a.a2=a2_norm;
-        bd_coeffs_norm_a.a1=a1_norm;
-        bd_coeffs_norm_a.a0=a0_norm;
-        results.bd_coeffs_norm=bd_coeffs_norm_a;
-    end
-    % flip boundary sign for b
-    bd_coeffs_norm_b=struct;
-    bd_coeffs_norm_b.a2=-bd_coeffs_norm_a.a2;
-    bd_coeffs_norm_b.a1=-bd_coeffs_norm_a.a1;
-    bd_coeffs_norm_b.a0=-bd_coeffs_norm_a.a0;
-end
-
-bd_pts_norm=[];
-if isequal(mu_a,mu_b) && isequal(v_a,v_b)
+norm_bd_pts=[];
+if isequal(mu_1,mu_2) && isequal(v_1,v_2)
     % if the dists are identical:
-    acc_norm=0.5;
-    acc_norm_a=0.5;
-    acc_norm_b=0.5;
+    norm_acc_1=0.5;
+    norm_acc_2=0.5;
 else
     % compute accuracy and boundary for each normal, and combine
-    if isempty(parser.Results.custom_bd_fns) % if calculated or custom coefficients
-        [acc_norm_a,err_norm_a,bd_pts_norm_a]=integrate_normal(mu_a,v_a,'bd_coeffs',bd_coeffs_norm_a,'p_prior',prior_a,'bPlot',parser.Results.bPlot,'plot_color','blue');
-        [acc_norm_b,err_norm_b,bd_pts_norm_b]=integrate_normal(mu_b,v_b,'bd_coeffs',bd_coeffs_norm_b,'p_prior',prior_b,'bPlot',parser.Results.bPlot,'plot_color','red');
-    else % if arbitrary boundary functions
-        [acc_norm_a,err_norm_a,bd_pts_norm_a]=integrate_normal(mu_a,v_a,'bd_fn',bd_fn_a,'p_prior',prior_a,'bPlot',parser.Results.bPlot,'plot_color','blue');
-        [acc_norm_b,err_norm_b,bd_pts_norm_b]=integrate_normal(mu_b,v_b,'bd_fn',bd_fn_b,'p_prior',prior_b,'bPlot',parser.Results.bPlot,'plot_color','red');
+    if strcmp(reg_type,'quad') % optimal or custom quad coefficients
+        if ~isempty(reg) % custom quad coefficients
+            norm_reg_quad_1=reg;
+        else
+            % compute optimal boundary coefficients
+            norm_reg_quad_1=opt_reg_quad([mu_1,v_1],[mu_2,v_2],'vals',vals,'prior_1',priors(1));
+            results.norm_reg_quad=norm_reg_quad_1;
+        end
+        % flip boundary sign for 2nd normal
+        norm_reg_quad_2=struct;
+        norm_reg_quad_2.a2=-norm_reg_quad_1.a2;
+        norm_reg_quad_2.a1=-norm_reg_quad_1.a1;
+        norm_reg_quad_2.a0=-norm_reg_quad_1.a0;
+        
+        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,norm_reg_quad_1,'reg_type',reg_type,'prior',priors(1),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(1,:));
+        if bPlot && dim<=3, hold on, end
+        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,norm_reg_quad_2,'reg_type',reg_type,'prior',priors(2),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(2,:));
+    elseif strcmp(reg_type,'ray_scan') % ray-scanned region functions
+        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,reg{1},'reg_type',reg_type,'prior',priors(1),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(1,:));
+        if bPlot && dim<=3, hold on, end
+        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,reg{2},'reg_type',reg_type,'prior',priors(2),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(2,:));
     end
-    acc_norm=prior_a*acc_norm_a+prior_b*acc_norm_b;
-    err_norm=prior_a*err_norm_a+prior_b*err_norm_b;
-    bd_pts_norm=[bd_pts_norm_a,bd_pts_norm_b];
+    norm_err=priors(1)*norm_err_1+priors(2)*norm_err_b;
+    norm_bd_pts=uniquetol([norm_bd_pts_a,norm_bd_pts_b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 end
 
-results.bd_pts_norm=bd_pts_norm;
-results.errmat_norm=[acc_norm_a, err_norm_a; err_norm_b, acc_norm_b];
-results.err_norm=err_norm;
+if ~isempty(norm_bd_pts)
+    results.norm_bd_pts=norm_bd_pts;
+end
+results.norm_err_mat=[norm_acc_1, norm_err_1; norm_err_b, norm_acc_2];
+results.norm_err=norm_err;
 
 % d'
 if optimal_case
-    d_norm=-2*norminv(err_norm);
-    results.d_norm=d_norm;
+    norm_d=-2*norminv(norm_err);
+    results.norm_d=norm_d;
 end
 
-if ~isequal(vals,eye(2)) % if outcome values are supplied
-    results.outcome_vals_norm=[vals(1,1)*prior_a*acc_norm_a, vals(1,2)*prior_a*(1-acc_norm_a);...
-        vals(2,1)*prior_b*(1-acc_norm_b), vals(2,2)*prior_b*acc_norm_b];
-    results.ex_val_norm=(vals(1,1)-vals(1,2))*prior_a*acc_norm_a + ...
-        (vals(2,2)-vals(2,1))*prior_b*acc_norm_b + vals(1,2)*prior_a + vals(2,1)*prior_b;
-end
-    
-% if input is observations,
-if strcmp(parser.Results.type,'obs')
-    % if custom boundary is provided,
-    if ~isempty(parser.Results.custom_bd_coeffs)
-        % compute accuracy and expected value with custom boundary
-        [acc_obs,acc_obs_a,acc_obs_b,outcome_counts_obs]=val_obs(dist_a,dist_b,bd_coeffs_norm_a,eye(size(dist_a,2)));
-        [ex_val_obs,~,~,outcome_vals_obs]=val_obs(dist_a,dist_b,bd_coeffs_norm_a,vals);
-    else
-        %acc_obs_start=accuracy_obs(dist_a,dist_b,opt_bd_coeffs_norm);
-        % find boundary that optimizes expected value / accuracy
-        fun = @(x)-val_obs_flat(dim,x,dist_a,dist_b,vals);
-        x=fminsearch(fun,[a2_norm(:); a1_norm(:); a0_norm],optimset('Display','iter'));
-
-        a2_obs=reshape(x(1:dim^2),[dim dim])';
-        a1_obs=x(dim^2+1:dim^2+dim);
-        a0_obs=x(end);
-
-        bd_coeffs_obs_a=struct;
-        bd_coeffs_obs_a.a2=a2_obs;
-        bd_coeffs_obs_a.a1=a1_obs;
-        bd_coeffs_obs_a.a0=a0_obs;
-        results.bd_coeffs_obs=bd_coeffs_obs_a;
-        
-        % flip boundary sign for b
-        bd_coeffs_obs_b.a2=-bd_coeffs_obs_a.a2;
-        bd_coeffs_obs_b.a1=-bd_coeffs_obs_a.a1;
-        bd_coeffs_obs_b.a0=-bd_coeffs_obs_a.a0;
-        
-        if dim<=3
-            % boundary points
-            [~,~,bd_pts_obs_a]=integrate_normal(mu_a,v_a,'bd_coeffs',bd_coeffs_obs_a,'bPlot',false);
-            [~,~,bd_pts_obs_b]=integrate_normal(mu_b,v_b,'bd_coeffs',bd_coeffs_obs_b,'bPlot',false);
-            bd_pts_obs=[bd_pts_obs_a,bd_pts_obs_b];
-            results.bd_pts_obs=bd_pts_obs;
-        end
-        
-        % accuracy with optimal data boundary
-        [acc_obs,acc_obs_a,acc_obs_b,outcome_counts_obs]=val_obs(dist_a,dist_b,bd_coeffs_obs_a,eye(2));
-        
-        % expected value with optimal data boundary
-        [ex_val_obs,~,~,outcome_vals_obs]=val_obs(dist_a,dist_b,bd_coeffs_obs_a,vals);
-        
-        if optimal_case && size(dist_a,1)==size(dist_b,1) % if both category frequencies same,
-            d_obs=2*norminv(acc_obs); % obs accuracy can be used to compute obs d'
-            results.d_obs=d_obs;
-        end
-    end
-    results.errmat_obs=[acc_obs_a, 1-acc_obs_a; 1-acc_obs_b, acc_obs_b];
-    results.err_obs=1-acc_obs;
-    results.outcome_counts_obs=outcome_counts_obs;
-    if ~isequal(vals,eye(2)) % if outcome values are supplied
-        results.ex_val_obs=ex_val_obs;
-        results.outcome_vals_obs=outcome_vals_obs;
-    end
-end
-
-% approximate d' and Chernoff bound
+% Mahalanobis d' and Chernoff bound
 if optimal_case
     % approximate d' (considering each vcov = avg)
-    vcov_av=(v_a+v_b)/2;
-    results.d_norm_aprx=sqrt((mu_a-mu_b)'/(vcov_av)*(mu_a-mu_b));    
+    vcov_av=(v_1+v_2)/2;
+    results.norm_maha_d=sqrt((mu_1-mu_2)'/(vcov_av)*(mu_1-mu_2));
     % Chernoff bound for d'
-    [~,k]=fminbnd(@(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,0.5),0,1);
+    [~,k]=fminbnd(@(b)chernoff_bound(b,mu_1,v_1,mu_2,v_2,0.5),0,1);
     err_opt_min_chernoff=10^k;
-    d_norm_min=-2*norminv(err_opt_min_chernoff);
-    results.d_norm_min=d_norm_min;
+    norm_min_d=-2*norminv(err_opt_min_chernoff);
+    results.norm_min_d=norm_min_d;
 end
 % Chernoff bound for error
-[~,k]=fminbnd(@(b)chernoff_bound(b,mu_a,v_a,mu_b,v_b,prior_a),0,1);
-results.log_err_norm_max=k;
+[~,k]=fminbnd(@(b)chernoff_bound(b,mu_1,v_1,mu_2,v_2,priors(1)),0,1);
+results.norm_log_max_err=k;
 
-%% Plot data
-if parser.Results.bPlot && dim<=3
-    hold on;
-    % plot title
-    if strcmp(parser.Results.type,'params')
-        title(sprintf("error = %g",1-acc_norm(1)))
-    else
-        title(sprintf("error = %g",1-acc_obs(1)))
-    end
-    
-    if dim==1
-        % plot data points
-        if strcmp(parser.Results.type,'obs')
-            [heights_a,edges_a]=histcounts(dist_a,'BinMethod','scott','normalization','pdf');
-            histogram('BinCounts',heights_a*prior_a,'BinEdges',edges_a,'facecolor','blue','facealpha',0.3,'edgecolor','blue','edgealpha',0.3);
-            [heights_b,edges_b]=histcounts(dist_b,'BinMethod','scott','normalization','pdf');
-            histogram('BinCounts',heights_b*prior_b,'BinEdges',edges_b,'facecolor','red','facealpha',0.3,'edgecolor','red','edgealpha',0.3);
-        end
-        % plot data boundary
-        if strcmp(parser.Results.type,'obs')&& isempty(parser.Results.custom_bd_coeffs)
-            for x=bd_pts_obs
-                line([x x],ylim,'color',.5*[1 1 1],'linewidth',1)
+if ~isequal(vals,eye(2)) % if outcome values are supplied
+    results.norm_val_mat=results.norm_err_mat.*vals; % conditional expected values
+    results.norm_val=sum(sum(results.norm_val_mat.*priors'));
+end
+
+% if sample input,
+if strcmp(parser.Results.type,'samp')
+    if strcmp(reg_type,'quad') % if default or custom quad boundary,
+        % compute outcome counts and error
+        [~,samp_count_mat]=value_samp(dist_1,dist_2,norm_reg_quad_1,ones(2));
+        samp_err=value_samp(dist_1,dist_2,norm_reg_quad_1,~eye(2));
+        results.samp_count_mat=samp_count_mat;
+        results.samp_err_mat=samp_count_mat./sum(samp_count_mat,2);
+        results.samp_err=samp_err;
+        
+        if optimal_case
+            results.samp_d=-2*norminv(samp_err); % samp error can be used to compute samp d'
+        elseif ~isequal(vals,eye(2)) % if outcome values are supplied
+            [samp_ex_val,samp_val_mat]=value_samp(dist_1,dist_2,norm_reg_quad_1,vals);
+            results.samp_val_mat=samp_val_mat;
+            results.samp_ex_val=samp_ex_val;
+        end            
+
+        if isempty(reg) % if no custom boundary
+            % find quad boundary that optimizes expected value / accuracy
+            x=fminsearch(@(x)-value_samp_flat(dim,x,dist_1,dist_2,vals),[norm_reg_quad_1.a2(:); norm_reg_quad_1.a1(:); norm_reg_quad_1.a0],optimset('Display','iter'));
+            
+            a2_samp=reshape(x(1:dim^2),[dim dim])';
+            a1_samp=x(dim^2+1:dim^2+dim);
+            a0_samp=x(end);
+            
+            samp_opt_reg_quad_1=struct;
+            samp_opt_reg_quad_1.a2=a2_samp;
+            samp_opt_reg_quad_1.a1=a1_samp;
+            samp_opt_reg_quad_1.a0=a0_samp;
+            results.samp_opt_reg_quad=samp_opt_reg_quad_1;
+            
+            % flip boundary sign for b
+            samp_opt_reg_quad_2.a2=-samp_opt_reg_quad_1.a2;
+            samp_opt_reg_quad_2.a1=-samp_opt_reg_quad_1.a1;
+            samp_opt_reg_quad_2.a0=-samp_opt_reg_quad_1.a0;
+            
+            if dim<=3
+                % boundary points
+                [~,~,samp_opt_bd_pts_1]=integrate_normal(mu_1,v_1,samp_opt_reg_quad_1,'n_rays',n_rays,'bPlot',false);
+                [~,~,samp_opt_bd_pts_2]=integrate_normal(mu_2,v_2,samp_opt_reg_quad_2,'n_rays',n_rays,'bPlot',false);
+                samp_opt_bd_pts=[samp_opt_bd_pts_1,samp_opt_bd_pts_2];
+                results.samp_opt_bd_pts=samp_opt_bd_pts;
             end
-        end        
-    elseif dim==2
-        % plot data points
-        if strcmp(parser.Results.type,'obs')
-            scatter(dist_a(:,1),dist_a(:,2),4,'o','markerfacecolor','blue');
-            scatter(dist_b(:,1),dist_b(:,2),4,'o','markerfacecolor','red');
+            
+            % compute outcome counts and error with optimized data boundary
+            [~,samp_opt_count_mat]=value_samp(dist_1,dist_2,samp_opt_reg_quad_1,ones(2));
+            samp_opt_err=value_samp(dist_1,dist_2,samp_opt_reg_quad_1,~eye(2));
+            results.samp_opt_count_mat=samp_opt_count_mat;
+            results.samp_opt_err_mat=samp_opt_count_mat./sum(samp_opt_count_mat,2);
+            results.samp_opt_err=samp_opt_err;
+            
+            if optimal_case
+                results.samp_opt_d=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
+            elseif ~isequal(vals,eye(2)) % if outcome values are supplied
+                [samp_opt_ex_val,samp_opt_val_mat]=value_samp(dist_1,dist_2,samp_opt_reg_quad_1,vals);
+                results.samp_opt_val_mat=samp_opt_val_mat;
+                results.samp_opt_ex_val=samp_opt_ex_val;
+            end
         end
-        % plot data boundary
-        if strcmp(parser.Results.type,'obs') && isempty(parser.Results.custom_bd_coeffs)
-            plot(bd_pts_obs(1,:),bd_pts_obs(2,:),'.','color',.5*[1 1 1])
+    end
+end
+
+%% Plot samples
+if bPlot && dim<=3
+    hold on    
+    if strcmp(parser.Results.type,'norm')
+        title(sprintf("error = %g",norm_err)) % plot title
+    elseif strcmp(parser.Results.type,'samp')
+        if ~isempty(reg) % if custom boundary
+            title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
+            % don't plot sample boundary
+            plot_sample(dist_1,[],priors(1),colors(1,:))
+            plot_sample(dist_2,[],priors(2),colors(2,:))
+        else
+            title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
+            plot_sample(dist_1,samp_opt_bd_pts_1,priors(1),colors(1,:))
+            plot_sample(dist_2,samp_opt_bd_pts_2,priors(2),colors(2,:))
+            
+            % boundary legends
+            if dim<=2
+                norm_bd_marker=line(nan, nan,'color','k','linewidth',1);
+                samp_bd_marker=line(nan, nan, 'color', .5*[1 1 1],'linewidth',1);
+                
+            else
+                norm_bd_marker=line(nan, nan,'color','k','linewidth',1.5,'linestyle',':');
+                samp_bd_marker=line(nan, nan, 'color', .5*[1 1 1],'linewidth',1.5,'linestyle',':');
+            end
+            legend([norm_bd_marker,samp_bd_marker],'normal boundary','sample boundary','edgecolor','none')
         end
-    elseif dim==3
-        % plot data points
-        if strcmp(parser.Results.type,'obs')
-            plot3(dist_a(:,1),dist_a(:,2),dist_a(:,3),'.','color','blue','markersize',5);
-            plot3(dist_b(:,1),dist_b(:,2),dist_b(:,3),'.','color','red','markersize',5);
-        end
-        % plot data boundary
-        if strcmp(parser.Results.type,'obs') && isempty(parser.Results.custom_bd_coeffs)
-            plot3(bd_pts_obs(1,:),bd_pts_obs(2,:),bd_pts_obs(3,:),'.','color',.5*[1 1 1],'markersize',5)
-        end
-        xlim([min(mu_a(1)-v_a(1,1),mu_b(1)-v_b(1,1)),max(mu_a(1)+v_a(1,1),mu_b(1)+v_b(1,1))])
-        ylim([min(mu_a(2)-v_a(2,2),mu_b(2)-v_b(2,2)),max(mu_a(2)+v_a(2,2),mu_b(2)+v_b(2,2))])
-        zlim([min(mu_a(3)-v_a(3,3),mu_b(3)-v_b(3,3)),max(mu_a(3)+v_a(3,3),mu_b(3)+v_b(3,3))])
     end
     hold off
 end

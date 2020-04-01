@@ -19,8 +19,8 @@ a1=coeffs.a1;
 a0=coeffs.a0;
 
 if ~nnz(a2) % if a2 is zero, linear discriminant
+    p=normcdf(a0/norm(a1));
     pc=normcdf(-a0/norm(a1)); % complement of p. It's useful to return it when small, and p is rounded to 1.
-    p=1-pc;
 else
     [R,D]=eig(a2);
     d=diag(D);

@@ -1,4 +1,4 @@
-function [p,pc,bd_pts]=integrate_normal(mu,v,varargin)
+function [p,pc,bd_pts]=integrate_normal(mu,v,reg,varargin)
 % Integrate a normal distribution over a specified region.
 %
 % How to use this command:
@@ -17,44 +17,45 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,varargin)
 parser = inputParser;
 addRequired(parser,'mu',@(x) isnumeric(x));
 addRequired(parser,'v',@(x) isnumeric(x));
-addParameter(parser,'bd_coeffs',[]);
-addParameter(parser,'bd_fn',[]);
-addParameter(parser,'n_points',1e4);
-addParameter(parser,'p_prior',1, @(x) isnumeric(x));
+addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
+addParameter(parser,'reg_type','quad');
+addParameter(parser,'n_rays',1e4);
+addParameter(parser,'prior',1, @(x) isnumeric(x));
 addParameter(parser,'bPlot',1, @(x) islogical(x));
-addParameter(parser,'plot_color','blue');
+colors=colororder;
+color=colors(1,:);
+addParameter(parser,'plot_color',color);
 
-parse(parser,mu,v,varargin{:});
+parse(parser,mu,v,reg,varargin{:});
 
-n_points=parser.Results.n_points;
-bd_fn=parser.Results.bd_fn;
+n_rays=parser.Results.n_rays;
 dim=length(mu);
 
-% Cholesky decomposition of distribution a:
-C=chol(v,'lower');
-
-if ~isempty(parser.Results.bd_coeffs) % quadratic coefficients
-    bd_coeffs=parser.Results.bd_coeffs;
+if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
     % standardize  coefficients
-    bd_coeffs_std.a2=C'*bd_coeffs.a2*C;
-    bd_coeffs_std.a1=C'*(2*bd_coeffs.a2*mu+bd_coeffs.a1);
-    bd_coeffs_std.a0=mu'*bd_coeffs.a2*mu+bd_coeffs.a1'*mu+bd_coeffs.a0;
+    reg_coeffs_std.a2=sqrtm(v)*reg.a2*sqrtm(v);
+    reg_coeffs_std.a1=sqrtm(v)*(2*reg.a2*mu+reg.a1);
+    reg_coeffs_std.a0=mu'*reg.a2*mu+reg.a1'*mu+reg.a0;
     % get integral from the generalized chi-squared method
-    [p,pc]=int_stdnorm_quad_gx2(bd_coeffs_std);
+    [p,pc]=int_stdnorm_quad_gx2(reg_coeffs_std);
 end
 
 bd_pts=[];
 if dim <=3
-    if ~isempty(parser.Results.bd_coeffs) % quadratic coefficients
+    if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
         % get boundary points from the grid method
-        [~,~,bd_pts]=int_norm_grid(mu,v,@(n) quad_bd(n,mu,v,bd_coeffs),n_points);
-    elseif ~isempty(parser.Results.bd_fn) % boundary function
-        % get both integral and boundary points from the grid method
-        [p,pc,bd_pts]=int_norm_grid(mu,v,bd_fn,n_points);
+        [~,~,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,'quad',n,mu),n_rays);
+    elseif strcmp(parser.Results.reg_type,'ray_scan') % ray format region
+        % get both integral and boundary points using ray method
+        [p,pc,bd_pts]=int_norm_grid(mu,v,reg,n_rays);
+    elseif strcmp(parser.Results.reg_type,'cheb') % chebfun region
+        % get both integral and boundary points from the ray-scanned chebfun region using ray method
+        [p,pc,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,n,mu),n_rays);
     end
 end
 
 % plot
 if parser.Results.bPlot && dim<=3
-    plot_normal(mu,v,bd_pts,parser.Results.p_prior,parser.Results.plot_color)
+    plot_normal(mu,v,bd_pts,parser.Results.prior,parser.Results.plot_color)
+    title(sprintf("p = %g, p_c = %g",[p,pc])) % plot title
 end
