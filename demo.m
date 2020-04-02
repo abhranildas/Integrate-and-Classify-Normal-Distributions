@@ -108,7 +108,7 @@ d_gx2=results_gx2.norm_d;
 reg_fn_1=@(n) ray_scan(opt_reg_quad([mu_1,v_1],[mu_2,v_2]),'quad',n,mu_1); % optimum region for normal 1
 reg_fn_2=@(n) ray_scan(opt_reg_quad([mu_2,v_2],[mu_1,v_1]),'quad',n,mu_2); % optimum region for normal 2
 
-results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan','n_rays',1e4,'bplot',false);
+results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan','bplot',false);
 d_ray=-2*norminv(results_ray.norm_err);
 
 fprintf('d_true=\n%.45f\nd_gx2=\n%.45f\nd_ray=\n%.45f\n',[d_true,d_gx2,d_ray]);

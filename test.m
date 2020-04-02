@@ -121,6 +121,8 @@ lambda=[-10 -5 7];
 m=[4 20 3];
 delta=[200 3 10];
 
+gx2cdf_imhof(0,lambda,m,delta,'tail')
+
 x=linspace(-5e3,-1e3,1e2);
 p=arrayfun(@(x) gx2cdf_imhof(x,lambda,m,delta),x);
 p_tail=arrayfun(@(x) gx2cdf_imhof(x,lambda,m,delta,'tail'),x);

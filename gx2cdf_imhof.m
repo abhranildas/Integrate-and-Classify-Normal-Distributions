@@ -1,4 +1,4 @@
-function p=gx2cdf_imhof(x,lambda,m,delta,tailflag)
+function p=gx2cdf_imhof(x,lambda,m,delta,tail)
 % Syntax:
 % p=gx2cdf_imhof(x,lambda,m,delta)
 % p=gx2cdf_imhof(x,lambda,m,delta,'tail')
@@ -37,37 +37,33 @@ function p=gx2cdf_imhof(x,lambda,m,delta,tailflag)
 
 if nargin==4
     % compute the integral
-    f=@(u) imhof_integrand(u,x,lambda',m',delta');
     p=0.5-integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf)/pi;
     
     if (p<1e-3)||(p>1-1e-3)
         warning("Tail probability may be inaccurate, and might be improved with the 'tail' flag.")
     end
     
-elseif nargin>4 && strcmpi(tailflag,'tail') % compute tail approximations
+elseif nargin>4 % compute tail approximations
     j=(1:3)';
     c=sum((lambda.^j).*(j.*delta+m),2);
     h=c(2)^3/c(3)^2;    
     if c(3)>0
         y=(x-c(1))*sqrt(h/c(2))+h;
-        if x<=c(1)
+        if strcmpi(tail,'lower')
             p=chi2cdf(y,h);
-        else
+        elseif strcmpi(tail,'upper')
             p=chi2cdf(y,h,'upper');
         end
     else
         c=sum(((-lambda).^j).*(j.*delta+m),2);
         y=(-x-c(1))*sqrt(h/c(2))+h;
-        if x<=c(1)
+        if strcmpi(tail,'lower')
             p=chi2cdf(y,h,'upper');
-        else
+        elseif strcmpi(tail,'upper')
             p=chi2cdf(y,h);
         end
     end
     
 end
 
-if p<0 % integrals smaller than precision limit may return negative
-    p=nan;
-end
 end
