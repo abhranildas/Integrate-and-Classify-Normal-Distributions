@@ -117,19 +117,24 @@ plot(z,f_s);
 plot(z,f_b+f_s);
 
 %%
-x=linspace(-500,500,1e2);
-p=arrayfun(@(x) gx2cdf_imhof(x,[1 5 2],[1 2 3],[2 3 7]),x);
-p_tail=arrayfun(@(x) gx2cdf_imhof(x,[1 5 2],[1 2 3],[2 3 7],'tail'),x);
+lambda=[-10 -5 7];
+m=[4 20 3];
+delta=[200 3 10];
+
+x=linspace(-5e3,-1e3,1e2);
+p=arrayfun(@(x) gx2cdf_imhof(x,lambda,m,delta),x);
+p_tail=arrayfun(@(x) gx2cdf_imhof(x,lambda,m,delta,'tail'),x);
 figure(1)
 plot(x,p,'-');
 hold on
 plot(x,p_tail,'o');
 hold off
-figure(2)
-plot(x,1-p,'-');
-hold on
-plot(x,p_tail,'o');
-hold off
+
+% figure(2)
+% plot(x,1-p,'-');
+% hold on
+% plot(x,p_tail,'o');
+% hold off
 % set(gca,'xscale','log')
 % set(gca,'yscale','log')
 % legend('1-p','pc','pcu')

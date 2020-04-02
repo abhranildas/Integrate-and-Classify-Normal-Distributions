@@ -37,6 +37,7 @@ function p=gx2cdf_imhof(x,lambda,m,delta,tailflag)
 
 if nargin==4
     % compute the integral
+    f=@(u) imhof_integrand(u,x,lambda',m',delta');
     p=0.5-integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf)/pi;
     
     if (p<1e-3)||(p>1-1e-3)
@@ -66,8 +67,7 @@ elseif nargin>4 && strcmpi(tailflag,'tail') % compute tail approximations
     
 end
 
-
-% if p<0 % integrals smaller than precision limit may return negative
-%     p=nan;
-% end
+if p<0 % integrals smaller than precision limit may return negative
+    p=nan;
+end
 end

@@ -32,16 +32,20 @@ else
     delta=arrayfun(@(x) sum(b2(d==x)),lambda)./(4*lambda.^2); % total non-centrality for each eigenvalue
     
     % use Imhof's method to compute the CDF.
-    pc=gx2cdf_imhof(-c,lambda',m',delta');
-    if pc<1e-3
-        warning('Trying the tail approximation of the generalized chi-squared CDF.')
-        pc=gx2cdf_imhof(-c,lambda',m',delta','tail');
+    p_tail=gx2cdf_imhof(-c,lambda',m',delta','tail');
+    pc_actual=gx2cdf_imhof(-c,lambda',m',delta');
+    if p_tail>1e-3 % use actual Imhof's method
+        pc=pc_actual;
         p=1-pc;
-    elseif pc>1-1e-3
-        warning('Trying the tail approximation of the generalized chi-squared CDF.')
-        p=gx2cdf_imhof(-c,lambda',m',delta','tail');
-        pc=1-p;
-    else
+    else % use tail approximation
+        warning('Using the tail approximation of the generalized chi-squared CDF.')
+        % find which tail
+        if (pc_actual<0.5)||isnan(pc_actual) % lower tail
+            pc=p_tail;
         p=1-pc;
+        else % upper tail
+            p=p_tail;
+            pc=1-p;
+        end
     end
 end
