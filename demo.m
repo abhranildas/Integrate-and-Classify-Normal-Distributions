@@ -93,15 +93,13 @@ reg_fn_2=@(n) ray_scan(opt_reg_quad([mu_2,v_2],[mu_1,v_1]),'quad',n,mu_2); % opt
 results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan');
 
 %% 3D, simple, for Calen
-d=44;
+d=20;
 
 mu_1=[0;0;0];
 v_1=eye(3);
 
 mu_2=d*[1;1;1];
-d_true=d*sqrt(3)
-
-v_2=eye(3);
+v_2=2*eye(3);
 
 results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 d_gx2=results.norm_d

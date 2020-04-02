@@ -1,16 +1,13 @@
-function [f_b,f_s]=norm_rad_surv_split(z,dim)
-z_c=chi2inv(0.5,dim);
-f_b=((z<=-z_c)+(z<z_c))/2;
+function [f_big,f_small]=norm_rad_surv_split(z,dim)
+% returns the normal radial survival function, split into a big chunk, which is 
+% 0, +/-1 or +/-0.5, and a small part, which is a tail CDF. This is to
+% prevent the small part vanishing when the two are added together due to machine imprecision.
 
-    function f_s_one=f_small(z_one)
-        if abs(z_one)<z_c
-            f_s_one=chi2cdf(z_one^2,dim)/2;
-        else
-            f_s_one=chi2cdf(z_one^2,dim,'upper')/2;
-        end
-        if (z_one<=-z_c)||((z_one>0)&&(z_one<z_c))
-            f_s_one=-f_s_one;
-        end
-    end
-f_s=arrayfun(@f_small,z);
+z_c=chi2inv(0.5,dim); % above this criterion, we'll use chi2cdf('upper').
+f_big=((z<=-z_c)+(z<z_c))/2; % 1 when z<=-z_c, 1/2 when -z_c<z<z_c, 0 when z>=z_c
+
+f_small=chi2cdf(z.^2,dim);
+f_small_upper=chi2cdf(z.^2,dim,'upper');
+f_small(abs(z)>=z_c)=f_small_upper(abs(z)>=z_c);
+f_small=f_small.*(.5-((z<=-z_c)|((z>0)&(z<z_c)))); % if z<=-z_c or 0<z<z_c, invert sign
 end

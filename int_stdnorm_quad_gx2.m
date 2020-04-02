@@ -33,5 +33,15 @@ else
     
     % use Imhof's method to compute the CDF.
     pc=gx2cdf_imhof(-c,lambda',m',delta');
-    p=1-pc;
+    if pc<1e-3
+        warning('Trying the tail approximation of the generalized chi-squared CDF.')
+        pc=gx2cdf_imhof(-c,lambda',m',delta','tail');
+        p=1-pc;
+    elseif pc>1-1e-3
+        warning('Trying the tail approximation of the generalized chi-squared CDF.')
+        p=gx2cdf_imhof(-c,lambda',m',delta','tail');
+        pc=1-p;
+    else
+        p=1-pc;
+    end
 end

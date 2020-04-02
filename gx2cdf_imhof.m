@@ -1,6 +1,14 @@
-function Q=gx2cdf_imhof(x,lambda,m,delta)
+function p=gx2cdf_imhof(x,lambda,m,delta,tailflag)
+% Syntax:
+% p=gx2cdf_imhof(x,lambda,m,delta)
+% p=gx2cdf_imhof(x,lambda,m,delta,'tail')
+
+% Description:
 % Returns the CDF of a generalized chi-squared (a weighted sum of
 % non-central chi-squares), using Imhof's [1961] algorithm.
+
+% Example:
+% [p,pc]=gx2cdf_imhof(25,[1 -5 2],[1 2 3],[2 3 7])
 
 % Inputs:
 % x         point at which to evaluate the CDF
@@ -10,10 +18,7 @@ function Q=gx2cdf_imhof(x,lambda,m,delta)
 %           means) of the non-central chi-squares
 
 % Outputs:
-% Q         computed CDF
-
-% Example:
-% Q=gx2cdf_imhof(25,[1 -5 2],[1 2 3],[2 3 7])
+% p         computed CDF
 
 % Author:
 % Abhranil Das <abhranil.das@utexas.edu>
@@ -23,17 +28,46 @@ function Q=gx2cdf_imhof(x,lambda,m,delta)
 % A new method to compute classification error
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
-    % define the integrand (lambda, m, delta must be column vectors here)
+% define the integrand (lambda, m, delta must be column vectors here)
     function f=imhof_integrand(u,x,lambda,m,delta)
         theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
         rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
-        f=exp(-u)/2-sin(theta)./(pi*u.*rho);
+        f=sin(theta)./(u.*rho);
     end
 
-% compute the integral
-Q=integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf);
-
-if Q<0 % integrals smaller than precision limit may return negative
-    Q=nan;
+if nargin==4
+    % compute the integral
+    p=0.5-integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf)/pi;
+    
+    if (p<1e-3)||(p>1-1e-3)
+        warning("Tail probability may be inaccurate, and might be improved with the 'tail' flag.")
+    end
+    
+elseif nargin>4 && strcmpi(tailflag,'tail') % compute tail approximations
+    j=(1:3)';
+    c=sum((lambda.^j).*(j.*delta+m),2);
+    h=c(2)^3/c(3)^2;    
+    if c(3)>0
+        y=(x-c(1))*sqrt(h/c(2))+h;
+        if x<=c(1)
+            p=chi2cdf(y,h);
+        else
+            p=chi2cdf(y,h,'upper');
+        end
+    else
+        c=sum(((-lambda).^j).*(j.*delta+m),2);
+        y=(-x-c(1))*sqrt(h/c(2))+h;
+        if x<=c(1)
+            p=chi2cdf(y,h,'upper');
+        else
+            p=chi2cdf(y,h);
+        end
+    end
+    
 end
+
+
+% if p<0 % integrals smaller than precision limit may return negative
+%     p=nan;
+% end
 end

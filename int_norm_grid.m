@@ -60,11 +60,11 @@ z=cellfun(@(n_ray,bd_pt_std) sort(n_ray'*bd_pt_std), num2cell(n_z,1), bd_pts_std
 
     % function to compute probability slice along each ray
     function [p_ray,p_ray_c]=prob_ray(init_sign_ray,z_ray)
-        [f_b,f_s]=norm_rad_surv_split(z_ray,dim);
-        p_ray_b=(init_sign_ray+1)/2+init_sign_ray*sum((-1).^(1:length(z_ray)).*f_b);
-        p_ray_s=init_sign_ray*sum((-1).^(1:length(z_ray)).*f_s);
-        p_ray=p_ray_b+p_ray_s;
-        p_ray_c=1-p_ray_b-p_ray_s;
+        [f_big,f_small]=norm_rad_surv_split(z_ray,dim);
+        p_ray_big=(init_sign_ray+1)/2+init_sign_ray*sum((-1).^(1:length(z_ray)).*f_big);
+        p_ray_small=init_sign_ray*sum((-1).^(1:length(z_ray)).*f_small);
+        p_ray=p_ray_big+p_ray_small;
+        p_ray_c=1-p_ray_big-p_ray_small;
         %norm_rad_surv=(1-sign(z_ray).*chi2cdf(z_ray.^2,dim))/2; % normal radial survival function
         %p_ray=1/2+init_sign_ray*(1/2+ sum((-1).^(1:length(z_ray)).*norm_rad_surv));
     end

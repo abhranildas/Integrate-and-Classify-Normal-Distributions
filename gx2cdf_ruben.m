@@ -1,4 +1,4 @@
-function [Q,err]=gx2cdf_ruben(x,lambda,m,delta,K)
+function [p,err]=gx2cdf_ruben(x,lambda,m,delta,K)
 % Returns the CDF of a generalized chi-squared (a weighted sum of
 % non-central chi-squares with all weights the same sign), using Ruben's
 % [1962] algorithm.
@@ -53,7 +53,7 @@ if all(lambda>0)||all(lambda<0) % check that coefficients are the same sign.
     F=chi2cdf(x/beta,M:2:M+2*(K-1));
     
     % compute the integral
-    Q=dot(a,F);
+    p=dot(a,F);
     
     % compute the truncation error
     err=(1-sum(a))*chi2cdf(x/beta,M+2*K);
