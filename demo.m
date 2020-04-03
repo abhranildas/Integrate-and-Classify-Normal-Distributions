@@ -101,7 +101,7 @@ v_1=eye(3);
 mu_2=d_true*[1;0;0];
 v_2=(1+1e-12)*eye(3);
 
-results_gx2=classify_normals([mu_1,v_1],[mu_2,v_2],'bplot',false);
+results_gx2=classify_normals([mu_1,v_1],[mu_2,v_2],'estimate','tail','bplot',false);
 d_gx2=results_gx2.norm_d;
 
 % force ray method by supplying region functions

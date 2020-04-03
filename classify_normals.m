@@ -13,19 +13,21 @@ function results=classify_normals(dist_1,dist_2,varargin)
 
 % parse inputs
 parser = inputParser;
-addRequired(parser,'dist_1',@(x) isnumeric(x));
-addRequired(parser,'dist_2',@(x) isnumeric(x));
+addRequired(parser,'dist_1',@isnumeric);
+addRequired(parser,'dist_2',@isnumeric);
 addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
-addParameter(parser,'n_rays',1e4,@(x) isnumeric(x));
-addParameter(parser,'bPlot',true, @(x) islogical(x));
+addParameter(parser,'n_rays',1e4,@isnumeric);
+addParameter(parser,'estimate',[],@(x) (isnumeric(x)&&isscalar(x))||strcmpi(x,'tail'));
+addParameter(parser,'bPlot',true, @islogical);
 
 parse(parser,dist_1,dist_2,varargin{:});
 reg=parser.Results.reg;
 reg_type=parser.Results.reg_type;
+estimate=parser.Results.estimate;
 
 if strcmp(parser.Results.type,'norm')
     mu_1=dist_1(:,1);
@@ -85,13 +87,13 @@ else
         norm_reg_quad_2.a1=-norm_reg_quad_1.a1;
         norm_reg_quad_2.a0=-norm_reg_quad_1.a0;
         
-        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,norm_reg_quad_1,'reg_type',reg_type,'prior',priors(1),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,norm_reg_quad_1,'reg_type','quad','prior',priors(1),'n_rays',n_rays,'estimate',estimate,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,norm_reg_quad_2,'reg_type',reg_type,'prior',priors(2),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,norm_reg_quad_2,'reg_type','quad','prior',priors(2),'n_rays',n_rays,'estimate',estimate,'bPlot',bPlot,'plot_color',colors(2,:));
     elseif strcmp(reg_type,'ray_scan') % ray-scanned region functions
-        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,reg{1},'reg_type',reg_type,'prior',priors(1),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,reg{1},'reg_type','ray_scan','prior',priors(1),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,reg{2},'reg_type',reg_type,'prior',priors(2),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(2,:));
     end
     norm_err=priors(1)*norm_err_1+priors(2)*norm_err_b;
     norm_bd_pts=uniquetol([norm_bd_pts_a,norm_bd_pts_b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points

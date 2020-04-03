@@ -2,8 +2,8 @@ function coeffs=opt_reg_quad(norm_1,norm_2,varargin)
 
 % parse inputs
 parser = inputParser;
-addRequired(parser,'norm_1',@(x) isnumeric(x));
-addRequired(parser,'norm_2',@(x) isnumeric(x));
+addRequired(parser,'norm_1',@isnumeric);
+addRequired(parser,'norm_2',@isnumeric);
 addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 parse(parser,norm_1,norm_2,varargin{:});

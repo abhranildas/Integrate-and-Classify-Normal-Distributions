@@ -15,12 +15,12 @@ function results=classify_normals_multi(dists,varargin)
 % parse inputs
 n_dists=length(dists);
 parser = inputParser;
-addRequired(parser,'dists',@(x) isstruct(x));
-addParameter(parser,'priors',ones(1,n_dists)/n_dists, @(x) isnumeric(x) && all(x > 0) && all(x < 1));
-addParameter(parser,'vals',eye(n_dists), @(x) isnumeric(x) && ismatrix(x));
-addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
-addParameter(parser,'n_rays',1e4,@(x) isnumeric(x));
-addParameter(parser,'bPlot',true, @(x) islogical(x));
+addRequired(parser,'dists',@isstruct);
+addParameter(parser,'priors',ones(1,n_dists)/n_dists,@(x) isnumeric(x) && all(x > 0) && all(x < 1));
+addParameter(parser,'vals',eye(n_dists),@(x) isnumeric(x) && ismatrix(x));
+addParameter(parser,'type','norm',@(s) strcmp(s,'norm') || strcmp(s,'samp'));
+addParameter(parser,'n_rays',1e4,@isnumeric);
+addParameter(parser,'bPlot',true,@islogical);
 
 parse(parser,dists,varargin{:});
 vals=parser.Results.vals;

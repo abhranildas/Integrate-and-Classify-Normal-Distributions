@@ -1,4 +1,4 @@
-function p=gx2cdf_imhof(x,lambda,m,delta,tail)
+function p=gx2cdf_imhof(x,lambda,m,delta,varargin)
 % Syntax:
 % p=gx2cdf_imhof(x,lambda,m,delta)
 % p=gx2cdf_imhof(x,lambda,m,delta,'tail')
@@ -29,41 +29,65 @@ function p=gx2cdf_imhof(x,lambda,m,delta,tail)
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
 % define the integrand (lambda, m, delta must be column vectors here)
-    function f=imhof_integrand(u,x,lambda,m,delta)
-        theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
-        rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
-        f=sin(theta)./(u.*rho);
-    end
 
-if nargin==4
-    % compute the integral
-    p=0.5-integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf)/pi;
-    
-    if (p<1e-3)||(p>1-1e-3)
-        warning("Tail probability may be inaccurate, and might be improved with the 'tail' flag.")
-    end
-    
-elseif nargin>4 % compute tail approximations
+parser = inputParser;
+addRequired(parser,'x',@(x) isnumeric(x) && isscalar(x));
+addRequired(parser,'lambda',@isrow);
+addRequired(parser,'m',@isrow);
+addRequired(parser,'delta',@isrow);
+addOptional(parser,'side','lower',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
+addParameter(parser,'estimate',[]);
+
+parse(parser,x,lambda,m,delta,varargin{:});
+side=parser.Results.side;
+estimate=parser.Results.estimate;
+
+if strcmpi(estimate,'tail') % compute tail approximations
     j=(1:3)';
     c=sum((lambda.^j).*(j.*delta+m),2);
-    h=c(2)^3/c(3)^2;    
+    h=c(2)^3/c(3)^2;
     if c(3)>0
         y=(x-c(1))*sqrt(h/c(2))+h;
-        if strcmpi(tail,'lower')
+        if strcmpi(side,'lower')
             p=chi2cdf(y,h);
-        elseif strcmpi(tail,'upper')
+        elseif strcmpi(side,'upper')
             p=chi2cdf(y,h,'upper');
         end
     else
         c=sum(((-lambda).^j).*(j.*delta+m),2);
         y=(-x-c(1))*sqrt(h/c(2))+h;
-        if strcmpi(tail,'lower')
+        if strcmpi(side,'lower')
             p=chi2cdf(y,h,'upper');
-        elseif strcmpi(tail,'upper')
+        elseif strcmpi(side,'upper')
             p=chi2cdf(y,h);
         end
     end
     
+else
+    % compute the integral
+    % p=0.5-integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf,'RelTol',1e-20,'AbsTol',0)/pi;
+    syms u
+    if isempty(estimate)
+        imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf);
+    else
+        imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf,'RelTol',estimate,'AbsTol',0,'MaxFunctionCalls',inf);
+    end
+    
+    if strcmpi(side,'lower')
+        p=double(0.5-imhof_integral/pi);
+    elseif strcmpi(side,'upper')
+        p=double(0.5+imhof_integral/pi);
+    end
+    
+    if p<1e-3 && isempty(estimate)
+        warning("Tail probability is sometimes inaccurate, and might be improved by setting 'estimate' to a small tolerance (slow, accurate), or to 'tail' (fast, approximate, works best for upper tail with lambdas the same sign).");
+    end
+    
+end
+
+if p<0 || p>1
+    warning("Inaccurate estimate of a small probability. Setting to NaN.")
+    p=nan;
 end
 
 end

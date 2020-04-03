@@ -2,8 +2,8 @@ function plot_boundary(reg_ray_scan,dim,varargin)
 parser = inputParser;
 addRequired(parser,'reg_ray_scan',@(x) isa(x,'function_handle'));
 addRequired(parser,'dim',@(x) (x==1)||(x==2)||(x==3) );
-addParameter(parser,'orig',zeros(dim,1), @(x) isnumeric(x));
-addParameter(parser,'n_rays',1e4,@(x) isnumeric(x));
+addParameter(parser,'orig',zeros(dim,1), @isnumeric);
+addParameter(parser,'n_rays',1e4,@isnumericx);
 parse(parser,reg_ray_scan,dim,varargin{:});
 orig=parser.Results.orig;
 n_rays=parser.Results.n_rays;

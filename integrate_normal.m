@@ -15,13 +15,14 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,reg,varargin)
 
 % parse inputs
 parser = inputParser;
-addRequired(parser,'mu',@(x) isnumeric(x));
-addRequired(parser,'v',@(x) isnumeric(x));
+addRequired(parser,'mu',@isnumeric);
+addRequired(parser,'v',@isnumeric);
 addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
 addParameter(parser,'reg_type','quad');
 addParameter(parser,'n_rays',1e4);
-addParameter(parser,'prior',1, @(x) isnumeric(x));
-addParameter(parser,'bPlot',1, @(x) islogical(x));
+addParameter(parser,'prior',1,@isnumeric);
+addParameter(parser,'estimate',[],@(x) (isnumeric(x)&&isscalar(x))||strcmpi(x,'tail'));
+addParameter(parser,'bPlot',1,@islogical);
 colors=colororder;
 color=colors(1,:);
 addParameter(parser,'plot_color',color);
@@ -37,7 +38,11 @@ if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
     reg_coeffs_std.a1=sqrtm(v)*(2*reg.a2*mu+reg.a1);
     reg_coeffs_std.a0=mu'*reg.a2*mu+reg.a1'*mu+reg.a0;
     % get integral from the generalized chi-squared method
-    [p,pc]=int_stdnorm_quad_gx2(reg_coeffs_std);
+    if isempty(parser.Results.estimate)
+        [p,pc]=int_stdnorm_quad_gx2(reg_coeffs_std);
+    else
+        [p,pc]=int_stdnorm_quad_gx2(reg_coeffs_std,parser.Results.estimate);
+    end
 end
 
 bd_pts=[];

@@ -108,13 +108,6 @@ quad.a0=100;
 
 [p,pc]=int_norm_grid(mu,v,@(n) ray_scan(quad,'quad',n,mu))
 
-%%
-z=linspace(-100,100,1e3);
-[f_b,f_s]=norm_rad_surv_split(z,5);
-plot(z,f_b);
-hold on
-plot(z,f_s);
-plot(z,f_b+f_s);
 
 %%
 lambda=[-10 -5 7];
@@ -132,11 +125,31 @@ hold on
 plot(x,p_tail,'o');
 hold off
 
-% figure(2)
-% plot(x,1-p,'-');
-% hold on
-% plot(x,p_tail,'o');
-% hold off
-% set(gca,'xscale','log')
-% set(gca,'yscale','log')
-% legend('1-p','pc','pcu')
+%% symbolic integration
+lambda=[1 5 2];
+m=[2 3 7];
+delta=[1 2 3];
+x=1;
+
+syms u
+
+F=vpaintegral(@(u) integrand(u,x,lambda',m',delta'),u,0,inf)
+
+gx2cdf_imhof(1,[1 5 2],[1 2 3],[2 3 7])
+
+function f=integrand(u,x,lambda,m,delta)
+% lambda=[1 5 2]';
+% m=[1 2 3]';
+% delta=[2 3 7]';
+% x=1;
+theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
+rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
+f=sin(theta)./(u.*rho);
+% f=u^2;
+end
+
+%     function f=imhof_integrand(u,x,lambda,m,delta)
+%         theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
+%         rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
+%         f=sin(theta)./(u.*rho);
+%     end

@@ -17,11 +17,11 @@ function [merged_init_sign,merged_x]=opt_reg_multi(n,mus,vs,varargin)
 % parse inputs
 n_normals=size(mus,2);
 parser = inputParser;
-addRequired(parser,'n',@(x) isnumeric(x));
-addRequired(parser,'mus',@(x) isnumeric(x));
-addRequired(parser,'vs',@(x) isnumeric(x));
-addParameter(parser,'idx',1, @(x) isnumeric(x));
-addParameter(parser,'orig',[],@(x) isnumeric(x));
+addRequired(parser,'n',@isnumeric);
+addRequired(parser,'mus',@isnumeric);
+addRequired(parser,'vs',@isnumeric);
+addParameter(parser,'idx',1,@isnumeric);
+addParameter(parser,'orig',[],@isnumeric);
 addParameter(parser,'priors',ones(1,n_normals)/n_normals, @(x) isnumeric(x) && all(x > 0) && all(x < 1));
 addParameter(parser,'vals',eye(n_normals), @(x) isnumeric(x) && ismatrix(x));
 parse(parser,n,mus,vs,varargin{:});
