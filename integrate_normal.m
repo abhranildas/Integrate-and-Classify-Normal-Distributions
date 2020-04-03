@@ -21,7 +21,7 @@ addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
 addParameter(parser,'reg_type','quad');
 addParameter(parser,'n_rays',1e4);
 addParameter(parser,'prior',1,@isnumeric);
-addParameter(parser,'estimate',[],@(x) (isnumeric(x)&&isscalar(x))||strcmpi(x,'tail'));
+addParameter(parser,'estimate',[]);
 addParameter(parser,'bPlot',1,@islogical);
 colors=colororder;
 color=colors(1,:);
@@ -32,30 +32,24 @@ parse(parser,mu,v,reg,varargin{:});
 n_rays=parser.Results.n_rays;
 dim=length(mu);
 
-if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
-    % standardize  coefficients
-    reg_coeffs_std.a2=sqrtm(v)*reg.a2*sqrtm(v);
-    reg_coeffs_std.a1=sqrtm(v)*(2*reg.a2*mu+reg.a1);
-    reg_coeffs_std.a0=mu'*reg.a2*mu+reg.a1'*mu+reg.a0;
-    % get integral from the generalized chi-squared method
-    if isempty(parser.Results.estimate)
-        [p,pc]=int_stdnorm_quad_gx2(reg_coeffs_std);
-    else
-        [p,pc]=int_stdnorm_quad_gx2(reg_coeffs_std,parser.Results.estimate);
-    end
-end
-
 bd_pts=[];
 if dim <=3
     if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
-        % get boundary points from the grid method
-        [~,~,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,'quad',n,mu),n_rays);
+        % get integral and boundary points from the grid method
+        [p,pc,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,'quad',n,mu),n_rays);
     elseif strcmp(parser.Results.reg_type,'ray_scan') % ray format region
-        % get both integral and boundary points using ray method
+        % get integral and boundary points using ray method
         [p,pc,bd_pts]=int_norm_grid(mu,v,reg,n_rays);
     elseif strcmp(parser.Results.reg_type,'cheb') % chebfun region
-        % get both integral and boundary points from the ray-scanned chebfun region using ray method
+        % get integral and boundary points from the ray-scanned chebfun region using ray method
         [p,pc,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,n,mu),n_rays);
+    end
+elseif strcmp(parser.Results.reg_type,'quad')
+    % get integral from the generalized chi-squared method
+    if isempty(parser.Results.estimate)
+        [p,pc]=int_norm_quad_gx2(mu,v,reg);
+    else
+        [p,pc]=int_norm_quad_gx2(mu,v,reg,parser.Results.estimate);
     end
 end
 

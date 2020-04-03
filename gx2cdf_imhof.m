@@ -65,11 +65,15 @@ if strcmpi(estimate,'tail') % compute tail approximations
     
 else
     % compute the integral
-    % p=0.5-integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf,'RelTol',1e-20,'AbsTol',0)/pi;
-    syms u
     if isempty(estimate)
-        imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf);
+        imhof_integral=integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf);
+        if strcmpi(side,'lower')
+            p=0.5-imhof_integral/pi;
+        elseif strcmpi(side,'upper')
+            p=0.5+imhof_integral/pi;
+        end
     else
+        syms u
         imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf,'RelTol',estimate,'AbsTol',0,'MaxFunctionCalls',inf);
     end
     

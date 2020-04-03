@@ -21,7 +21,7 @@ addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
 addParameter(parser,'n_rays',1e4,@isnumeric);
-addParameter(parser,'estimate',[],@(x) (isnumeric(x)&&isscalar(x))||strcmpi(x,'tail'));
+addParameter(parser,'estimate',[]);
 addParameter(parser,'bPlot',true, @islogical);
 
 parse(parser,dist_1,dist_2,varargin{:});
@@ -107,20 +107,20 @@ results.norm_err=norm_err;
 
 % d'
 if optimal_case
-    norm_d=-2*norminv(norm_err);
-    results.norm_d=norm_d;
+    norm_dprime=-2*norminv(norm_err);
+    results.norm_dprime=norm_dprime;
 end
 
 % Mahalanobis d' and Chernoff bound
 if optimal_case
     % approximate d' (considering each vcov = avg)
     vcov_av=(v_1+v_2)/2;
-    results.norm_maha_d=sqrt((mu_1-mu_2)'/(vcov_av)*(mu_1-mu_2));
+    results.norm_maha_dprime=sqrt((mu_1-mu_2)'/(vcov_av)*(mu_1-mu_2));
     % Chernoff bound for d'
     [~,k]=fminbnd(@(b)chernoff_bound(b,mu_1,v_1,mu_2,v_2,0.5),0,1);
     err_opt_min_chernoff=10^k;
-    norm_min_d=-2*norminv(err_opt_min_chernoff);
-    results.norm_min_d=norm_min_d;
+    norm_min_dprime=-2*norminv(err_opt_min_chernoff);
+    results.norm_min_dprime=norm_min_dprime;
 end
 % Chernoff bound for error
 [~,k]=fminbnd(@(b)chernoff_bound(b,mu_1,v_1,mu_2,v_2,priors(1)),0,1);
@@ -142,7 +142,7 @@ if strcmp(parser.Results.type,'samp')
         results.samp_err=samp_err;
         
         if optimal_case
-            results.samp_d=-2*norminv(samp_err); % samp error can be used to compute samp d'
+            results.samp_dprime=-2*norminv(samp_err); % samp error can be used to compute samp d'
         elseif ~isequal(vals,eye(2)) % if outcome values are supplied
             [samp_ex_val,samp_val_mat]=value_samp(dist_1,dist_2,norm_reg_quad_1,vals);
             results.samp_val_mat=samp_val_mat;
@@ -184,7 +184,7 @@ if strcmp(parser.Results.type,'samp')
             results.samp_opt_err=samp_opt_err;
             
             if optimal_case
-                results.samp_opt_d=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
+                results.samp_opt_dprime=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
             elseif ~isequal(vals,eye(2)) % if outcome values are supplied
                 [samp_opt_ex_val,samp_opt_val_mat]=value_samp(dist_1,dist_2,samp_opt_reg_quad_1,vals);
                 results.samp_opt_val_mat=samp_opt_val_mat;

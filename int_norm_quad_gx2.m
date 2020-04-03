@@ -1,6 +1,6 @@
-function [p,pc]=int_stdnorm_quad_gx2(coeffs,estimate)
-% Find the probability that a quadratic form of a standard normal variate z
-% z'a2z + a1'z + a0 >= 0
+function [p,pc]=int_norm_quad_gx2(mu,v,quad,estimate)
+% Find the probability that a quadratic form of a normal variate x
+% x'a2x + a1'x + a0 >= 0
 % using the generalized chi-squared CDF (Imhof's method).
 %
 % How to use this command:
@@ -13,10 +13,12 @@ function [p,pc]=int_stdnorm_quad_gx2(coeffs,estimate)
 % If you use this code, please cite:
 %   A new method to compute classification error
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
+'gx2'
 
-a2=coeffs.a2;
-a1=coeffs.a1;
-a0=coeffs.a0;
+% standardize  coefficients
+a2=sqrtm(v)*quad.a2*sqrtm(v);
+a1=sqrtm(v)*(2*quad.a2*mu+quad.a1);
+a0=mu'*quad.a2*mu+quad.a1'*mu+quad.a0;
 
 if ~nnz(a2) % if a2 is zero, linear discriminant
     p=normcdf(a0/norm(a1));
@@ -32,7 +34,7 @@ else
     delta=arrayfun(@(x) sum(b2(d==x)),lambda)./(4*lambda.^2); % total non-centrality for each eigenvalue
     
     % use Imhof's method to compute the CDF.
-    if nargin==1
+    if nargin==3
         pc=gx2cdf_imhof(-c,lambda',m',delta');
         p=gx2cdf_imhof(-c,lambda',m',delta','upper');
     elseif strcmpi(estimate,'tail')
