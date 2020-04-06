@@ -36,13 +36,15 @@ addRequired(parser,'lambda',@isrow);
 addRequired(parser,'m',@isrow);
 addRequired(parser,'delta',@isrow);
 addOptional(parser,'side','lower',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
-addParameter(parser,'estimate',[]);
+addParameter(parser,'AbsTol',1e-10);
+addParameter(parser,'RelTol',1e-6);
+addParameter(parser,'approx','none',@(x) strcmpi(x,'none') || strcmpi(x,'tail'));
 
 parse(parser,x,lambda,m,delta,varargin{:});
 side=parser.Results.side;
-estimate=parser.Results.estimate;
+approx=parser.Results.approx;
 
-if strcmpi(estimate,'tail') % compute tail approximations
+if strcmpi(approx,'tail') % compute tail approximations
     j=(1:3)';
     c=sum((lambda.^j).*(j.*delta+m),2);
     h=c(2)^3/c(3)^2;
@@ -65,7 +67,7 @@ if strcmpi(estimate,'tail') % compute tail approximations
     
 else
     % compute the integral
-    if isempty(estimate)
+    if any(strcmp(parser.UsingDefaults,'AbsTol')) && any(strcmp(parser.UsingDefaults,'RelTol'))
         imhof_integral=integral(@(u) imhof_integrand(u,x,lambda',m',delta'),0,inf);
         if strcmpi(side,'lower')
             p=0.5-imhof_integral/pi;
@@ -74,19 +76,14 @@ else
         end
     else
         syms u
-        imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf,'RelTol',estimate,'AbsTol',0,'MaxFunctionCalls',inf);
-    end
-    
-    if strcmpi(side,'lower')
-        p=double(0.5-imhof_integral/pi);
-    elseif strcmpi(side,'upper')
-        p=double(0.5+imhof_integral/pi);
-    end
-    
-    if p<1e-3 && isempty(estimate)
-        warning("Tail probability is sometimes inaccurate, and might be improved by setting 'estimate' to a small tolerance (slow, accurate), or to 'tail' (fast, approximate, works best for upper tail with lambdas the same sign).");
-    end
-    
+        imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf);
+                
+        if strcmpi(side,'lower')
+            p=double(0.5-imhof_integral/pi);
+        elseif strcmpi(side,'upper')
+            p=double(0.5+imhof_integral/pi);
+        end
+    end        
 end
 
 if p<0 || p>1

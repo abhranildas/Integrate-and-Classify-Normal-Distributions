@@ -1,4 +1,4 @@
-function [p,pc]=int_norm_quad_gx2(mu,v,quad,estimate)
+function [p,pc]=int_norm_quad_gx2(mu,v,quad,varargin)
 % Find the probability that a quadratic form of a normal variate x
 % x'a2x + a1'x + a0 >= 0
 % using the generalized chi-squared CDF (Imhof's method).
@@ -13,7 +13,17 @@ function [p,pc]=int_norm_quad_gx2(mu,v,quad,estimate)
 % If you use this code, please cite:
 %   A new method to compute classification error
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
-'gx2'
+
+parser = inputParser;
+addRequired(parser,'mu',@isnumeric);
+addRequired(parser,'v',@isnumeric);
+addRequired(parser,'quad');
+addParameter(parser,'AbsTol',1e-10);
+addParameter(parser,'RelTol',1e-6);
+parse(parser,mu,v,quad,varargin{:});
+
+AbsTol=parser.Results.AbsTol;
+RelTol=parser.Results.RelTol;
 
 % standardize  coefficients
 a2=sqrtm(v)*quad.a2*sqrtm(v);
@@ -34,17 +44,14 @@ else
     delta=arrayfun(@(x) sum(b2(d==x)),lambda)./(4*lambda.^2); % total non-centrality for each eigenvalue
     
     % use Imhof's method to compute the CDF.
-    if nargin==3
+    if (AbsTol==1e-10)&&(RelTol==1e-6)
         pc=gx2cdf_imhof(-c,lambda',m',delta');
         p=gx2cdf_imhof(-c,lambda',m',delta','upper');
-    elseif strcmpi(estimate,'tail')
-        pc=gx2cdf_imhof(-c,lambda',m',delta','estimate','tail');
-        p=gx2cdf_imhof(-c,lambda',m',delta','upper','estimate','tail');
-    elseif isnumeric(estimate)
-        pc=gx2cdf_imhof(-c,lambda',m',delta','estimate',estimate);
-        p=gx2cdf_imhof(-c,lambda',m',delta','upper','estimate',estimate);
+    else
+        pc=gx2cdf_imhof(-c,lambda',m',delta','AbsTol',AbsTol,'RelTol',RelTol);
+        p=gx2cdf_imhof(-c,lambda',m',delta','upper','AbsTol',AbsTol,'RelTol',RelTol);
     end
     if (p<1e-3)&&(all(lambda>=0)||all(lambda<=0)) % use approximation for upper tail of definite quadratic
-        p=gx2cdf_imhof(-c,lambda',m',delta','upper','estimate','tail');
+        p=gx2cdf_imhof(-c,lambda',m',delta','upper','approx','tail');
     end
 end

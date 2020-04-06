@@ -84,11 +84,10 @@ v_1=eye(3);
 mu_2=[2;1;1];
 v_2=2*eye(3);
 
-results=classify_normals([mu_1,v_1],[mu_2,v_2]);
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'RelTol',1e-1);
 
 %% 3D, simple, for Calen
-format long
-dprime_true=10
+dprime_true=70
 
 mu_1=[0;0;0];
 v_1=eye(3);
@@ -98,8 +97,6 @@ v_2=(1+1e-12)*eye(3);
 
 results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 dprime=results.norm_dprime
-
-format
 
 %% 3D, from actual detection experiment
 

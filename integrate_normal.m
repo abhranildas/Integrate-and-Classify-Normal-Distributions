@@ -19,38 +19,49 @@ addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
 addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
 addParameter(parser,'reg_type','quad');
-addParameter(parser,'n_rays',1e4);
 addParameter(parser,'prior',1,@isnumeric);
-addParameter(parser,'estimate',[]);
+addParameter(parser,'AbsTol',1e-10);
+addParameter(parser,'RelTol',1e-6);
 addParameter(parser,'bPlot',1,@islogical);
 colors=colororder;
 color=colors(1,:);
 addParameter(parser,'plot_color',color);
 
 parse(parser,mu,v,reg,varargin{:});
+AbsTol=parser.Results.AbsTol;
+RelTol=parser.Results.RelTol;
 
-n_rays=parser.Results.n_rays;
 dim=length(mu);
 
-bd_pts=[];
+% reg rayscan function
+if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
+    % get integral and boundary points from the grid method
+    reg_fn=@(n) ray_scan(reg,'quad',n,mu);
+elseif strcmp(parser.Results.reg_type,'ray_scan') % ray format region
+    % get integral and boundary points using ray method
+    reg_fn=reg;
+elseif strcmp(parser.Results.reg_type,'cheb') % chebfun region
+    % get integral and boundary points from the ray-scanned chebfun region using ray method
+    reg_fn=@(n) ray_scan(reg,n,mu);
+end
+
 if dim <=3
-    if strcmp(parser.Results.reg_type,'quad') % if quadratic coefficients supplied
-        % get integral and boundary points from the grid method
-        [p,pc,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,'quad',n,mu),n_rays);
-    elseif strcmp(parser.Results.reg_type,'ray_scan') % ray format region
-        % get integral and boundary points using ray method
-        [p,pc,bd_pts]=int_norm_grid(mu,v,reg,n_rays);
-    elseif strcmp(parser.Results.reg_type,'cheb') % chebfun region
-        % get integral and boundary points from the ray-scanned chebfun region using ray method
-        [p,pc,bd_pts]=int_norm_grid(mu,v,@(n) ray_scan(reg,n,mu),n_rays);
+    [p,pc]=int_norm_grid(mu,v,reg_fn,'AbsTol',AbsTol,'RelTol',RelTol);    
+    % boundary points
+    n_rays=1e4;
+    if dim==1
+    [~,bd_pts]=prob_theta(mu,v,reg_fn,nan,nan);
+    elseif dim==2
+    [~,bd_pts]=prob_theta(mu,v,reg_fn,linspace(0,pi,n_rays),nan);
+    elseif dim==3
+        points=fibonacci_sphere(n_rays);
+        [theta,phi]=cart2sph(points(1,:),points(2,:),points(3,:));
+        [~,bd_pts]=prob_theta(mu,v,reg_fn,theta,phi);
     end
 elseif strcmp(parser.Results.reg_type,'quad')
     % get integral from the generalized chi-squared method
-    if isempty(parser.Results.estimate)
-        [p,pc]=int_norm_quad_gx2(mu,v,reg);
-    else
-        [p,pc]=int_norm_quad_gx2(mu,v,reg,parser.Results.estimate);
-    end
+    [p,pc]=int_norm_quad_gx2(mu,v,reg,'AbsTol',AbsTol,'RelTol',RelTol);
+    bd_pts=[];
 end
 
 % plot

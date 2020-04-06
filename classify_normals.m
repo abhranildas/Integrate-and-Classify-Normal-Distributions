@@ -20,14 +20,17 @@ addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
-addParameter(parser,'n_rays',1e4,@isnumeric);
-addParameter(parser,'estimate',[]);
+addParameter(parser,'AbsTol',1e-10);
+addParameter(parser,'RelTol',1e-6);
 addParameter(parser,'bPlot',true, @islogical);
 
 parse(parser,dist_1,dist_2,varargin{:});
 reg=parser.Results.reg;
 reg_type=parser.Results.reg_type;
-estimate=parser.Results.estimate;
+AbsTol=parser.Results.AbsTol;
+RelTol=parser.Results.RelTol;
+vals=parser.Results.vals;
+bPlot=parser.Results.bPlot;
 
 if strcmp(parser.Results.type,'norm')
     mu_1=dist_1(:,1);
@@ -49,10 +52,6 @@ else
     priors(1)=parser.Results.prior_1;
 end
 priors(2)=1-priors(1);
-
-vals=parser.Results.vals;
-n_rays=parser.Results.n_rays;
-bPlot=parser.Results.bPlot;
 
 % check if optimal case
 if priors(1)==0.5 && isequal(vals,eye(2)) && isempty(reg)
@@ -87,16 +86,16 @@ else
         norm_reg_quad_2.a1=-norm_reg_quad_1.a1;
         norm_reg_quad_2.a0=-norm_reg_quad_1.a0;
         
-        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,norm_reg_quad_1,'reg_type','quad','prior',priors(1),'n_rays',n_rays,'estimate',estimate,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,norm_reg_quad_1,'reg_type','quad','prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,norm_reg_quad_2,'reg_type','quad','prior',priors(2),'n_rays',n_rays,'estimate',estimate,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_b,norm_bd_pts_2]=integrate_normal(mu_2,v_2,norm_reg_quad_2,'reg_type','quad','prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     elseif strcmp(reg_type,'ray_scan') % ray-scanned region functions
-        [norm_acc_1,norm_err_1,norm_bd_pts_a]=integrate_normal(mu_1,v_1,reg{1},'reg_type','ray_scan','prior',priors(1),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg{1},'reg_type','ray_scan','prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_b,norm_bd_pts_b]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'n_rays',n_rays,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_b,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     end
     norm_err=priors(1)*norm_err_1+priors(2)*norm_err_b;
-    norm_bd_pts=uniquetol([norm_bd_pts_a,norm_bd_pts_b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
+    norm_bd_pts=uniquetol([norm_bd_pts_1,norm_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 end
 
 if ~isempty(norm_bd_pts)
@@ -115,16 +114,8 @@ end
 if optimal_case
     % approximate d' (considering each vcov = avg)
     vcov_av=(v_1+v_2)/2;
-    results.norm_maha_dprime=sqrt((mu_1-mu_2)'/(vcov_av)*(mu_1-mu_2));
-    % Chernoff bound for d'
-    [~,k]=fminbnd(@(b)chernoff_bound(b,mu_1,v_1,mu_2,v_2,0.5),0,1);
-    err_opt_min_chernoff=10^k;
-    norm_min_dprime=-2*norminv(err_opt_min_chernoff);
-    results.norm_min_dprime=norm_min_dprime;
+    results.norm_maha_dprime=sqrt((mu_1-mu_2)'/(vcov_av)*(mu_1-mu_2));    
 end
-% Chernoff bound for error
-[~,k]=fminbnd(@(b)chernoff_bound(b,mu_1,v_1,mu_2,v_2,priors(1)),0,1);
-results.norm_log_max_err=k;
 
 if ~isequal(vals,eye(2)) % if outcome values are supplied
     results.norm_val_mat=results.norm_err_mat.*vals; % conditional expected values
@@ -170,8 +161,8 @@ if strcmp(parser.Results.type,'samp')
             
             if dim<=3
                 % boundary points
-                [~,~,samp_opt_bd_pts_1]=integrate_normal(mu_1,v_1,samp_opt_reg_quad_1,'n_rays',n_rays,'bPlot',false);
-                [~,~,samp_opt_bd_pts_2]=integrate_normal(mu_2,v_2,samp_opt_reg_quad_2,'n_rays',n_rays,'bPlot',false);
+                [~,~,samp_opt_bd_pts_1]=integrate_normal(mu_1,v_1,samp_opt_reg_quad_1,'bPlot',false);
+                [~,~,samp_opt_bd_pts_2]=integrate_normal(mu_2,v_2,samp_opt_reg_quad_2,'bPlot',false);
                 samp_opt_bd_pts=[samp_opt_bd_pts_1,samp_opt_bd_pts_2];
                 results.samp_opt_bd_pts=samp_opt_bd_pts;
             end
