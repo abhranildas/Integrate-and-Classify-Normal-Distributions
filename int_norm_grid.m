@@ -1,4 +1,4 @@
-function [p,pc]=int_norm_grid(mu,v,reg_fn,varargin)
+function [p,pc]=int_norm_grid(mu,v,reg,varargin)
 % Integrate a normal distribution (upto 3D) over a specified region, using
 % the ray method.
 %
@@ -16,10 +16,13 @@ function [p,pc]=int_norm_grid(mu,v,reg_fn,varargin)
 parser = inputParser;
 addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
-addRequired(parser,'reg_fn');
+addRequired(parser,'reg');
+addParameter(parser,'reg_type','quad');
 addParameter(parser,'AbsTol',1e-10);
-addParameter(parser,'RelTol',1e-6);
-parse(parser,mu,v,reg_fn,varargin{:});
+addParameter(parser,'RelTol',1e-2);
+parse(parser,mu,v,reg,varargin{:});
+reg=parser.Results.reg;
+reg_type=parser.Results.reg_type;
 AbsTol=parser.Results.AbsTol;
 RelTol=parser.Results.RelTol;
 
@@ -74,15 +77,15 @@ dim=length(mu);
 % pc=mean(pc_rays);
 
 if dim==1
-    p=prob_theta(mu,v,reg_fn,nan,nan);
-    pc=prob_theta(mu,v,reg_fn,nan,nan,'complement');
+    p=prob_bd_angle(mu,v,reg,'reg_type',reg_type);
+    pc=prob_bd_angle(mu,v,reg,'reg_type',reg_type,'side','complement');
 elseif dim==2
-    p=integral(@(theta) prob_theta(mu,v,reg_fn,theta,nan),0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
-    pc=integral(@(theta) prob_theta(mu,v,reg_fn,theta,nan,'complement'),0,pi);    
+    p=integral(@(theta) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'theta',theta),0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
+    pc=integral(@(theta) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'theta',theta,'side','complement'),0,pi);    
 elseif dim==3
-    p=integral2(@(theta,phi) prob_theta(mu,v,reg_fn,theta,phi),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
-    pc=integral2(@(theta,phi) prob_theta(mu,v,reg_fn,theta,phi,'complement'),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
-    %[~,bd_pts]=prob_theta(mu,v,reg_fn,linspace(0,pi,1e4),nan);
+    p=integral2(@(theta,phi) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'theta',theta,'phi',phi),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
+    pc=integral2(@(theta,phi) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'theta',theta,'phi',phi,'side','complement'),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
+    %[~,bd_pts]=prob_bd_angle(mu,v,reg_fn,linspace(0,pi,1e4),nan);
 end
 % p=ps(1); pc=ps(2);
 end

@@ -19,12 +19,12 @@ addRequired(parser,'dists',@isstruct);
 addParameter(parser,'priors',ones(1,n_dists)/n_dists,@(x) isnumeric(x) && all(x > 0) && all(x < 1));
 addParameter(parser,'vals',eye(n_dists),@(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'type','norm',@(s) strcmp(s,'norm') || strcmp(s,'samp'));
-addParameter(parser,'n_rays',1e4,@isnumeric);
+addParameter(parser,'n_bd_pts',1e4,@isnumeric);
 addParameter(parser,'bPlot',true,@islogical);
 
 parse(parser,dists,varargin{:});
 vals=parser.Results.vals;
-n_rays=parser.Results.n_rays;
+n_bd_pts=parser.Results.n_bd_pts;
 bPlot=parser.Results.bPlot;
 
 if strcmp(parser.Results.type,'norm')
@@ -62,15 +62,19 @@ if bPlot, figure; hold on; end
 
 norm_bd_pts=cell(n_dists,1);
 norm_err_mat=nan(n_dists);
+norm_errs=nan(n_dists,1);
 % compute accuracy and boundary for each normal, and combine
 for i=1:n_dists % integrate each normal
     for j=1:n_dists % within the boundary of each normal
-        [p,~,bd_pts]=integrate_normal(mus(:,i),vs(:,:,i),...
-            @(n) opt_reg_multi(n,mus,vs,'idx',j,'priors',priors,'vals',vals,'orig',mus(:,i)),...
-            'reg_type','ray_scan','n_rays',n_rays,'bPlot',false);
-        fprintf('Integrating normal %d in region %d\n',[i j])
-        norm_bd_pts{j}=[norm_bd_pts{j},bd_pts];
+        [p,pc,bd_pts]=integrate_normal(mus(:,i),vs(:,:,i),...
+            @(n,orig) opt_reg_multi(n,mus,vs,'idx',j,'priors',priors,'vals',vals,'orig',orig),...
+            'reg_type','ray_scan','n_bd_pts',n_bd_pts,'bPlot',false);
+        fprintf('Integrating normal %d in region %d\n',[i j])        
         norm_err_mat(i,j)=p;
+        if j==i
+            norm_errs(i)=pc;
+        end
+        norm_bd_pts{j}=[norm_bd_pts{j},bd_pts];
     end
 end
 
@@ -79,7 +83,7 @@ for i=1:n_dists
     norm_bd_pts{i}=uniquetol(norm_bd_pts{i}',1e-12,'Byrows',true,'Datascale',1)';
 end
 
-norm_err=dot(priors,sum(norm_err_mat.*~eye(n_dists),2));
+norm_err=dot(priors,norm_errs);
 
 results.norm_bd_pts=norm_bd_pts;
 results.norm_err_mat=norm_err_mat;

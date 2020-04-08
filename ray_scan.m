@@ -1,6 +1,6 @@
-function [init_sign,x]=ray_scan(reg,reg_type,n,orig)
+function [init_sign,x,samp_correct]=ray_scan(reg,reg_type,n,orig)
 
-    % root(s) along a ray through quad region
+% root(s) along a ray through quad region
     function x_ray=roots_ray_quad(q2_pt,q1_pt)
         x_ray=sort(roots([q2_pt q1_pt a0]))';
         x_ray=x_ray(~imag(x_ray)); % only real roots
@@ -10,7 +10,7 @@ function [init_sign,x]=ray_scan(reg,reg_type,n,orig)
         x_ray=x_ray(slope~=0);
     end
 
-    % root(s) along a ray through cheb region
+% root(s) along a ray through cheb region
     function [init_sign_ray,r_ray]=roots_ray_cheb(n_ray)
         if nargin(reg)==1
             r_ray=roots(reg(orig+n_ray*r))';
@@ -41,26 +41,39 @@ function [init_sign,x]=ray_scan(reg,reg_type,n,orig)
 
 if strcmp(reg_type,'quad')
     
-    n=n./vecnorm(n); % normalize direction vectors
-    
-    % boundary coefficients wrt origin
-    a2=reg.a2;
-    a1=2*reg.a2*orig+reg.a1;
-    a0=orig'*reg.a2*orig+reg.a1'*orig+reg.a0;
-    
-    q2=dot(n,a2*n);
-    q1=a1'*n;
-    
-    % sign of the quadratic at -inf:
-    init_sign=sign(q2); % square term sets the sign
-    init_sign(~init_sign)=-sign(q1(~init_sign)); % linear term sets the sign for leftovers
-    init_sign(~init_sign)=sign(a0);% constant term sets the sign for the leftovers
-    x=arrayfun(@roots_ray_quad,q2,q1,'un',0); % this allows function to calculate on multiple directions at once
+    if nargout==3
+        [~,~,samp_correct]=samp_value(n',n',reg);
+        init_sign=[];
+        x=[];
+    else
+        n=n./vecnorm(n); % normalize direction vectors
+        
+        % boundary coefficients wrt origin
+        a2=reg.a2;
+        a1=2*reg.a2*orig+reg.a1;
+        a0=orig'*reg.a2*orig+reg.a1'*orig+reg.a0;
+        
+        q2=dot(n,a2*n);
+        q1=a1'*n;
+        
+        % sign of the quadratic at -inf:
+        init_sign=sign(q2); % square term sets the sign
+        init_sign(~init_sign)=-sign(q1(~init_sign)); % linear term sets the sign for leftovers
+        init_sign(~init_sign)=sign(a0);% constant term sets the sign for the leftovers
+        
+        x=arrayfun(@roots_ray_quad,q2,q1,'un',0); % this allows function to calculate on multiple directions at once
+    end
     
 elseif strcmp(reg_type,'cheb')
-    r=chebfun('r',[-inf inf],'splitting','on');
-    [init_sign,x]=cellfun(@roots_ray_cheb,num2cell(n,1),'un',0); % this allows function to calculate on multiple directions at once
-    init_sign=cell2mat(init_sign);
+    if nargout==3
+        [~,~,samp_correct]=samp_value(n',n',reg,'reg_type','cheb');
+        init_sign=[];
+        x=[];
+    else
+        r=chebfun('r',[-inf inf],'splitting','on');
+        [init_sign,x]=cellfun(@roots_ray_cheb,num2cell(n,1),'un',0); % this allows function to calculate on multiple directions at once
+        init_sign=cell2mat(init_sign);
+    end
 end
 
 end

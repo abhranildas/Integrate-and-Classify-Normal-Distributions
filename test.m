@@ -8,7 +8,7 @@ cheb_reg_2=@(x,y) x;
 reg_2=@(n,orig)ray_scan(cheb_reg_2,n,orig);
 
 reg_intersect=@(n,orig) combine_regs({reg_1,reg_2},'or',n,orig);
-integrate_normal(mu,v,@(n) reg_intersect(n,mu),'reg_type','ray_scan','n_rays',1e3);
+integrate_normal(mu,v,@(n) reg_intersect(n,mu),'reg_type','ray_scan');
 axis image
 xlim([-10 10])
 ylim([-10 10])
@@ -99,17 +99,6 @@ froot=roots(f);
 plot(froot)
 
 %%
-mu=[0;0;0];
-v=eye(3);
-
-quad.a2=-eye(3);
-quad.a1=[0;0;0];
-quad.a0=100;
-
-[p,pc]=int_norm_grid(mu,v,@(n) ray_scan(quad,'quad',n,mu))
-
-
-%%
 lambda=[-10 -5 7];
 m=[4 20 3];
 delta=[200 3 10];
@@ -125,31 +114,12 @@ hold on
 plot(x,p_tail,'o');
 hold off
 
-%% symbolic integration
-lambda=[1 5 2];
-m=[2 3 7];
-delta=[1 2 3];
-x=1;
-
-syms u
-
-F=vpaintegral(@(u) integrand(u,x,lambda',m',delta'),u,0,inf)
-
-gx2cdf_imhof(1,[1 5 2],[1 2 3],[2 3 7])
-
-function f=integrand(u,x,lambda,m,delta)
-% lambda=[1 5 2]';
-% m=[1 2 3]';
-% delta=[2 3 7]';
-% x=1;
-theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
-rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
-f=sin(theta)./(u.*rho);
-% f=u^2;
-end
-
-%     function f=imhof_integrand(u,x,lambda,m,delta)
-%         theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
-%         rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
-%         f=sin(theta)./(u.*rho);
-%     end
+%% fibonacci sphere
+n_pts=1e3;
+points=fibonacci_sphere(n_pts);
+[theta,phi]=cart2sph(points(1,:),points(2,:),points(3,:));
+[x,y,z] = sph2cart(theta,phi,1);
+n_z=[x(:)';y(:)';z(:)'];
+plot3(points(1,:),points(2,:),points(3,:),'.')
+figure
+plot3(n_z(1,:),n_z(2,:),n_z(3,:),'.')

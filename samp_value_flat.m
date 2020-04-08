@@ -1,4 +1,4 @@
-function v=value_samp_flat(dim,x,obs_a,obs_b,vals)
+function v=samp_value_flat(dim,x,obs_a,obs_b,vals)
 % Given observation samples and flattened boundary coefficients x, returns the expected value.
 % This is maximized to yield the optimal boundary coefficients.
 % Credits:
@@ -15,4 +15,4 @@ bd_coeffs.a2=reshape(x(1:dim^2),[dim dim])';
 bd_coeffs.a1=x(dim^2+1:dim^2+dim);
 bd_coeffs.a0=x(end);
 
-v=value_samp(obs_a,obs_b,bd_coeffs,vals);
+v=samp_value(obs_a,obs_b,bd_coeffs,'vals',vals);

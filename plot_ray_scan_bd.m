@@ -1,12 +1,14 @@
-function plot_boundary(reg_ray_scan,dim,varargin)
+function plot_ray_scan_bd(reg_ray_scan,dim,varargin)
 parser = inputParser;
 addRequired(parser,'reg_ray_scan',@(x) isa(x,'function_handle'));
 addRequired(parser,'dim',@(x) (x==1)||(x==2)||(x==3) );
 addParameter(parser,'orig',zeros(dim,1), @isnumeric);
-addParameter(parser,'n_rays',1e4,@isnumericx);
+addParameter(parser,'n_rays',1e4,@isnumeric);
+addParameter(parser,'color','k');
 parse(parser,reg_ray_scan,dim,varargin{:});
 orig=parser.Results.orig;
 n_rays=parser.Results.n_rays;
+color=parser.Results.color;
 
 % Create grid of unit vectors
 if dim==1
@@ -25,11 +27,11 @@ bd_pts=horzcat(bd_pts_rel{:})+orig;
 
 if dim==1
     for x=bd_pts
-        xline(x,'linewidth',1);
+        xline(x,'color',color,'linewidth',1);
     end
 elseif dim==2
-     plot(bd_pts(1,:),bd_pts(2,:),'.k','markersize',3)
+     plot(bd_pts(1,:),bd_pts(2,:),'.','color',color,'markersize',3)
 elseif dim==3
-    plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.k','markersize',1);
+    plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.','color',color,'markersize',1);
     grid on
 end

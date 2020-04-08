@@ -19,7 +19,7 @@ addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
 addRequired(parser,'quad');
 addParameter(parser,'AbsTol',1e-10);
-addParameter(parser,'RelTol',1e-6);
+addParameter(parser,'RelTol',1e-2);
 parse(parser,mu,v,quad,varargin{:});
 
 AbsTol=parser.Results.AbsTol;
