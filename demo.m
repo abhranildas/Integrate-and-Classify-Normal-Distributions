@@ -86,16 +86,9 @@ v_2=2*eye(3);
 
 results=classify_normals([mu_1,v_1],[mu_2,v_2]);
 
-% force ray method by supplying boundary functions
-reg_fn_1=@(n,orig) ray_scan(opt_reg_quad([mu_1,v_1],[mu_2,v_2]),'quad',n,orig);% optimum boundary function for normal 1
-reg_fn_2=@(n,orig) ray_scan(opt_reg_quad([mu_2,v_2],[mu_1,v_1]),'quad',n,orig);% optimum boundary function for normal 2
-
-results=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan');
-n_samp=1e3;
-results=classify_normals(mvnrnd(mu_1,v_1,n_samp),mvnrnd(mu_1,v_1,n_samp),'type','samp','reg',{reg_fn_1,reg_fn_2},'reg_type','ray_scan');
-
-%% 3D, simple, for Calen
-dprime_true=70
+%% High-accuracy estimation of tiny errors (high d')
+format long
+dprime_true=75
 
 mu_1=[0;0;0];
 v_1=eye(3);
@@ -103,8 +96,9 @@ v_1=eye(3);
 mu_2=dprime_true*[1;0;0];
 v_2=(1+1e-12)*eye(3);
 
-results=classify_normals([mu_1,v_1],[mu_2,v_2]);
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'AbsTol',0,'RelTol',1e-3);
 dprime=results.norm_dprime
+format
 
 %% 3D, from actual detection experiment
 
@@ -143,8 +137,8 @@ circle_left.a0=4;
 circle_right=circle_left;
 circle_right.a1=-circle_left.a1;
 
-circle_left_rayscan=@(n,orig)ray_scan(circle_left,'quad',n,orig);
-circle_right_rayscan=@(n,orig)ray_scan(circle_right,'quad',n,orig);
+circle_left_rayscan=@(n,orig)ray_scan(circle_left,n,orig);
+circle_right_rayscan=@(n,orig)ray_scan(circle_right,n,orig);
 
 circle_union_rayscan=@(n,orig) combine_regs({circle_left_rayscan,circle_right_rayscan},'or',n,orig);
 circle_intersection_rayscan=@(n,orig) combine_regs({circle_left_rayscan,circle_right_rayscan},'and',n,orig);
@@ -183,9 +177,7 @@ e=12;
 
 e_cheb=@(x,y) e-x.*y.^2/2; % define f (as a cheb function)
 
-integrate_normal(mu_1,v_1,e_cheb,'reg_type','cheb','n_bd_pts',1e3);
-xlim([-5 20])
-ylim([-15 15])
+integrate_normal(mu_1,v_1,e_cheb,'reg_type','cheb','cheb_reg_span',15);
 
 % classify normals and samples wrt this region
 mu_2=[3;4];
@@ -193,9 +185,7 @@ v_2=[2 -1; -1 4];
 n_samp=1e3;
 samp_1=mvnrnd(mu_1,v_1,n_samp);
 samp_2=mvnrnd(mu_2,v_2,n_samp);
-results=classify_normals(samp_1,samp_2,'prior_1',.8,'type','samp','reg',e_cheb,'reg_type','cheb','n_bd_pts',1e3);
-xlim([-5 20])
-ylim([-15 15])
+results=classify_normals(samp_1,samp_2,'prior_1',.8,'type','samp','reg',e_cheb,'reg_type','cheb','cheb_reg_span',15);
 
 % integrate multi-valued function of a normal
 % integrate [f,g]=[e_cheb,p_cheb] where both are +ve
@@ -204,19 +194,19 @@ p_quad.a2=(eye(2)-1)/2;
 p_quad.a1=[0;0];
 p_quad.a0=p;
 
-e_rayscan=@(n,orig)ray_scan(e_cheb,'cheb',n,orig);
-p_rayscan=@(n,orig)ray_scan(p_quad,'quad',n,orig);
+e_rayscan=@(n,orig)ray_scan(e_cheb,n,orig,'reg_type','cheb');
+p_rayscan=@(n,orig)ray_scan(p_quad,n,orig);
 ep_rayscan=@(n,orig) combine_regs({e_rayscan,p_rayscan},'and',n,orig);
 
 figure; hold on
-plot_ray_scan_bd(e_rayscan,2,'n_rays',1e3,'color','b')
-plot_ray_scan_bd(p_rayscan,2,'n_rays',1e3,'color','r')
+plot_ray_scan_bd(e_rayscan,2,'n_bd_pts',1e3,'color','b')
+plot_ray_scan_bd(p_rayscan,2,'n_bd_pts',1e3,'color','r')
 xlim([-5 20])
 ylim([-15 15])
 
 % classify normals and samples using this region
 %results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.8,'reg',{ep_rayscan,@(n,orig) invert_reg(ep_rayscan,n,orig)},'reg_type','ray_scan','n_bd_pts',1e3);
-results=classify_normals(samp_1,samp_2,'prior_1',.8,'type','samp','reg',{ep_rayscan,@(n,orig) invert_reg(ep_rayscan,n,orig)},'reg_type','ray_scan','n_bd_pts',1e3);
+results=classify_normals(samp_1,samp_2,'prior_1',.8,'type','samp','reg',{ep_rayscan,@(n,orig) invert_reg(ep_rayscan,n,orig)},'reg_type','ray_scan','n_samp_bd_pts',1e3);
 xlim([-5 20])
 ylim([-15 15])
 
@@ -226,7 +216,7 @@ dists(1).mu=-1; dists(1).v=1;
 dists(2).mu=1; dists(2).v=2;
 dists(3).mu=4; dists(3).v=.5;
 
-results=classify_normals_multi(dists,'priors',[.4 .5 .1],'n_bd_pts',1e3);
+results=classify_normals_multi(dists,'priors',[.4 .5 .1]);
 %% Multi-class, 2D
 
 % define means and vcovs of the normals
@@ -243,7 +233,7 @@ end
 plot_ray_scan_bd(@(n,orig) opt_reg_multi(n,mus,vs,'idx',3,'orig',orig),2,'orig',mus(:,3))
 
 % classify
-results=classify_normals_multi(dists,'n_bd_pts',1e3);
+results=classify_normals_multi(dists);
 axis image
 
 % now input samples from these normals
@@ -251,7 +241,7 @@ dists2=struct;
 for i=1:4
     dists2(i).sample=mvnrnd(dists(i).mu,dists(i).v,1e2);
 end
-results_samp=classify_normals_multi(dists2,'type','samp','n_bd_pts',1e3);
+results_samp=classify_normals_multi(dists2,'type','samp');
 axis image
 
 %% Multi-class, 3D
@@ -262,4 +252,4 @@ dists(2).mu=[0;1;0]; dists(2).v=eye(3);
 dists(3).mu=[-1;0;0]; dists(3).v=eye(3);
 dists(4).mu=[0;-1;0]; dists(4).v=eye(3);
 
-results=classify_normals_multi(dists,'n_bd_pts',1e3);
+results=classify_normals_multi(dists);

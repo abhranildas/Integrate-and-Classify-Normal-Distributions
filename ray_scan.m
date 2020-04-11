@@ -1,4 +1,18 @@
-function [init_sign,x,samp_correct]=ray_scan(reg,reg_type,n,orig)
+function [init_sign,x,samp_correct]=ray_scan(reg,n,orig,varargin)
+
+% parse inputs
+parser = inputParser;
+
+addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
+addRequired(parser,'n',@isnumeric);
+addRequired(parser,'orig',@isnumeric);
+addParameter(parser,'reg_type','quad');
+addParameter(parser,'cheb_reg_span',5);
+
+parse(parser,reg,n,orig,varargin{:});
+
+reg_type=parser.Results.reg_type;
+cheb_reg_span=parser.Results.cheb_reg_span;
 
 % root(s) along a ray through quad region
     function x_ray=roots_ray_quad(q2_pt,q1_pt)
@@ -70,7 +84,7 @@ elseif strcmp(reg_type,'cheb')
         init_sign=[];
         x=[];
     else
-        r=chebfun('r',[-inf inf],'splitting','on');
+        r=chebfun('r',cheb_reg_span*[-1 1],'splitting','on');
         [init_sign,x]=cellfun(@roots_ray_cheb,num2cell(n,1),'un',0); % this allows function to calculate on multiple directions at once
         init_sign=cell2mat(init_sign);
     end

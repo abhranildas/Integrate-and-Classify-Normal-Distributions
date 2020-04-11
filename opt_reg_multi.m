@@ -38,7 +38,7 @@ reglist=cell(length(other_idxs),1);
 for i=1:length(reglist)
     other_idx=other_idxs(i);
     reglist{i}=@(n,orig) ray_scan(opt_reg_quad([mus(:,idx), vs(:,:,idx)],[mus(:,other_idx), vs(:,:,other_idx)],...
-        'prior_1',priors(idx)/(priors(idx)+priors(other_idx)),'vals',vals([idx other_idx],[idx other_idx])),'quad',n,orig);
+        'prior_1',priors(idx)/(priors(idx)+priors(other_idx)),'vals',vals([idx other_idx],[idx other_idx])),n,orig);
 end
 
 [merged_init_sign,merged_x]=combine_regs(reglist,'and',n,orig);

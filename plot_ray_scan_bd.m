@@ -3,27 +3,33 @@ parser = inputParser;
 addRequired(parser,'reg_ray_scan',@(x) isa(x,'function_handle'));
 addRequired(parser,'dim',@(x) (x==1)||(x==2)||(x==3) );
 addParameter(parser,'orig',zeros(dim,1), @isnumeric);
-addParameter(parser,'n_rays',1e4,@isnumeric);
+addParameter(parser,'cheb_reg_span',5);
+addParameter(parser,'n_bd_pts',1e4);
 addParameter(parser,'color','k');
 parse(parser,reg_ray_scan,dim,varargin{:});
 orig=parser.Results.orig;
-n_rays=parser.Results.n_rays;
+cheb_reg_span=parser.Results.cheb_reg_span;
+n_bd_pts=parser.Results.n_bd_pts;
 color=parser.Results.color;
 
-% Create grid of unit vectors
-if dim==1
-    n=1;
-elseif dim==2
-    dth=pi/n_rays;
-    th=0:dth:pi;
-    n=[cos(th);sin(th)];
-elseif dim==3
-    n=fibonacci_sphere(n_rays);
-end
+global bd_pts
+bd_pts=[];
+[~,bd_pts]=prob_bd_angle(orig,eye(dim),reg_ray_scan,'reg_type','ray_scan','cheb_reg_span',cheb_reg_span,'n_bd_pts',n_bd_pts);
 
-[~,x]=reg_ray_scan(n,orig);
-bd_pts_rel=cellfun(@(x,y) x.*y,x,num2cell(n,1),'un',0); % convert to co-ordinates
-bd_pts=horzcat(bd_pts_rel{:})+orig;
+% Create grid of unit vectors
+% if dim==1
+%     n=1;
+% elseif dim==2
+%     dth=pi/n_rays;
+%     th=0:dth:pi;
+%     n=[cos(th);sin(th)];
+% elseif dim==3
+%     n=fibonacci_sphere(n_rays);
+% end
+% 
+% [~,x]=reg_ray_scan(n,orig);
+% bd_pts_rel=cellfun(@(x,y) x.*y,x,num2cell(n,1),'un',0); % convert to co-ordinates
+% bd_pts=horzcat(bd_pts_rel{:})+orig;
 
 if dim==1
     for x=bd_pts

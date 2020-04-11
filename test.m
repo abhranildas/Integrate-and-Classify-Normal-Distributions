@@ -114,12 +114,14 @@ hold on
 plot(x,p_tail,'o');
 hold off
 
-%% fibonacci sphere
-n_pts=1e3;
-points=fibonacci_sphere(n_pts);
-[theta,phi]=cart2sph(points(1,:),points(2,:),points(3,:));
-[x,y,z] = sph2cart(theta,phi,1);
-n_z=[x(:)';y(:)';z(:)'];
-plot3(points(1,:),points(2,:),points(3,:),'.')
-figure
-plot3(n_z(1,:),n_z(2,:),n_z(3,:),'.')
+%% y>sin(x)
+mu=[0;0];
+v=eye(2);
+
+reg_cheb=@(x,y) y-exp(-x.^2).*sin(10*x);
+reg_rayscan=@(n,orig)ray_scan(reg_cheb,'cheb',n,orig);
+plot_ray_scan_bd(reg_rayscan,2,'n_rays',1e3)
+
+integrate_normal(mu,v,reg_cheb,'reg_type','cheb','n_bd_pts',1e3);
+xlim([-10 10])
+ylim([-15 15])

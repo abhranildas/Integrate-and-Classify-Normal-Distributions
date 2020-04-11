@@ -19,12 +19,10 @@ addRequired(parser,'dists',@isstruct);
 addParameter(parser,'priors',ones(1,n_dists)/n_dists,@(x) isnumeric(x) && all(x > 0) && all(x < 1));
 addParameter(parser,'vals',eye(n_dists),@(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'type','norm',@(s) strcmp(s,'norm') || strcmp(s,'samp'));
-addParameter(parser,'n_bd_pts',1e4,@isnumeric);
 addParameter(parser,'bPlot',true,@islogical);
 
 parse(parser,dists,varargin{:});
 vals=parser.Results.vals;
-n_bd_pts=parser.Results.n_bd_pts;
 bPlot=parser.Results.bPlot;
 
 if strcmp(parser.Results.type,'norm')
@@ -68,7 +66,7 @@ for i=1:n_dists % integrate each normal
     for j=1:n_dists % within the boundary of each normal
         [p,pc,bd_pts]=integrate_normal(mus(:,i),vs(:,:,i),...
             @(n,orig) opt_reg_multi(n,mus,vs,'idx',j,'priors',priors,'vals',vals,'orig',orig),...
-            'reg_type','ray_scan','n_bd_pts',n_bd_pts,'bPlot',false);
+            'reg_type','ray_scan','bPlot',false);
         fprintf('Integrating normal %d in region %d\n',[i j])        
         norm_err_mat(i,j)=p;
         if j==i

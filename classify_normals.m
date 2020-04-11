@@ -19,19 +19,21 @@ addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) &
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
+addParameter(parser,'cheb_reg_span',5);
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
-addParameter(parser,'n_bd_pts',1e4);
+addParameter(parser,'n_samp_bd_pts',1e4);
 addParameter(parser,'bPlot',true, @islogical);
 
 parse(parser,dist_1,dist_2,varargin{:});
 reg=parser.Results.reg;
 reg_type=parser.Results.reg_type;
+cheb_reg_span=parser.Results.cheb_reg_span;
 AbsTol=parser.Results.AbsTol;
 RelTol=parser.Results.RelTol;
 vals=parser.Results.vals;
-n_bd_pts=parser.Results.n_bd_pts;
+n_samp_bd_pts=parser.Results.n_samp_bd_pts;
 bPlot=parser.Results.bPlot;
 
 if strcmp(parser.Results.type,'norm')
@@ -85,19 +87,19 @@ else
         % flip boundary sign for 2nd normal
         norm_reg_2=structfun(@uminus,reg,'un',0);
         
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'n_bd_pts',n_bd_pts,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,norm_reg_2,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'n_bd_pts',n_bd_pts,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,norm_reg_2,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     
     elseif strcmp(reg_type,'ray_scan') % ray-scanned region functions
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg{1},'reg_type','ray_scan','prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'n_bd_pts',n_bd_pts,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg{1},'reg_type','ray_scan','prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'n_bd_pts',n_bd_pts,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     
     elseif strcmp(reg_type,'cheb') % cheb region function
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type','cheb','prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'n_bd_pts',n_bd_pts,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type','cheb','prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'n_bd_pts',n_bd_pts,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     end    
     norm_bd_pts=uniquetol([norm_bd_pts_1,norm_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 end
@@ -163,8 +165,8 @@ if strcmp(parser.Results.type,'samp')
         
         if dim<=3
             % boundary points
-            [~,samp_bd_pts_1]=prob_bd_angle(mu_1,v_1,samp_reg_1,'n_bd_pts',n_bd_pts);
-            [~,samp_bd_pts_2]=prob_bd_angle(mu_2,v_2,samp_reg_2,'n_bd_pts',n_bd_pts);
+            [~,samp_bd_pts_1]=prob_bd_angle(mu_1,v_1,samp_reg_1,'n_bd_pts',n_samp_bd_pts);
+            [~,samp_bd_pts_2]=prob_bd_angle(mu_2,v_2,samp_reg_2,'n_bd_pts',n_samp_bd_pts);
             samp_bd_pts=uniquetol([samp_bd_pts_1,samp_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
             results.samp_opt_bd_pts=samp_bd_pts;
         end
