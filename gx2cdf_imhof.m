@@ -1,14 +1,15 @@
 function p=gx2cdf_imhof(x,lambda,m,delta,varargin)
-% Syntax:
-% p=gx2cdf_imhof(x,lambda,m,delta)
-% p=gx2cdf_imhof(x,lambda,m,delta,'tail')
-
-% Description:
 % Returns the CDF of a generalized chi-squared (a weighted sum of
 % non-central chi-squares), using Imhof's [1961] algorithm.
 
+% Syntax:
+% p=gx2cdf_imhof(x,lambda,m,delta)
+% p=gx2cdf_imhof(x,lambda,m,delta,'upper')
+% p=gx2cdf_imhof(x,lambda,m,delta,'AbsTol',0,'RelTol',1e-7)
+% p=gx2cdf_imhof(x,lambda,m,delta,'upper','approx','tail')
+
 % Example:
-% [p,pc]=gx2cdf_imhof(25,[1 -5 2],[1 2 3],[2 3 7])
+% p=gx2cdf_imhof(25,[1 -5 2],[1 2 3],[2 3 7])
 
 % Inputs:
 % x         point at which to evaluate the CDF
@@ -16,8 +17,15 @@ function p=gx2cdf_imhof(x,lambda,m,delta,varargin)
 % m         row vector of degrees of freedom of the non-central chi-squares
 % delta     row vector of non-centrality paramaters (sum of squares of
 %           means) of the non-central chi-squares
+% 'upper'   more accurate estimate of the complementary CDF when it's small
+% 'AbsTol'  absolute error tolerance for the output.
+% 'RelTol'  relative error tolerance for the output.
+%           The absolute OR the relative tolerance is satisfied.
+% 'approx'  set to 'tail' for Pearson's approximation of the tail
+%           probabilities. Works best for the upper (lower) tail when all
+%           lambda are positive (negative).
 
-% Outputs:
+% Output:
 % p         computed CDF
 
 % Author:
@@ -28,21 +36,28 @@ function p=gx2cdf_imhof(x,lambda,m,delta,varargin)
 % A new method to compute classification error
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
-% define the integrand (lambda, m, delta must be column vectors here)
-
 parser = inputParser;
-addRequired(parser,'x',@(x) isnumeric(x) && isscalar(x));
-addRequired(parser,'lambda',@isrow);
-addRequired(parser,'m',@isrow);
-addRequired(parser,'delta',@isrow);
+addRequired(parser,'x',@(x) isreal(x) && isscalar(x));
+addRequired(parser,'lambda',@(x) isreal(x) && isrow(x));
+addRequired(parser,'m',@(x) isreal(x) && isrow(x));
+addRequired(parser,'delta',@(x) isreal(x) && isrow(x));
 addOptional(parser,'side','lower',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
-addParameter(parser,'AbsTol',1e-10);
-addParameter(parser,'RelTol',1e-6);
+addParameter(parser,'AbsTol',1e-10,@(x) isreal(x) && isscalar(x) && (x>=0));
+addParameter(parser,'RelTol',1e-6,@(x) isreal(x) && isscalar(x) && (x>=0));
 addParameter(parser,'approx','none',@(x) strcmpi(x,'none') || strcmpi(x,'tail'));
 
 parse(parser,x,lambda,m,delta,varargin{:});
 side=parser.Results.side;
 approx=parser.Results.approx;
+
+u=[]; % pre-allocate in static workspace
+
+% define the integrand (lambda, m, delta must be column vectors here)
+    function f=imhof_integrand(u,x,lambda,m,delta)
+        theta=sum(m.*atan(lambda*u)+(delta.*(lambda*u))./(1+lambda.^2*u.^2),1)/2-u*x/2;
+        rho=prod(((1+lambda.^2*u.^2).^(m/4)).*exp(((lambda.^2*u.^2).*delta)./(2*(1+lambda.^2*u.^2))),1);
+        f=sin(theta)./(u.*rho);
+    end
 
 if strcmpi(approx,'tail') % compute tail approximations
     j=(1:3)';
@@ -77,13 +92,13 @@ else
     else
         syms u
         imhof_integral=vpaintegral(@(u) imhof_integrand(u,x,lambda',m',delta'),u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf);
-                
+        
         if strcmpi(side,'lower')
             p=double(0.5-imhof_integral/pi);
         elseif strcmpi(side,'upper')
             p=double(0.5+imhof_integral/pi);
         end
-    end        
+    end
 end
 
 if p<0 || p>1

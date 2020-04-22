@@ -9,7 +9,8 @@ addRequired(parser,'v',@isnumeric);
 addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
 addParameter(parser,'side','normal');
 addParameter(parser,'reg_type','quad');
-addParameter(parser,'cheb_reg_span',5);
+addParameter(parser,'cheb_reg_span',3);
+addParameter(parser,'func_crossings',100);
 addParameter(parser,'n_bd_pts',1e4);
 addParameter(parser,'theta',nan,@isnumeric);
 addParameter(parser,'phi',nan,@isnumeric);
@@ -18,6 +19,7 @@ parse(parser,mu,v,reg,varargin{:});
 
 reg_type=parser.Results.reg_type;
 cheb_reg_span=parser.Results.cheb_reg_span;
+func_crossings=parser.Results.func_crossings;
 n_bd_pts=parser.Results.n_bd_pts;
 side=parser.Results.side;
 theta=parser.Results.theta;
@@ -52,7 +54,7 @@ if strcmp(reg_type,'ray_scan') % ray format region
     reg_rayscan=reg;
 else % quad or cheb region
     % get integral and boundary points from the ray-scanned chebfun region using ray method
-    reg_rayscan=@(n,orig) ray_scan(reg,n,orig,'reg_type',reg_type,'cheb_reg_span',cheb_reg_span);
+    reg_rayscan=@(n,orig) ray_scan(reg,n,orig,'reg_type',reg_type,'cheb_reg_span',cheb_reg_span,'func_crossings',func_crossings);
 end
 
 % unit rays in the original space:

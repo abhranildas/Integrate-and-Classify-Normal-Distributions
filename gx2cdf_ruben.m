@@ -3,20 +3,25 @@ function [p,err]=gx2cdf_ruben(x,lambda,m,delta,K)
 % non-central chi-squares with all weights the same sign), using Ruben's
 % [1962] algorithm.
 
+% Syntax:
+% p=gx2cdf_ruben(x,lambda,m,delta)
+% p=gx2cdf_ruben(x,lambda,m,delta,K)
+% [p,err]=gx2cdf_ruben(x,lambda,m,delta)
+
+% Example:
+% [p,err]=gx2cdf_ruben(25,[1 5 2],[1 2 3],[2 3 7],100)
+
 % Inputs:
 % x         point at which to evaluate the CDF
 % lambda    row vector of coefficients of the non-central chi-squares
 % m         row vector of degrees of freedom of the non-central chi-squares
 % delta     row vector of non-centrality paramaters (sum of squares of
 %           means) of the non-central chi-squares
-% K         (optional) no. of terms in the approximation. Default = 1000.
+% K         no. of terms in the approximation. Default = 1000.
 
 % Outputs:
-% Q         computed CDF
+% p         computed CDF
 % err       upper error bound of the CDF estimate
-
-% Example:
-% [Q,err]=gx2cdf_ruben(25,[1 5 2],[1 2 3],[2 3 7],100)
 
 % Author:
 % Abhranil Das <abhranil.das@utexas.edu>

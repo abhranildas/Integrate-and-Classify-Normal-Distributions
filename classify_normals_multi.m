@@ -101,13 +101,15 @@ if bPlot
     colors=colororder;
     for i=1:n_dists
         if strcmp(parser.Results.type,'samp')
-            plot_sample(dists(i).sample,[],priors(1),colors(i,:))
+            plot_sample(dists(i).sample,priors(1),colors(i,:))
         end
     end
     % plot normals and boundaries
     for i=1:n_dists
-        plot_normal(mus(:,i),vs(:,:,i),norm_bd_pts{i},priors(i),colors(i,:))
+        plot_normal(mus(:,i),vs(:,:,i),priors(i),colors(i,:))
         hold on
+        %plot_boundary(norm_bd_pts{i},dim,'reg_type','bd_pts')
+        plot_boundary(@(n,orig) opt_reg_multi(n,mus,vs,'idx',i,'orig',orig,'priors',priors,'vals',vals),dim,'orig',mus(:,i),'reg_type','ray_scan')
     end
     hold off
 end

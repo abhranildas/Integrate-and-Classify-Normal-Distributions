@@ -19,7 +19,8 @@ addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) &
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
-addParameter(parser,'cheb_reg_span',5);
+addParameter(parser,'cheb_reg_span',3);
+addParameter(parser,'func_crossings',100);
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
@@ -30,6 +31,7 @@ parse(parser,dist_1,dist_2,varargin{:});
 reg=parser.Results.reg;
 reg_type=parser.Results.reg_type;
 cheb_reg_span=parser.Results.cheb_reg_span;
+func_crossings=parser.Results.func_crossings;
 AbsTol=parser.Results.AbsTol;
 RelTol=parser.Results.RelTol;
 vals=parser.Results.vals;
@@ -97,9 +99,9 @@ else
         [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     
     elseif strcmp(reg_type,'cheb') % cheb region function
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'func_crossings',func_crossings,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
+        [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'func_crossings',func_crossings,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
     end    
     norm_bd_pts=uniquetol([norm_bd_pts_1,norm_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 end
@@ -154,7 +156,6 @@ if strcmp(parser.Results.type,'samp')
         % find quad boundary that optimizes expected value / accuracy
         x=fminsearch(@(x)-samp_value_flat(dim,x,dist_1,dist_2,vals),[reg.a2(:); reg.a1(:); reg.a0],optimset('Display','iter'));
         
-        samp_reg_1=struct;
         samp_reg_1.a2=reshape(x(1:dim^2),[dim dim])';
         samp_reg_1.a1=x(dim^2+1:dim^2+dim);
         samp_reg_1.a0=x(end);
@@ -194,15 +195,19 @@ if bPlot && dim<=3
     if strcmp(parser.Results.type,'norm')
         title(sprintf("error = %g",norm_err)) % plot title
     elseif strcmp(parser.Results.type,'samp')
+        plot_sample(dist_1,priors(1),colors(1,:))
+        plot_sample(dist_2,priors(2),colors(2,:))
         if ~isempty(parser.Results.reg) % if custom boundary
             title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
             % don't plot sample boundary
-            plot_sample(dist_1,[],priors(1),colors(1,:))
-            plot_sample(dist_2,[],priors(2),colors(2,:))
+            
         else
             title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
-            plot_sample(dist_1,samp_bd_pts_1,priors(1),colors(1,:))
-            plot_sample(dist_2,samp_bd_pts_2,priors(2),colors(2,:))
+            plot_boundary(samp_reg_1,dim,'reg_type','quad','orig',mu_1,'v',v_1,'plot_color',.5*[1 1 1]);
+            plot_boundary(samp_reg_1,dim,'reg_type','quad','orig',mu_2,'v',v_2,'plot_color',.5*[1 1 1]);
+            
+            %plot_sample(dist_1,samp_bd_pts_1,priors(1),colors(1,:))
+            %plot_sample(dist_2,samp_bd_pts_2,priors(2),colors(2,:))
             
             % boundary legends
             if dim<=2

@@ -114,14 +114,29 @@ hold on
 plot(x,p_tail,'o');
 hold off
 
-%% y>sin(x)
-mu=[0;0];
-v=eye(2);
+%% 3D chebfun
 
-reg_cheb=@(x,y) y-exp(-x.^2).*sin(10*x);
-reg_rayscan=@(n,orig)ray_scan(reg_cheb,'cheb',n,orig);
-plot_ray_scan_bd(reg_rayscan,2,'n_rays',1e3)
+mu=[10;10;10];
+v=eye(3);
 
-integrate_normal(mu,v,reg_cheb,'reg_type','cheb','n_bd_pts',1e3);
-xlim([-10 10])
-ylim([-15 15])
+reg_func=@(x,y,z) x.^2-y.^2+z.^2-1;
+
+[~,~,bd_pts]=integrate_normal(mu,v,reg_func,'reg_type','cheb');
+hold on
+plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.r')
+xlim([-2 2])
+ylim([-2 2])
+zlim([-2 2])
+
+d = [-3 10 -3 3];
+
+f = chebfun2('y.*cos(y.^2+x)-.1',d);
+g = chebfun2('cos(x.^2/2).*sin(y.^2)-.1',d);
+% Plot zero contours of f & g
+plot(roots(f)), hold on, plot(roots(g))
+% Plot their common roots
+r = roots(f, g, 'resultant');
+plot(r(:,1), r(:,2), '.')
+
+g = diskfun(@(x,y) exp(-10*((x-.3).^2+y.^2)),[-pi pi 0 2]);
+plot(g), view(3)
