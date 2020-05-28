@@ -44,7 +44,7 @@ mu_2=1.5;
 v_2=1.5;
 samp_2=normrnd(mu_2,sqrt(v_2),[300 1]);
 
-results=classify_normals(samp_1,samp_2,'type','samp')
+results=classify_normals(samp_1,samp_2,'type','samp','opt_samp',false)
 
 %% 2D, one inside the other
 mu_1=[4; 5];
