@@ -34,24 +34,23 @@ if ~nnz(a2) % if a2 is zero, linear discriminant
     p=normcdf(a0/norm(a1));
     pc=normcdf(-a0/norm(a1)); % complement of p. It's useful to return it when small, and p is rounded to 1.
 else
-    [R,D]=eig(a2);
-    d=diag(D);
-    b2=(R*a1).^2; % b^2
-    c=a0-sum(b2./(4*d));
-    
-    [lambda,~,ic]=unique(d); % unique eigenvalues
-    m=accumarray(ic,1); % total dof of each eigenvalue
-    delta=arrayfun(@(x) sum(b2(d==x)),lambda)./(4*lambda.^2); % total non-centrality for each eigenvalue
+    % get generalized chi-squared parameters
+    [lambda,m,delta,c]=norm_quad_to_gx2_params(mu,v,quad);
     
     % use Imhof's method to compute the CDF.
     if (AbsTol==1e-10)&&(RelTol==1e-6)
-        pc=gx2cdf_imhof(-c,lambda',m',delta');
-        p=gx2cdf_imhof(-c,lambda',m',delta','upper');
+        [pc,flag_pc]=gx2cdf_imhof(0,lambda,m,delta,c);
+        [p,flag_p]=gx2cdf_imhof(0,lambda,m,delta,c,'upper');
     else
-        pc=gx2cdf_imhof(-c,lambda',m',delta','AbsTol',AbsTol,'RelTol',RelTol);
-        p=gx2cdf_imhof(-c,lambda',m',delta','upper','AbsTol',AbsTol,'RelTol',RelTol);
+        [pc,flag_pc]=gx2cdf_imhof(0,lambda,m,delta,c,'AbsTol',AbsTol,'RelTol',RelTol);
+        [p,flag_p]=gx2cdf_imhof(0,lambda,m,delta,c,'upper','AbsTol',AbsTol,'RelTol',RelTol);
     end
-    if (p<1e-3)&&(all(lambda>=0)||all(lambda<=0)) % use approximation for upper tail of definite quadratic
-        p=gx2cdf_imhof(-c,lambda',m',delta','upper','approx','tail');
+    if flag_p || ((p<1e-3)&&(all(lambda>=0)||all(lambda<=0))) % use approximation for upper tail of definite quadratic
+        warning('Using tail approximation.')
+        p=gx2cdf_imhof(0,lambda,m,delta,c,'upper','approx','tail');
+    end
+    if flag_pc % use tail approximation
+        warning('Using tail approximation.')
+        pc=gx2cdf_imhof(0,lambda,m,delta,c,'approx','tail');
     end
 end

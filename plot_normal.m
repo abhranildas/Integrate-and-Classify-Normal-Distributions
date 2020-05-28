@@ -36,7 +36,7 @@ elseif dim==2
     th=0:.01:2*pi;
     z=[cos(th);sin(th)];
     dist=C*z+repmat(mu,[1 length(th)]);
-    fill(dist(1,:),dist(2,:),plot_color,'linestyle','none','facealpha',.5);
+    fill(dist(1,:),dist(2,:),plot_color,'edgecolor','none','facealpha',.5);
     
     % plot boundary
 %     hold on

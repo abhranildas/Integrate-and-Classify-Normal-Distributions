@@ -1,15 +1,15 @@
-function [p,err]=gx2cdf_ruben(x,lambda,m,delta,K)
+function [p,err]=gx2cdf_ruben(x,lambda,m,delta,c,K)
 % Returns the CDF of a generalized chi-squared (a weighted sum of
 % non-central chi-squares with all weights the same sign), using Ruben's
 % [1962] algorithm.
 
 % Syntax:
-% p=gx2cdf_ruben(x,lambda,m,delta)
-% p=gx2cdf_ruben(x,lambda,m,delta,K)
-% [p,err]=gx2cdf_ruben(x,lambda,m,delta)
+% p=gx2cdf_ruben(x,lambda,m,delta,c)
+% p=gx2cdf_ruben(x,lambda,m,delta,c,K)
+% [p,err]=gx2cdf_ruben(x,lambda,m,delta,c)
 
 % Example:
-% [p,err]=gx2cdf_ruben(25,[1 5 2],[1 2 3],[2 3 7],100)
+% [p,err]=gx2cdf_ruben(25,[1 5 2],[1 2 3],[2 3 7],0,100)
 
 % Inputs:
 % x         point at which to evaluate the CDF
@@ -17,6 +17,7 @@ function [p,err]=gx2cdf_ruben(x,lambda,m,delta,K)
 % m         row vector of degrees of freedom of the non-central chi-squares
 % delta     row vector of non-centrality paramaters (sum of squares of
 %           means) of the non-central chi-squares
+% c         constant term
 % K         no. of terms in the approximation. Default = 1000.
 
 % Outputs:
@@ -55,13 +56,13 @@ if all(lambda>0)||all(lambda<0) % check that coefficients are the same sign.
     end
     
     % compute the central chi-squared integrals
-    F=chi2cdf(x/beta,M:2:M+2*(K-1));
+    F=chi2cdf((x-c)/beta,M:2:M+2*(K-1));
     
     % compute the integral
     p=dot(a,F);
     
     % compute the truncation error
-    err=(1-sum(a))*chi2cdf(x/beta,M+2*K);
+    err=(1-sum(a))*chi2cdf((x-c)/beta,M+2*K);
 else
     error('Ruben''s method cannot handle coefficients of different signs. Use Imhof''s method (gx2cdf_imhof.m).');
 end

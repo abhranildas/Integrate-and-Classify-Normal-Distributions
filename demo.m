@@ -10,7 +10,7 @@
 mu=0;
 v=1;
 
-% integrate in a quadratic region (x-1)^2<1, i.e. f(x)=-x^2+x+1>0
+% integrate in a quadratic region (x-1)^2<1, i.e. f(x)= -1*x^2 + 1*x + 1 >0
 reg_quad.a2=-1;
 reg_quad.a1=1;
 reg_quad.a0=1;
@@ -74,9 +74,9 @@ ylim([-10 10])
 
 % modify boundary
 custom_reg_quad=results.samp_opt_reg_quad;
-custom_reg_quad.a2=custom_reg_quad.a2+.2;
-custom_reg_quad.a1=custom_reg_quad.a1-5;
-custom_reg_quad.a0=custom_reg_quad.a0+10;
+custom_reg_quad.a2=custom_reg_quad.a2+.1;
+custom_reg_quad.a1=custom_reg_quad.a1-2.5;
+custom_reg_quad.a0=custom_reg_quad.a0+5;
 
 results=classify_normals(samp_1,samp_2,'type','samp','reg',custom_reg_quad)
 
@@ -166,7 +166,7 @@ results=classify_normals([mu_1,v_1],[mu_2,v_2])
 hold on
 plot3(results.norm_bd_pts(1,:),results.norm_bd_pts(2,:),results.norm_bd_pts(3,:),'.','markersize',4)
 
-%% High-accuracy estimation of tiny errors (high d')
+%% High-accuracy estimation of tiny errors (large d')
 format long
 dprime_true=75
 
@@ -205,13 +205,11 @@ mu_1=[0;0;0;0];
 v_1=eye(4);
 
 mu_2=[1;1;1;1];
-v_2=2*eye(4);
+v_2=eye(4);
 
-results=classify_normals([mu_1,v_1],[mu_2,v_2])
-
-% now input samples from these normals
 n_samp=1e3;
-results_samp=classify_normals(mvnrnd(mu_1,v_1,n_samp),mvnrnd(mu_2,v_2,n_samp),'type','samp')
+results=classify_normals(mvnrnd(mu_1,v_1,n_samp),...
+    mvnrnd(mu_2,v_2,n_samp),'type','samp','prior_1',.7,'vals',[2 0; 0 1])
 
 %% Integrate non-quadratic function f of a normal,
 % equivalent to integrating normal in the non-quadratic region f>0, using chebfun
@@ -287,6 +285,7 @@ end
 
 % plot the multi-class boundary of normal 3
 plot_boundary(@(n,orig) opt_reg_multi(n,mus,vs,'idx',3,'orig',orig),2,'orig',mus(:,3),'reg_type','ray_scan')
+title 'boundary of normal 3'
 
 % classify
 results=classify_normals_multi(dists)
