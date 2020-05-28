@@ -22,7 +22,7 @@ addParameter(parser,'reg_type','quad');
 addParameter(parser,'cheb_reg_span',3);
 addParameter(parser,'func_crossings',100);
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
-addParameter(parser,'opt_samp',true, @islogical);
+addParameter(parser,'samp_opt',true, @islogical);
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
 addParameter(parser,'n_samp_bd_pts',1e4);
@@ -158,7 +158,7 @@ if strcmp(parser.Results.type,'samp')
     results.samp_lpr={lpr_1,lpr_2};
     
     %% sample-optimal boundary
-    if isempty(parser.Results.reg) && parser.Results.opt_samp % if default boundary,
+    if isempty(parser.Results.reg) && parser.Results.samp_opt % if default boundary,
         try
             % find quad boundary that optimizes expected value / accuracy
             x=fminsearch(@(x) -samp_value_flat(dim,x,dist_1,dist_2,vals),[reg.a2(:); reg.a1(:); reg.a0],optimset('Display','iter','TolFun',1e-6));
@@ -271,7 +271,7 @@ if bPlot
             title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
             % don't plot sample boundary
         else
-            if parser.Results.opt_samp
+            if parser.Results.samp_opt
                 title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
                 if dim <=3
                     plot_boundary(samp_reg_1,dim,'reg_type','quad','orig',mu_1,'v',v_1,'plot_color',.5*[1 1 1]);
