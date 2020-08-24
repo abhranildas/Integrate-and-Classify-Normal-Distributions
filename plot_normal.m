@@ -20,10 +20,12 @@ C=sqrtm(v);
     
 if dim==1
     % plot normal
+    fplot(@(x) prior*normpdf(x,mu,C), 'color',plot_color,'linewidth',1);
+    hold on
     x=linspace(mu-5*C,mu+5*C,100);
     y=prior*normpdf(x,mu,C);
-    %fplot(@(x) normpdf(x,mu,C), [mu-5*C, mu+5*C],'facecolor',plot_color,'facealpha',0.4,'edgecolor',plot_color,'edgealpha',0.5,'linewidth',1)
-    area(x,y,'facecolor',plot_color,'facealpha',0.4,'edgecolor',plot_color,'edgealpha',0.5,'linewidth',1)
+    area(x,y,'facecolor',plot_color,'facealpha',0.4,'edgecolor','none')
+    hold off
     
     % plot boundary
 %     hold on
@@ -33,7 +35,7 @@ if dim==1
     
 elseif dim==2
     % plot normal (error ellipse)
-    th=0:.01:2*pi;
+    th=linspace(0,2*pi,100);
     z=[cos(th);sin(th)];
     dist=C*z+repmat(mu,[1 length(th)]);
     fill(dist(1,:),dist(2,:),plot_color,'edgecolor','none','facealpha',.5);

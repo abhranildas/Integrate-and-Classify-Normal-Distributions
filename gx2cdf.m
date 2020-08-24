@@ -1,29 +1,31 @@
-function f=gx2pdf(x,lambda,m,delta,sigma,c,varargin)
-% Returns the PDF of a generalized chi-squared (a weighted sum of
-% non-central chi-squares and a normal).
+function p=gx2cdf(x,lambda,m,delta,sigma,c,varargin)
+% Returns the CDF of a generalized chi-squared (a weighted sum of
+% non-central chi-squares and a normal), using Ruben's [1962] method,
+% Davies' [1973] method, or the native ncx2cdf, depending on the input.
 
 % Syntax:
-% f=gx2pdf(x,lambda,m,delta,sigma,c)
-% f=gx2pdf(x,lambda,m,delta,sigma,c,'dx',1e-3)
-% f=gx2pdf(x,lambda,m,delta,sigma,c,'AbsTol',0,'RelTol',1e-7)
+% p=gx2cdf(x,lambda,m,delta,sigma,c)
+% p=gx2cdf(x,lambda,m,delta,sigma,c,'upper')
+% p=gx2cdf(x,lambda,m,delta,sigma,c,'AbsTol',0,'RelTol',1e-7)
 
 % Example:
-% f=gx2pdf(25,[1 -5 2],[1 2 3],[2 3 7],5,0)
+% p=gx2cdf(25,[1 -5 2],[1 2 3],[2 3 7],5,0)
 
 % Inputs:
-% x         points at which to evaluate the PDF
+% x         points at which to evaluate the CDF
 % lambda    row vector of coefficients of the non-central chi-squares
 % m         row vector of degrees of freedom of the non-central chi-squares
 % delta     row vector of non-centrality paramaters (sum of squares of
 %           means) of the non-central chi-squares
 % sigma     sd of normal term
 % c         constant term
+% 'upper'   more accurate estimate of the complementary CDF when it's small
 % 'AbsTol'  absolute error tolerance for the output
 % 'RelTol'  relative error tolerance for the output
 %           The absolute OR the relative tolerance is satisfied.
 
 % Output:
-% f         computed PDF
+% p         computed CDF
 
 % Author:
 % Abhranil Das <abhranil.das@utexas.edu>
@@ -40,22 +42,20 @@ addRequired(parser,'m',@(x) isreal(x) && isrow(x));
 addRequired(parser,'delta',@(x) isreal(x) && isrow(x));
 addRequired(parser,'sigma',@(x) isreal(x) && isscalar(x));
 addRequired(parser,'c',@(x) isreal(x) && isscalar(x));
+addOptional(parser,'side','lower',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
 addParameter(parser,'AbsTol',1e-10,@(x) isreal(x) && isscalar(x) && (x>=0));
 addParameter(parser,'RelTol',1e-6,@(x) isreal(x) && isscalar(x) && (x>=0));
-addParameter(parser,'dx',1e-10,@(x) isreal(x) && isscalar(x) && (x>=0));
 
-if isscalar(lambda) && ~sigma
-    f=ncx2pdf((x-c)/lambda,m,delta);
-else
-    parse(parser,x,lambda,m,delta,sigma,c,varargin{:});
-    dx=parser.Results.dx;
-    if any(strcmp(varargin,'dx'))
-        removeIndex=strcmp(varargin(:,1),'dx');
-        varargin(removeIndex,:)=[];
+parse(parser,x,lambda,m,delta,sigma,c,varargin{:});
+
+if ~sigma && isscalar(lambda)
+    p=ncx2cdf((x-c)/lambda,m,delta);
+elseif ~sigma && (all(lambda>0)||all(lambda<0))
+    try
+        p=gx2cdf_ruben(x,lambda,m,delta,c,varargin{:});
+    catch
+        p=gx2cdf_davies(x,lambda,m,delta,sigma,c,varargin{:});
     end
-    p_left=gx2cdf(x-dx,lambda,m,delta,sigma,c,varargin{:});
-    p_right=gx2cdf(x+dx,lambda,m,delta,sigma,c,varargin{:});
-    f=max((p_right-p_left)/(2*dx),0);
-end
-
+else
+    p=gx2cdf_davies(x,lambda,m,delta,sigma,c,varargin{:});
 end

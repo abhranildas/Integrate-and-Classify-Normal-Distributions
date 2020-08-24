@@ -1,4 +1,4 @@
-function [merged_init_sign,merged_x,merged_samp_correct]=combine_regs(reglist,op,n,orig)
+function [merged_init_sign,merged_x,merged_samp_correct]=combine_regs(reglist,op,n,varargin)
 % Return distances and signs of the optimal boundary between normal 1 and
 % several others (standardized wrt normal 1, or optional normal_wrt), in the direction
 % of vector(s) n.
@@ -14,13 +14,26 @@ function [merged_init_sign,merged_x,merged_samp_correct]=combine_regs(reglist,op
 %   A new method to compute classification error
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
+% parse inputs
+dim=size(n,1);
+parser = inputParser;
+addRequired(parser,'reglist');
+addRequired(parser,'op');
+addRequired(parser,'n',@isnumeric);
+addParameter(parser,'mu',zeros(dim,1),@isnumeric);
+addParameter(parser,'v',eye(dim),@isnumeric);
+
+parse(parser,reglist,op,n,varargin{:});
+mu=parser.Results.mu;
+v=parser.Results.v;
+
 n_regs=length(reglist);
 n_dirs=size(n,2);
 
 if nargout==3
     all_samp_correct=nan(n_regs,n_dirs);
     for i=1:n_regs
-        [~,~,samp_correct]=reglist{i}(n,orig);
+        [~,~,samp_correct]=reglist{i}(n,[],[]);
         all_samp_correct(i,:)=samp_correct;
     end
     if strcmpi(op,'or')
@@ -35,7 +48,7 @@ else
     % compile distances and signs to all boundaries
     all_init_sign=nan(n_regs,n_dirs); all_x=cell(1,n_dirs);
     for i=1:n_regs
-        [init_sign,x]=reglist{i}(n,orig);
+        [init_sign,x]=reglist{i}(n,mu,v);
         all_x=arrayfun(@(x,y) [x{:};y], all_x,x,'un',0);
         all_init_sign(i,:)=init_sign;
     end

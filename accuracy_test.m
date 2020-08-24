@@ -15,7 +15,7 @@ reg_fn_2=@(n) opt_reg(n,[mu_2,v_2],[mu_1,v_1]);  % optimum boundary function for
 n_rays=round(10.^linspace(1,5,15));
 p_ray=nan(size(n_rays));
 for i=1:length(n_rays)
-results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'custom_reg',{reg_fn_1,reg_fn_2},'n_rays',n_rays(i),'bPlot',false);
+results_ray=classify_normals([mu_1,v_1],[mu_2,v_2],'reg',{reg_fn_1,reg_fn_2},'n_rays',n_rays(i),'bPlot',false);
 p_ray(i)=results_ray.norm_err
 end
 rel_errs=(p_ray-gx2_estimate)/gx2_estimate;

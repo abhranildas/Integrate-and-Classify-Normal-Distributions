@@ -1,4 +1,4 @@
-function [merged_init_sign_ray,merged_x_ray]=opt_reg_multi_ray(all_init_sign_ray,all_x_ray,n_normals)
+function [merged_init_sign_ray,merged_x_ray]=%opt_class_multi_ray(all_init_sign_ray,all_x_ray,n_normals)
 % merged initial sign
 merged_init_sign_ray=min(all_init_sign_ray); % -1 if any are -1, else 0 if any are 0, else 1 if all are 1.
 

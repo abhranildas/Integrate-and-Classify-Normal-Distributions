@@ -15,6 +15,8 @@ elseif dim==2
     % plot sample points
     h=plot(dist(:,1),dist(:,2),'.','markersize',4,'color',hsv2rgb(rgb2hsv(color)-[0 .5 0]));
     uistack(h,'bottom')
+    uistack(h,'up',1)
+%uistack(h,'bottom')
     % plot sample boundary
 %     if ~isempty(bd_pts)
 %         plot(bd_pts(1,:),bd_pts(2,:),'.','markersize',3,'color',.5*[1 1 1]);

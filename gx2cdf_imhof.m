@@ -1,6 +1,6 @@
 function [p,flag]=gx2cdf_imhof(x,lambda,m,delta,c,varargin)
 % Returns the CDF of a generalized chi-squared (a weighted sum of
-% non-central chi-squares), using Imhof's [1961] algorithm.
+% non-central chi-squares), using Imhof's [1961] method.
 
 % Syntax:
 % p=gx2cdf_imhof(x,lambda,m,delta,c)
@@ -12,7 +12,7 @@ function [p,flag]=gx2cdf_imhof(x,lambda,m,delta,c,varargin)
 % p=gx2cdf_imhof(25,[1 -5 2],[1 2 3],[2 3 7],0)
 
 % Inputs:
-% x         point at which to evaluate the CDF
+% x         points at which to evaluate the CDF
 % lambda    row vector of coefficients of the non-central chi-squares
 % m         row vector of degrees of freedom of the non-central chi-squares
 % delta     row vector of non-centrality paramaters (sum of squares of
@@ -41,7 +41,7 @@ function [p,flag]=gx2cdf_imhof(x,lambda,m,delta,c,varargin)
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
 parser = inputParser;
-addRequired(parser,'x',@(x) isreal(x) && isscalar(x));
+addRequired(parser,'x',@(x) isreal(x));
 addRequired(parser,'lambda',@(x) isreal(x) && isrow(x));
 addRequired(parser,'m',@(x) isreal(x) && isrow(x));
 addRequired(parser,'delta',@(x) isreal(x) && isrow(x));
@@ -90,7 +90,8 @@ if strcmpi(approx,'tail') % compute tail approximations
 else
     % compute the integral
     if any(strcmp(parser.UsingDefaults,'AbsTol')) && any(strcmp(parser.UsingDefaults,'RelTol'))
-        imhof_integral=integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf);
+%         imhof_integral=integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf);
+    imhof_integral=arrayfun(@(x) integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf),x);
         if strcmpi(side,'lower')
             p=0.5-imhof_integral/pi;
         elseif strcmpi(side,'upper')
@@ -98,8 +99,10 @@ else
         end
     else
         syms u
-        imhof_integral=vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf);
-        
+%         imhof_integral=vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf);
+            imhof_integral=arrayfun(@(x) vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),...
+        u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf),x);
+
         if strcmpi(side,'lower')
             p=double(0.5-imhof_integral/pi);
         elseif strcmpi(side,'upper')
@@ -108,12 +111,8 @@ else
     end
 end
 
-if p<0
-    p=0;
-    flag=true;
-elseif p>1
-    p=1;
-    flag=true;
-end
+flag = p<0 | p>1;
+p=max(p,0);
+p=min(p,1);
 
 end

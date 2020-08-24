@@ -1,32 +1,45 @@
 %% Generalized chi-squared demo
 % look into each function code for more documentation
 
-lambda=[1 10 2];
+% gx2 parameters
+lambda=[1 -10 2];
 m=[1 2 3];
 delta=[2 3 7];
+sigma=5;
 c=10;
 
-% calculate PDF and CDF at a point
-x=25;
-format long
-f=gx2pdf(x,lambda,m,delta,c)
-p_imhof=gx2cdf_imhof(x,lambda,m,delta,c) % Imhof's method (recommended)
-p_ruben=gx2cdf_ruben(x,lambda,m,delta,c) % Ruben's method
+% calculate mean and variance
+[mu,v]=gx2stat(lambda,m,delta,sigma,c)
+
+% calculate PDF and CDF at points
+x=[10 25];
+f=gx2pdf(x,lambda,m,delta,sigma,c)
+p=gx2cdf(x,lambda,m,delta,sigma,c)
 
 % plot PDF and CDF
-lambda=[1 -10 2]; % mixed coefficients (Ruben's method cannot handle this)
-[mu,v]=gx2stat(lambda,m,delta,c) % mean and variance
-x=linspace(mu-3*sqrt(v),mu+3*sqrt(v),1e3);
-f=arrayfun(@(x) gx2pdf(x,lambda,m,delta,c),x);
-p=arrayfun(@(x) gx2cdf_imhof(x,lambda,m,delta,c),x);
+subplot(2,1,1); fplot(@(x) gx2pdf(x,lambda,m,delta,sigma,c))
+xline(mu,'-',{'\mu \pm \sigma'},'labelorientation','horizontal');
+xline(mu-sqrt(v),'-'); xline(mu+sqrt(v),'-');
+xlim([mu-3*sqrt(v),mu+3*sqrt(v)]); ylim([0 .015]); ylabel 'PDF'
 
-yyaxis left
-area(x,f,'facealpha',.5)
-xline(mu,'-',{'mean'});
-ylim([0 .015])
-ylabel 'PDF'
-yyaxis right
-area(x,p,'facealpha',.5)
-ylabel 'CDF'
-xlabel x
-xlim([mu-3*sqrt(v),mu+3*sqrt(v)])
+subplot(2,1,2); fplot(@(x) gx2cdf(x,lambda,m,delta,sigma,c));
+xline(mu,'-',{'\mu \pm \sigma'},'labelorientation','horizontal');
+xline(mu-sqrt(v),'-'); xline(mu+sqrt(v),'-');
+xlim([mu-3*sqrt(v),mu+3*sqrt(v)]); ylim([0 1]); xlabel x; ylabel 'CDF'  
+
+% distribution of quadratic form of a normal variable
+
+% normal parameters
+mu=[1;2]; % mean
+v=[2 1; 1 3]; % covariance matrix
+
+% q(x)=(x1+x2)^2-x1-1 = [x1;x2]'*[1 1; 1 1]*[x1;x2] + [-1;0]'*[x1;x2] -1
+quad.q2=[1 1; 1 1];
+quad.q1=[-1;0];
+quad.q0=-1;
+
+% get gx2 parameters corr. to this quadratic form
+[lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,quad)
+
+% p(q(x)<3)
+p=gx2cdf(3,lambda,m,delta,sigma,c)

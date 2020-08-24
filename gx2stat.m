@@ -1,15 +1,16 @@
-function [mu,v]=gx2stat(lambda,m,delta,c)
+function [mu,v]=gx2stat(lambda,m,delta,sigma,c)
 % Returns the mean and variance of a generalized chi-squared variable
 % (a weighted sum of non-central chi-squares).
 
 % Example:
-% [mu,v]=gx2stat([1 -5 2],[1 2 3],[2 3 7],0)
+% [mu,v]=gx2stat([1 -5 2],[1 2 3],[2 3 7],4,0)
 
 % Inputs:
 % lambda    row vector of coefficients of the non-central chi-squares
 % m         row vector of degrees of freedom of the non-central chi-squares
 % delta     row vector of non-centrality paramaters (sum of squares of
 %           means) of the non-central chi-squares
+% sigma     sd of normal term
 % c         constant term
 
 % Outputs:
@@ -32,4 +33,4 @@ addRequired(parser,'c',@(x) isreal(x) && isscalar(x));
 parse(parser,lambda,m,delta,c);
 
 mu=dot(lambda,m+delta)+c;
-v=2*dot(lambda.^2,m+2*delta);
+v=2*dot(lambda.^2,m+2*delta)+sigma^2;

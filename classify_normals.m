@@ -19,25 +19,26 @@ addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) &
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
-addParameter(parser,'cheb_reg_span',3);
-addParameter(parser,'func_crossings',100);
+addParameter(parser,'fun_span',3);
+addParameter(parser,'fun_resol',100);
 addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
 addParameter(parser,'samp_opt',true, @islogical);
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
 addParameter(parser,'n_samp_bd_pts',1e4);
-addParameter(parser,'bPlot',true, @islogical);
+addParameter(parser,'bPlot',true,@islogical);
 
 parse(parser,dist_1,dist_2,varargin{:});
 reg=parser.Results.reg;
 reg_type=parser.Results.reg_type;
-cheb_reg_span=parser.Results.cheb_reg_span;
-func_crossings=parser.Results.func_crossings;
+fun_span=parser.Results.fun_span;
+fun_resol=parser.Results.fun_resol;
 AbsTol=parser.Results.AbsTol;
 RelTol=parser.Results.RelTol;
 vals=parser.Results.vals;
 n_samp_bd_pts=parser.Results.n_samp_bd_pts;
 bPlot=parser.Results.bPlot;
+% samp_opt_success=false;
 
 if strcmp(parser.Results.type,'norm')
     mu_1=dist_1(:,1);
@@ -83,26 +84,29 @@ else
     % compute accuracy and boundary for each normal, and combine
     if isempty(reg) % optimal region
         % compute optimal boundary coefficients
-        reg=opt_reg_quad([mu_1,v_1],[mu_2,v_2],'vals',vals,'prior_1',priors(1));
-        results.norm_reg_quad=reg;
+        reg=opt_class_quad([mu_1,v_1],[mu_2,v_2],'vals',vals,'prior_1',priors(1));
+        results.norm_bd=reg;
     end
-    if strcmp(reg_type,'quad') % custom quad coefficients
-        % flip boundary sign for 2nd normal
-        norm_reg_2=structfun(@uminus,reg,'un',0);
-        
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
+    
+    if strcmp(reg_type,'ray_scan') % ray-scanned region functions
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type',reg_type,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot*2,'plot_color',colors(1,:));
         if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,norm_reg_2,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
-        
-    elseif strcmp(reg_type,'ray_scan') % ray-scanned region functions
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg{1},'reg_type','ray_scan','prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
-        if bPlot && dim<=3, hold on, end
-        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg{2},'reg_type','ray_scan','prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
-        
-    elseif strcmp(reg_type,'cheb') % cheb region function
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'func_crossings',func_crossings,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
-        if bPlot && dim<=3, hold on, end
-        [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type','cheb','cheb_reg_span',cheb_reg_span,'func_crossings',func_crossings,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
+        reg_inv=@(n,mu,v) invert_reg(reg,n,'mu',mu,'v',v);
+        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg_inv,'reg_type',reg_type,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot*2,'plot_color',colors(2,:));
+    else
+        if strcmp(reg_type,'quad') % custom quad coefficients
+            % flip boundary sign for 2nd normal
+            %norm_reg_2=structfun(@uminus,reg,'un',0);
+            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
+            if bPlot, hold on, end
+            [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
+        elseif strcmp(reg_type,'fun') % region defined by a function
+            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
+            if bPlot && dim<=3, hold on, end
+            [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
+        end
+        % plot boundary
+        if bPlot, hold on, plot_boundary(reg,dim,'reg_type',reg_type), end
     end
     norm_bd_pts=uniquetol([norm_bd_pts_1,norm_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 end
@@ -112,7 +116,7 @@ if ~isempty(norm_bd_pts)
     results.norm_bd_pts=norm_bd_pts;
 end
 
-results.norm_err_mat=[norm_acc_1, norm_err_1; norm_err_2, norm_acc_2];
+results.norm_errs=[norm_acc_1, norm_err_1; norm_err_2, norm_acc_2];
 results.norm_err=norm_err;
 
 % d'
@@ -129,15 +133,15 @@ if optimal_case
 end
 
 if ~isequal(vals,eye(2)) % if outcome values are supplied
-    results.norm_val_mat=results.norm_err_mat.*vals; % conditional expected values
-    results.norm_val=sum(sum(results.norm_val_mat.*priors'));
+    results.norm_vals=results.norm_errs.*vals; % conditional expected values
+    results.norm_val=sum(sum(results.norm_vals.*priors'));
 end
 
 %% sample inputs
 if strcmp(parser.Results.type,'samp')
     
     % compute outcome counts and error
-    [~,samp_count_mat]=samp_value(dist_1,dist_2,reg,'reg_type',reg_type,'vals',ones(2));
+    [~,samp_counts]=samp_value(dist_1,dist_2,reg,'reg_type',reg_type,'vals',ones(2));
     samp_err=samp_value(dist_1,dist_2,reg,'reg_type',reg_type,'vals',1-eye(2));
     
     if optimal_case
@@ -148,28 +152,52 @@ if strcmp(parser.Results.type,'samp')
         results.samp_ex_val=samp_ex_val;
     end
     
-    results.samp_count_mat=samp_count_mat;
-    results.samp_err_mat=samp_count_mat./sum(samp_count_mat,2);
+    results.samp_counts=samp_counts;
+    results.samp_errs=samp_counts./sum(samp_counts,2);
     results.samp_err=samp_err;
     
-    % log posterior ratios for >3D
-    lpr_1=normal_lpr(dist_1,mu_1',v_1,mu_2',v_2,priors(1));
-    lpr_2=normal_lpr(dist_2,mu_1',v_1,mu_2',v_2,priors(1));
-    results.samp_lpr={lpr_1,lpr_2};
+    % Decision variables
+    if strcmpi(reg_type,'fun')
+        dist_1_cell=num2cell(dist_1,1);
+        dv_1=reg(dist_1_cell{:});
+        dist_2_cell=num2cell(dist_2,1);
+        dv_2=reg(dist_2_cell{:});
+    elseif strcmpi(reg_type,'quad')
+        f=quad2fun(reg);
+        dv_1=f(dist_1')';
+        dv_2=f(dist_2')';
+    end
+    %     f=quad2fun(reg);
+    
+    %bdv_1=bayes_dec_var(dist_1,mu_1',v_1,mu_2',v_2,priors(1),vals);
+    %bdv_2=bayes_dec_var(dist_2,mu_1',v_1,mu_2',v_2,priors(1),vals);
+    results.samp_dv={dv_1,dv_2};
     
     %% sample-optimal boundary
-    if isempty(parser.Results.reg) && parser.Results.samp_opt % if default boundary,
+    if parser.Results.samp_opt && strcmpi(reg_type,'quad') % && isempty(parser.Results.reg)% if default boundary,
         try
             % find quad boundary that optimizes expected value / accuracy
-            x=fminsearch(@(x) -samp_value_flat(dim,x,dist_1,dist_2,vals),[reg.a2(:); reg.a1(:); reg.a0],optimset('Display','iter','TolFun',1e-6));
+            x=fminsearch(@(x) -samp_value_flat(x,dist_1,dist_2,vals),[reg.q2(triu(true(size(reg.q2)))); reg.q1(:); reg.q0],optimset('Display','iter','TolX',0,'TolFun',1/(size(dist_1,1)+size(dist_2,1))));
+            %             x=fminsearch(@(x) -samp_value_flat(x,dist_1,dist_2,vals),[reg.q2(:); reg.q1(:); reg.q0],optimset('Display','iter','TolFun',1e-6));
             
-            samp_reg_1.a2=reshape(x(1:dim^2),[dim dim])';
-            samp_reg_1.a1=x(dim^2+1:dim^2+dim);
-            samp_reg_1.a0=x(end);
-            results.samp_opt_reg_quad=samp_reg_1;
+            q2=zeros(dim);
+            q2(triu(true(dim)))=x(1:(dim^2+dim)/2);
+            q2=q2+triu(q2,1)';
+            
+            samp_reg_1.q2=q2;%reshape(x(1:dim^2),[dim dim])';
+            samp_reg_1.q1=x(end-dim:end-1);
+            %             samp_reg_1.q1=x(dim^2+1:dim^2+dim);
+            samp_reg_1.q0=x(end);
+            results.samp_opt_bd=samp_reg_1;
             
             % flip boundary sign for b
             samp_reg_2=structfun(@uminus,samp_reg_1,'un',0);
+            
+            % Decision variables with samp-opt classifier
+            f=quad2fun(samp_reg_1);
+            dv_samp_1=f(dist_1')';
+            dv_samp_2=f(dist_2')';
+            results.samp_opt_dv={dv_samp_1,dv_samp_2};
             
             if dim<=3
                 % boundary points
@@ -179,32 +207,32 @@ if strcmp(parser.Results.type,'samp')
                 results.samp_opt_bd_pts=samp_bd_pts;
             end
             
-            samp_opt_flag=true;
+%             samp_opt_success=true;
             
-        catch mException
+        catch %mException
             %warning(getReport(mException,'extended','hyperlinks','on'))
-            warning('Cannot optimize full quadratic classification boundary for the sample (usually due to system limits). Finding best log posterior ratio classification criterion instead.')
-            samp_opt_flag=false;
+            warning('Cannot optimize quadratic classifier for the sample (usually due to system limits).')
+%             samp_opt_success=false;
             
-            if dim>3
-                % find optimal lpr
-                samp_opt_lpr=-fminbnd(@(x) -samp_value_flat(1,[0;1;x],lpr_1,lpr_2,vals),min(lpr_2),max(lpr_1),optimset('Display','iter'));
-                %x=fminsearch(@(x) -samp_value_flat(1,[0;1;x],lpr_1,lpr_2,vals),0,optimset('TolFun',1e-6,'Display','iter'));
-                results.samp_opt_lpr=samp_opt_lpr;
-                
-                samp_reg_1.a2=0;
-                samp_reg_1.a1=1;
-                samp_reg_1.a0=-samp_opt_lpr;
-                dist_1=lpr_1;
-                dist_2=lpr_2;
-            end
+            %             if dim>3
+            %                 % find optimal bdv
+            %                 samp_opt_bdv=-fminbnd(@(x) -samp_value_flat(1,[0;1;x],bdv_1,bdv_2,vals),min(bdv_2),max(bdv_1),optimset('Display','iter'));
+            %                 %x=fminsearch(@(x) -samp_value_flat(1,[0;1;x],lpr_1,lpr_2,vals),0,optimset('TolFun',1e-6,'Display','iter'));
+            %                 results.samp_opt_bdv=samp_opt_bdv;
+            %
+            %                 samp_reg_1.q2=0;
+            %                 samp_reg_1.q1=1;
+            %                 samp_reg_1.q0=-samp_opt_bdv;
+            %                 dist_1=bdv_1;
+            %                 dist_2=bdv_2;
+            %             end
         end
         
         % compute outcome counts and error with optimized sample boundary
-        [~,samp_opt_count_mat]=samp_value(dist_1,dist_2,samp_reg_1,'vals',ones(2));
+        [~,samp_opt_counts]=samp_value(dist_1,dist_2,samp_reg_1,'vals',ones(2));
         samp_opt_err=samp_value(dist_1,dist_2,samp_reg_1,'vals',1-eye(2));
-        results.samp_opt_count_mat=samp_opt_count_mat;
-        results.samp_opt_err_mat=samp_opt_count_mat./sum(samp_opt_count_mat,2);
+        results.samp_opt_counts=samp_opt_counts;
+        results.samp_opt_errs=samp_opt_counts./sum(samp_opt_counts,2);
         results.samp_opt_err=samp_opt_err;
         
         if optimal_case
@@ -223,36 +251,12 @@ end
 if bPlot
     hold on
     
-    % plot log posterior ratio distributions
     if dim>3
-        lpr_quad=opt_reg_quad([mu_1,v_1],[mu_2,v_2],'prior_1',priors(1));
-        
-        if nnz(lpr_quad.a2) % if the quadratic term exists, i.e. unequal vcovs
-            % lpr distributions are generalized chi-squared
-            [lambda_1,m_1,delta_1,c_1]=norm_quad_to_gx2_params(mu_1,v_1,lpr_quad);
-            [mu_llr_1,v_llr_1]=gx2stat(lambda_1,m_1,delta_1,c_1); % mean and variance of llr
-            x_1=linspace(mu_llr_1-5*sqrt(v_llr_1),mu_llr_1+5*sqrt(v_llr_1),1e3);
-            y_1=priors(1)*arrayfun(@(x) gx2pdf(x,lambda_1,m_1,delta_1,c_1),x_1);
-            area(x_1,y_1,'facecolor',colors(1,:),'facealpha',0.4,'edgecolor',colors(1,:),'edgealpha',0.5,'linewidth',1)
-            
-            [lambda_2,m_2,delta_2,c_2]=norm_quad_to_gx2_params(mu_2,v_2,lpr_quad);
-            [mu_llr_2,v_llr_2]=gx2stat(lambda_2,m_2,delta_2,c_2); % mean and variance of llr
-            x_2=linspace(mu_llr_2-5*sqrt(v_llr_2),mu_llr_2+5*sqrt(v_llr_2),1e3);
-            y_2=priors(2)*arrayfun(@(x) gx2pdf(x,lambda_2,m_2,delta_2,c_2),x_2);
-            area(x_2,y_2,'facecolor',colors(2,:),'facealpha',0.4,'edgecolor',colors(2,:),'edgealpha',0.5,'linewidth',1)
-            
-        else % lpr distributions are normal
-            mu_llr_1=lpr_quad.a1'*mu_1+lpr_quad.a0;
-            v_llr_1=lpr_quad.a1'*v_1*lpr_quad.a1;
-            plot_normal(mu_llr_1,v_llr_1,priors(1),colors(1,:)); hold on
-            
-            mu_llr_2=lpr_quad.a1'*mu_2+lpr_quad.a0;
-            v_llr_2=lpr_quad.a1'*v_2*lpr_quad.a1;
-            plot_normal(mu_llr_2,v_llr_2,priors(2),colors(2,:)); hold on
+        if isequal(vals,eye(2))
+            xlabel('Bayes decision variable: $\ln \frac{p(N_1 | x)}{p(N_2 | x)}$','interpreter','latex','fontsize',15)
+        else
+            xlabel('Bayes decision variable: $\ln \frac{p(N_1 | x).(v_{11}-v_{12})}{p(N_2 | x).(v_{22}-v_{21})}$','interpreter','latex','fontsize',15)
         end
-        % plot lpr boundary
-        xline(-log((vals(1,1)-vals(1,2))/(vals(2,2)-vals(2,1))),'color','k','linewidth',1);
-        xlabel('log posterior ratio: $\log \frac{p(x \epsilon N_1)}{p(x \epsilon N_2)}$','interpreter','latex','fontsize',15)
     end
     
     if strcmp(parser.Results.type,'norm')
@@ -260,41 +264,46 @@ if bPlot
     elseif strcmp(parser.Results.type,'samp')
         
         if dim <=3
-            plot_sample(dist_1,priors(1),colors(1,:));            
-            plot_sample(dist_2,priors(2),colors(2,:));            
+            plot_sample(dist_1,priors(1),colors(1,:));
+            plot_sample(dist_2,priors(2),colors(2,:));
         elseif dim>3
             % plot sample log posterior ratios
-            plot_sample(lpr_1,priors(1),colors(1,:))
-            plot_sample(lpr_2,priors(2),colors(2,:))
+            plot_sample(dv_1,priors(1),colors(1,:))
+            plot_sample(dv_2,priors(2),colors(2,:))
         end
-        if ~isempty(parser.Results.reg) % if custom boundary
+        if ~exist('samp_opt_err','var') % if custom boundary
             title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
             % don't plot sample boundary
         else
-            if parser.Results.samp_opt
-                title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
-                if dim <=3
-                    plot_boundary(samp_reg_1,dim,'reg_type','quad','orig',mu_1,'v',v_1,'plot_color',.5*[1 1 1]);
-                    plot_boundary(samp_reg_1,dim,'reg_type','quad','orig',mu_2,'v',v_2,'plot_color',.5*[1 1 1]);
-                elseif dim>3 && ~samp_opt_flag
-                    xline(samp_opt_lpr,'color',.5*[1 1 1]);
-                end
-            else
-                title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
+            title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
+            if dim <=3
+                plot_boundary(samp_reg_1,dim,'reg_type','quad','plot_type','line','line_color',[0 .7 0]);
+                %plot_boundary(samp_reg_1,dim,'reg_type','quad','orig',mu_2,'v',v_2,'plot_type','line','plot_color',[0 .7 0]);
+                %                 elseif dim>3 && ~samp_opt_success
+                %                     xline(samp_opt_bdv,'color',[0 .7 0]);
+%             else
+%                 title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
             end
         end
         % boundary legends
-        if dim==3
-            norm_bd_marker=line(nan, nan,'color','k','linewidth',1.5,'linestyle',':');
-            samp_bd_marker=line(nan, nan, 'color', .5*[1 1 1],'linewidth',1.5,'linestyle',':');
-        else
-            norm_bd_marker=line(nan, nan,'color','k','linewidth',1);
-            samp_bd_marker=line(nan, nan, 'color', .5*[1 1 1],'linewidth',1);
-        end
-        if dim>3 && samp_opt_flag
-            legend(norm_bd_marker,'normal boundary','edgecolor','none')
-        else
-            legend([norm_bd_marker,samp_bd_marker],'normal boundary','sample boundary','edgecolor','none')
+        %if dim==3
+%         legend_marker_norm=line(nan, nan,'color','none','linestyle','none');
+        legend_marker=line(nan, nan,'color','none','linestyle','none');
+        
+        
+        %             norm_bd_marker=line(nan, nan,'color','none','linestyle','none');
+        %             samp_bd_marker=line(nan, nan, 'color', [0 .7 0],'linewidth',1.5,'linestyle',':');
+        %         else
+        %             norm_bd_marker=line(nan, nan,'color','k','linewidth',1);
+        %             samp_bd_marker=line(nan, nan, 'color', [0 .7 0],'linewidth',1);
+        %         end
+        %         if
+        %             legend(legend_marker_norm,'normal boundary')
+        if parser.Results.samp_opt && dim <=3
+            %             if dim <=3 || (dim>3 && ~samp_opt_success)
+            legend(legend_marker,'\color[rgb]{0,.7,0}sample-optimized boundary')
+            legend box off
+            %             end
         end
     end
     hold off
