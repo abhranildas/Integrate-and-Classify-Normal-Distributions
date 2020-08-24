@@ -41,9 +41,10 @@ function [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,quad)
 
 
 % standardize the space
-q2=sqrtm(v)*quad.q2*sqrtm(v);
-q1=sqrtm(v)*(2*quad.q2*mu+quad.q1);
-q0=mu'*quad.q2*mu+quad.q1'*mu+quad.q0;
+q2s=0.5*(quad.q2+quad.q2'); % symmetrize q2
+q2=sqrtm(v)*q2s*sqrtm(v);
+q1=sqrtm(v)*(2*q2s*mu+quad.q1);
+q0=mu'*q2s*mu+quad.q1'*mu+quad.q0;
 
 [R,D]=eig(q2);
 d=diag(D)';
