@@ -33,6 +33,7 @@ function [p,errbnd]=gx2cdf_ruben(x,lambda,m,delta,c,varargin)
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
 parser = inputParser;
+parser.KeepUnmatched = true;
 addRequired(parser,'x',@(x) isreal(x));
 addRequired(parser,'lambda',@(x) isreal(x) && isrow(x)  && (all(x>0)||all(x<0)) );
 addRequired(parser,'m',@(x) isreal(x) && isrow(x));
@@ -44,10 +45,13 @@ addParameter(parser,'N',1e2,@(x) ismember(x,1:x));
 parse(parser,x,lambda,m,delta,c,varargin{:});
 side=parser.Results.side;
 N=parser.Results.N;
+lambda_pos=true;
 
+if all(lambda<0)
+    lambda=-lambda; x=-x; lambda_pos=false;
+end
 beta=0.90625*min(lambda);
 M=sum(m);
-
 n=(1:N-1)';
 
 % compute the g's
@@ -57,7 +61,7 @@ g=sum(m.*(1-beta./lambda).^n,2)+ beta*n.*((1-beta./lambda).^(n-1))*(delta./lambd
 a=nan(N,1);
 a(1)=sqrt(exp(-sum(delta))*beta^M*prod(lambda.^(-m)));
 if a(1)<realmin
-    error('Underflow error: some expansion coefficients are smaller than machine precision.')
+    error('Underflow error: some series coefficients are smaller than machine precision.')
 end
 for j=1:N-1
     a(j+1)=dot(flip(g(1:j)),a(1:j))/(2*j);
@@ -69,7 +73,9 @@ F=arrayfun(@(x,m) chi2cdf(x,m),xg,mg);
 
 % compute the integral
 p=a'*F;
-if strcmpi(side,'upper')
+
+% flip if necessary
+if (lambda_pos && strcmpi(side,'upper')) || (~lambda_pos && strcmpi(side,'lower'))
     p=1-p;
 end
 

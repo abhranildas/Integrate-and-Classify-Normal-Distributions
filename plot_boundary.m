@@ -1,7 +1,8 @@
 function plot_boundary(reg,dim,varargin)
 parser = inputParser;
+parser.KeepUnmatched=true;
 addRequired(parser,'reg',@(x) isnumeric(x)||isstruct(x)|| isa(x,'function_handle'));
-addParameter(parser,'reg_type','bd_pts');
+addParameter(parser,'reg_type','quad');
 addRequired(parser,'dim',@(x) ismember(x,1:x));
 addParameter(parser,'mu',zeros(dim,1), @isnumeric);
 addParameter(parser,'v',eye(dim), @isnumeric);
@@ -10,12 +11,12 @@ addParameter(parser,'plot_type','fill');
 addParameter(parser,'line_color',[0 0 0]);
 colors=colororder;
 addParameter(parser,'fill_colors',flipud(.1*colors(1:2,:)+.9*[1 1 1]));
+
 parse(parser,reg,dim,varargin{:});
 reg_type=parser.Results.reg_type;
 dim=parser.Results.dim;
 mu=parser.Results.mu;
 v=parser.Results.v;
-n_bd_pts=parser.Results.n_bd_pts;
 plot_type=parser.Results.plot_type;
 line_color=parser.Results.line_color;
 fill_colors=parser.Results.fill_colors;
@@ -26,7 +27,6 @@ end
 if dim>3
     plot_boundary(@(x) x,1,'reg_type','fun','plot_type','line');
     plot_boundary(@(x) x,1,'reg_type','fun','plot_type','fill','fill_colors',fill_colors);
-    %xline(0,'color',line_color,'linewidth',1);
 else
     if strcmpi(reg_type,'fun') || strcmpi(reg_type,'quad')
         
@@ -56,7 +56,7 @@ else
         if strcmpi(reg_type,'ray_scan')
             global bd_pts
             bd_pts=[];
-            [~,bd_pts]=prob_bd_angle(mu,v,reg,'reg_type',reg_type,'n_bd_pts',n_bd_pts);
+            [~,bd_pts]=int_norm_along_angles(mu,v,reg,varargin{:});
         elseif strcmpi(reg_type,'bd_pts')
             bd_pts=reg;
         end

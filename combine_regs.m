@@ -16,7 +16,7 @@ function [merged_init_sign,merged_x,merged_samp_correct]=combine_regs(reglist,op
 
 % parse inputs
 dim=size(n,1);
-parser = inputParser;
+parser=inputParser;
 addRequired(parser,'reglist');
 addRequired(parser,'op');
 addRequired(parser,'n',@isnumeric);

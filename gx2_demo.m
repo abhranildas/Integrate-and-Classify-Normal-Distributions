@@ -1,5 +1,5 @@
 %% Generalized chi-squared demo
-% look into each function code for more documentation
+% look into each function code for more features and documentation
 
 % gx2 parameters
 lambda=[1 -10 2];

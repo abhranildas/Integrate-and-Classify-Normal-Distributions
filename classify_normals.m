@@ -19,9 +19,10 @@ addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) &
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 addParameter(parser,'reg',[]);
 addParameter(parser,'reg_type','quad');
+addParameter(parser,'method','ray');
 addParameter(parser,'fun_span',3);
 addParameter(parser,'fun_resol',100);
-addParameter(parser,'type','norm', @(s) strcmp(s,'norm') || strcmp(s,'samp'));
+addParameter(parser,'type','norm', @(s) strcmpi(s,'norm') || strcmpi(s,'samp'));
 addParameter(parser,'samp_opt',true, @islogical);
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
@@ -31,21 +32,16 @@ addParameter(parser,'bPlot',true,@islogical);
 parse(parser,dist_1,dist_2,varargin{:});
 reg=parser.Results.reg;
 reg_type=parser.Results.reg_type;
-fun_span=parser.Results.fun_span;
-fun_resol=parser.Results.fun_resol;
-AbsTol=parser.Results.AbsTol;
-RelTol=parser.Results.RelTol;
 vals=parser.Results.vals;
 n_samp_bd_pts=parser.Results.n_samp_bd_pts;
 bPlot=parser.Results.bPlot;
-% samp_opt_success=false;
 
-if strcmp(parser.Results.type,'norm')
+if strcmpi(parser.Results.type,'norm')
     mu_1=dist_1(:,1);
     v_1=dist_1(:,2:end);
     mu_2=dist_2(:,1);
     v_2=dist_2(:,2:end);
-elseif strcmp(parser.Results.type,'samp')
+elseif strcmpi(parser.Results.type,'samp')
     mu_1=mean(dist_1)';
     v_1=cov(dist_1);
     mu_2=mean(dist_2)';
@@ -53,7 +49,7 @@ elseif strcmp(parser.Results.type,'samp')
 end
 
 % if input samp and prior is not specified,
-if strcmp(parser.Results.type,'samp') && any(strcmp(parser.UsingDefaults,'prior_1'))
+if strcmpi(parser.Results.type,'samp') && any(strcmpi(parser.UsingDefaults,'prior_1'))
     % set prior according to input sample sizes
     priors(1)=size(dist_1,1)/(size(dist_1,1)+size(dist_2,1));
 else
@@ -88,35 +84,38 @@ else
         results.norm_bd=reg;
     end
     
-    if strcmp(reg_type,'ray_scan') % ray-scanned region functions
-        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type',reg_type,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot*2,'plot_color',colors(1,:));
+    if strcmpi(reg_type,'ray_scan') % ray-scanned region functions
+        [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'bPlot',bPlot*2,'plot_color',colors(1,:),varargin{:});
         if bPlot && dim<=3, hold on, end
         reg_inv=@(n,mu,v) invert_reg(reg,n,'mu',mu,'v',v);
-        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg_inv,'reg_type',reg_type,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot*2,'plot_color',colors(2,:));
+        [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg_inv,'prior',priors(2),'bPlot',bPlot*2,'plot_color',colors(2,:),varargin{:});
     else
-        if strcmp(reg_type,'quad') % custom quad coefficients
+        if strcmpi(reg_type,'quad') % custom quad coefficients
             % flip boundary sign for 2nd normal
             %norm_reg_2=structfun(@uminus,reg,'un',0);
-            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
+            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
             if bPlot, hold on, end
-            [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
-        elseif strcmp(reg_type,'fun') % region defined by a function
-            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'prior',priors(1),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(1,:));
+            [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+        elseif strcmpi(reg_type,'fun') % region defined by a function
+            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,reg,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
             if bPlot && dim<=3, hold on, end
-            [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'prior',priors(2),'AbsTol',AbsTol,'RelTol',RelTol,'bPlot',bPlot,'plot_color',colors(2,:));
+            [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,reg,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
         end
         % plot boundary
         if bPlot, hold on, plot_boundary(reg,dim,'reg_type',reg_type), end
     end
     norm_bd_pts=uniquetol([norm_bd_pts_1,norm_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 end
-norm_err=priors(1)*norm_err_1+priors(2)*norm_err_2;
+%norm_err=priors(1)*norm_err_1+priors(2)*norm_err_2;
 
 if ~isempty(norm_bd_pts)
     results.norm_bd_pts=norm_bd_pts;
 end
 
-results.norm_errs=[norm_acc_1, norm_err_1; norm_err_2, norm_acc_2];
+norm_errmat=[[norm_acc_1, norm_err_1]*priors(1); [norm_err_2, norm_acc_2]*priors(2)];
+results.norm_errmat=norm_errmat;
+%results.norm_errs=[norm_acc_1, norm_err_1; norm_err_2, norm_acc_2];
+norm_err=sum(norm_errmat(~eye(2))); % sum of off-diagonal elements
 results.norm_err=norm_err;
 
 % d'
@@ -133,28 +132,26 @@ if optimal_case
 end
 
 if ~isequal(vals,eye(2)) % if outcome values are supplied
-    results.norm_vals=results.norm_errs.*vals; % conditional expected values
-    results.norm_val=sum(sum(results.norm_vals.*priors'));
+    results.norm_valmat=results.norm_errmat.*vals;
+    results.norm_val=sum(results.norm_valmat(:));
 end
 
 %% sample inputs
-if strcmp(parser.Results.type,'samp')
+if strcmpi(parser.Results.type,'samp')
     
     % compute outcome counts and error
-    [~,samp_counts]=samp_value(dist_1,dist_2,reg,'reg_type',reg_type,'vals',ones(2));
-    samp_err=samp_value(dist_1,dist_2,reg,'reg_type',reg_type,'vals',1-eye(2));
-    
+    [~,samp_counts]=samp_value(dist_1,dist_2,reg,'vals',ones(2),'reg_type',reg_type);
+    samp_errcount=samp_value(dist_1,dist_2,reg,'vals',1-eye(2),'reg_type',reg_type);
+    samp_err=samp_errcount/sum(samp_counts(:));
+    results.samp_errmat=samp_counts;
+    results.samp_err=samp_err;
     if optimal_case
         results.samp_dprime=-2*norminv(samp_err); % samp error can be used to compute samp d'
     elseif ~isequal(vals,eye(2)) % if outcome values are supplied
-        [samp_ex_val,samp_val_mat]=samp_value(dist_1,dist_2,reg,'reg_type',reg_type,'vals',vals);
-        results.samp_val_mat=samp_val_mat;
-        results.samp_ex_val=samp_ex_val;
-    end
-    
-    results.samp_counts=samp_counts;
-    results.samp_errs=samp_counts./sum(samp_counts,2);
-    results.samp_err=samp_err;
+        [samp_val,samp_valmat]=samp_value(dist_1,dist_2,reg,varargin{:});
+        results.samp_valmat=samp_valmat;
+        results.samp_val=samp_val;
+    end    
     
     % Decision variables
     if strcmpi(reg_type,'fun')
@@ -201,8 +198,8 @@ if strcmp(parser.Results.type,'samp')
             
             if dim<=3
                 % boundary points
-                [~,samp_bd_pts_1]=prob_bd_angle(mu_1,v_1,samp_reg_1,'n_bd_pts',n_samp_bd_pts);
-                [~,samp_bd_pts_2]=prob_bd_angle(mu_2,v_2,samp_reg_2,'n_bd_pts',n_samp_bd_pts);
+                [~,samp_bd_pts_1]=int_norm_along_angles(mu_1,v_1,samp_reg_1,'n_bd_pts',n_samp_bd_pts);
+                [~,samp_bd_pts_2]=int_norm_along_angles(mu_2,v_2,samp_reg_2,'n_bd_pts',n_samp_bd_pts);
                 samp_bd_pts=uniquetol([samp_bd_pts_1,samp_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
                 results.samp_opt_bd_pts=samp_bd_pts;
             end
@@ -230,17 +227,18 @@ if strcmp(parser.Results.type,'samp')
         
         % compute outcome counts and error with optimized sample boundary
         [~,samp_opt_counts]=samp_value(dist_1,dist_2,samp_reg_1,'vals',ones(2));
-        samp_opt_err=samp_value(dist_1,dist_2,samp_reg_1,'vals',1-eye(2));
-        results.samp_opt_counts=samp_opt_counts;
-        results.samp_opt_errs=samp_opt_counts./sum(samp_opt_counts,2);
+        samp_opt_errcount=samp_value(dist_1,dist_2,samp_reg_1,'vals',1-eye(2));
+        samp_opt_err=samp_opt_errcount/sum(samp_counts(:));
+        results.samp_opt_errmat=samp_opt_counts;
+%         results.samp_opt_errs=samp_opt_counts./sum(samp_opt_counts,2);
         results.samp_opt_err=samp_opt_err;
         
         if optimal_case
             results.samp_opt_dprime=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
         elseif ~isequal(vals,eye(2)) % if outcome values are supplied
-            [samp_opt_ex_val,samp_opt_val_mat]=samp_value(dist_1,dist_2,samp_reg_1,'vals',vals);
-            results.samp_opt_val_mat=samp_opt_val_mat;
-            results.samp_opt_ex_val=samp_opt_ex_val;
+            [samp_opt_val,samp_opt_valmat]=samp_value(dist_1,dist_2,samp_reg_1,'vals',vals);
+            results.samp_opt_valmat=samp_opt_valmat;
+            results.samp_opt_val=samp_opt_val;
         end
     end
     
@@ -255,13 +253,13 @@ if bPlot
         if isequal(vals,eye(2))
             xlabel('Bayes decision variable: $\ln \frac{p(N_1 | x)}{p(N_2 | x)}$','interpreter','latex','fontsize',15)
         else
-            xlabel('Bayes decision variable: $\ln \frac{p(N_1 | x).(v_{11}-v_{12})}{p(N_2 | x).(v_{22}-v_{21})}$','interpreter','latex','fontsize',15)
+            xlabel('Bayes decision variable: $\ln \frac{ \langle v(N_1 | x) \rangle }{ \langle v(N_2 | x) \rangle}$','interpreter','latex','fontsize',15)
         end
     end
     
-    if strcmp(parser.Results.type,'norm')
+    if strcmpi(parser.Results.type,'norm')
         title(sprintf("error = %g",norm_err)) % plot title
-    elseif strcmp(parser.Results.type,'samp')
+    elseif strcmpi(parser.Results.type,'samp')
         
         if dim <=3
             plot_sample(dist_1,priors(1),colors(1,:));
@@ -272,7 +270,7 @@ if bPlot
             plot_sample(dv_2,priors(2),colors(2,:))
         end
         if ~exist('samp_opt_err','var') % if custom boundary
-            title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
+            title(sprintf("error = %g / %g",[norm_err,samp_errcount])) % plot title
             % don't plot sample boundary
         else
             title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
@@ -286,24 +284,10 @@ if bPlot
             end
         end
         % boundary legends
-        %if dim==3
-%         legend_marker_norm=line(nan, nan,'color','none','linestyle','none');
         legend_marker=line(nan, nan,'color','none','linestyle','none');
-        
-        
-        %             norm_bd_marker=line(nan, nan,'color','none','linestyle','none');
-        %             samp_bd_marker=line(nan, nan, 'color', [0 .7 0],'linewidth',1.5,'linestyle',':');
-        %         else
-        %             norm_bd_marker=line(nan, nan,'color','k','linewidth',1);
-        %             samp_bd_marker=line(nan, nan, 'color', [0 .7 0],'linewidth',1);
-        %         end
-        %         if
-        %             legend(legend_marker_norm,'normal boundary')
         if parser.Results.samp_opt && dim <=3
-            %             if dim <=3 || (dim>3 && ~samp_opt_success)
             legend(legend_marker,'\color[rgb]{0,.7,0}sample-optimized boundary')
             legend box off
-            %             end
         end
     end
     hold off

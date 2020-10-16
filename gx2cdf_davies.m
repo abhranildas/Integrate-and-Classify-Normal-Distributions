@@ -36,7 +36,8 @@ function [p,flag]=gx2cdf_davies(x,lambda,m,delta,sigma,c,varargin)
 % A new method to compute classification error
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
-parser = inputParser;
+parser=inputParser;
+parser.KeepUnmatched=true;
 addRequired(parser,'x',@(x) isreal(x));
 addRequired(parser,'lambda',@(x) isreal(x) && isrow(x));
 addRequired(parser,'m',@(x) isreal(x) && isrow(x));
@@ -49,6 +50,9 @@ addParameter(parser,'RelTol',1e-6,@(x) isreal(x) && isscalar(x) && (x>=0));
 
 parse(parser,x,lambda,m,delta,sigma,c,varargin{:});
 side=parser.Results.side;
+AbsTol=parser.Results.AbsTol;
+RelTol=parser.Results.RelTol;
+
 u=[]; % pre-allocate in static workspace
 
 % define the integrand (lambda, m, delta must be column vectors here)
@@ -59,7 +63,7 @@ u=[]; % pre-allocate in static workspace
     end
 
 % compute the integral
-if any(strcmp(parser.UsingDefaults,'AbsTol')) && any(strcmp(parser.UsingDefaults,'RelTol'))
+if any(strcmpi(parser.UsingDefaults,'AbsTol')) && any(strcmpi(parser.UsingDefaults,'RelTol'))
     davies_integral=arrayfun(@(x) integral(@(u) davies_integrand(u,x-c,lambda',m',delta',sigma),0,inf),x);
     if strcmpi(side,'lower')
         p=0.5-davies_integral/pi;
@@ -69,7 +73,7 @@ if any(strcmp(parser.UsingDefaults,'AbsTol')) && any(strcmp(parser.UsingDefaults
 else
     syms u
     davies_integral=arrayfun(@(x) vpaintegral(@(u) davies_integrand(u,x-c,lambda',m',delta',sigma),...
-        u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf),x);
+        u,0,inf,'AbsTol',AbsTol,'RelTol',RelTol,'MaxFunctionCalls',inf),x);
     if strcmpi(side,'lower')
         p=double(0.5-davies_integral/pi);
     elseif strcmpi(side,'upper')

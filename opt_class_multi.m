@@ -1,4 +1,4 @@
-function [merged_init_sign,merged_x]=opt_class_multi(n,mus,vs,idx,varargin)
+function [merged_init_sign,merged_x]=opt_class_multi(n,normals,idx,varargin)
 % Return distances and signs of the optimal boundary between normal 1 and
 % several others (standardized wrt normal 1, or optional normal_wrt), in the direction
 % of vector(s) n.
@@ -16,23 +16,22 @@ function [merged_init_sign,merged_x]=opt_class_multi(n,mus,vs,idx,varargin)
 
 % parse inputs
 dim=size(n,1);
-n_normals=size(mus,2);
-parser = inputParser;
+n_normals=length(normals);
+parser=inputParser;
+parser.KeepUnmatched=true;
 addRequired(parser,'n',@isnumeric);
-addRequired(parser,'mus',@isnumeric);
-addRequired(parser,'vs',@isnumeric);
+addRequired(parser,'normals',@isstruct);
 addRequired(parser,'idx',@isnumeric);
-addParameter(parser,'mu',mus(:,idx),@isnumeric);
+addParameter(parser,'mu',normals(idx).mu,@isnumeric);
 addParameter(parser,'v',eye(dim),@isnumeric);
 addParameter(parser,'priors',ones(1,n_normals)/n_normals, @(x) isnumeric(x) && all(x > 0) && all(x < 1));
 addParameter(parser,'vals',eye(n_normals), @(x) isnumeric(x) && ismatrix(x));
-parse(parser,n,mus,vs,idx,varargin{:});
-%idx=parser.Results.idx;
+parse(parser,n,normals,idx,varargin{:});
 mu=parser.Results.mu;
 v=parser.Results.v;
-if isempty(mu) % if origin is not given,
-    mu=mus(:,idx); % take the mean of the normal whose boundary is being computed
-end
+% if isempty(mu) % if origin is not given,
+%     mu=mus(:,idx); % take the mean of the normal whose boundary is being computed
+% end
 vals=parser.Results.vals;
 priors=parser.Results.priors;
 
@@ -40,7 +39,7 @@ other_idxs=[1:idx-1, idx+1:n_normals];
 reglist=cell(length(other_idxs),1);
 for i=1:length(reglist)
     other_idx=other_idxs(i);
-    reglist{i}=@(n,mu,v) ray_scan(opt_class_quad([mus(:,idx), vs(:,:,idx)],[mus(:,other_idx), vs(:,:,other_idx)],...
+    reglist{i}=@(n,mu,v) ray_scan(opt_class_quad([normals(idx).mu, normals(idx).v],[normals(other_idx).mu, normals(other_idx).v],...
         'prior_1',priors(idx)/(priors(idx)+priors(other_idx)),'vals',vals([idx other_idx],[idx other_idx])),n,'mu',mu,'v',v);
 end
 

@@ -7,7 +7,7 @@ if ~bPlot
     % fast function of single vector argument
     f=@(x) dot(x,quad.q2*x) + quad.q1'*x + quad.q0;
 else
-    % function of multiple variables to be used for implicit plots
+    % slower function of multiple variables, for implicit plots
     dim=length(quad.q1);    
     if dim==1
         f=@(x) quad.q2*x.^2 + quad.q1*x + quad.q0;

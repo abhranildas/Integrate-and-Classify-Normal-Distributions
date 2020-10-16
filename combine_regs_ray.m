@@ -2,9 +2,9 @@ function [merged_init_sign_ray,merged_x_ray]=combine_regs_ray(all_init_sign_ray,
 n_regs=length(all_init_sign_ray);
 
 % merged initial sign
-if strcmp(op,'and')
+if strcmpi(op,'and')
 merged_init_sign_ray=min(all_init_sign_ray); % -1 if any are -1, else 0 if any are 0, else 1 if all are 1.
-elseif strcmp(op,'or')
+elseif strcmpi(op,'or')
 merged_init_sign_ray=max(all_init_sign_ray);
 end
 
@@ -30,10 +30,10 @@ for j=find((sum(signmat==0)>1)&(~sum(signmat==-1))) % for every column j with no
     end
 end
 
-if strcmp(op,'and')
+if strcmpi(op,'and')
     % reduce x to the ones corr. to the sign matrix columns >=0, and valid multi roots
     merged_x_ray=merged_x_ray(all(signmat>=0) & valid_multi_roots);
-elseif strcmp(op,'or')
+elseif strcmpi(op,'or')
     % reduce x to the ones corr. to the sign matrix columns <=0, and valid multi roots
     merged_x_ray=merged_x_ray(all(signmat<=0) & valid_multi_roots);
 end

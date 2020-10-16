@@ -42,17 +42,14 @@ addRequired(parser,'sigma',@(x) isreal(x) && isscalar(x));
 addRequired(parser,'c',@(x) isreal(x) && isscalar(x));
 addParameter(parser,'AbsTol',1e-10,@(x) isreal(x) && isscalar(x) && (x>=0));
 addParameter(parser,'RelTol',1e-6,@(x) isreal(x) && isscalar(x) && (x>=0));
-addParameter(parser,'dx',1e-10,@(x) isreal(x) && isscalar(x) && (x>=0));
+[~,v]=gx2stat(lambda,m,delta,sigma,c);
+addParameter(parser,'dx',sqrt(v)/100,@(x) isreal(x) && isscalar(x) && (x>=0)); % default derivative step-size is sd/100.
 
-if isscalar(lambda) && ~sigma
-    f=ncx2pdf((x-c)/lambda,m,delta);
+if ~sigma && length(unique(lambda))==1
+    f=ncx2pdf((x-c)/unique(lambda),sum(m),sum(delta))/abs(unique(lambda));
 else
     parse(parser,x,lambda,m,delta,sigma,c,varargin{:});
     dx=parser.Results.dx;
-    if any(strcmp(varargin,'dx'))
-        removeIndex=strcmp(varargin(:,1),'dx');
-        varargin(removeIndex,:)=[];
-    end
     p_left=gx2cdf(x-dx,lambda,m,delta,sigma,c,varargin{:});
     p_right=gx2cdf(x+dx,lambda,m,delta,sigma,c,varargin{:});
     f=max((p_right-p_left)/(2*dx),0);

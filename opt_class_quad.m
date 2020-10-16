@@ -3,7 +3,6 @@ function coeffs=opt_class_quad(norm_1,norm_2,varargin)
 parser = inputParser;
 addRequired(parser,'norm_1',@isnumeric);
 addRequired(parser,'norm_2',@isnumeric);
-%addParameter(parser,'llr',0,@(x) isnumeric(x) && isscalar(x));
 addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
 parse(parser,norm_1,norm_2,varargin{:});

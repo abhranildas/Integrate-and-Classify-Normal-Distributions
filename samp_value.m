@@ -1,4 +1,4 @@
-function [samp_ex_val,samp_val_mat,samp_1_correct,samp_2_correct]=samp_value(samp_1,samp_2,reg,varargin)
+function [samp_val,samp_val_mat,samp_1_correct,samp_2_correct]=samp_value(samp_1,samp_2,reg,varargin)
 % Expected value given two samples and a boundary. If outcome values
 % are not additionally specified, this is the classification accuracy.
 % Credits:
@@ -11,7 +11,8 @@ function [samp_ex_val,samp_val_mat,samp_1_correct,samp_2_correct]=samp_value(sam
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 % parse inputs
-parser = inputParser;
+parser=inputParser;
+parser.KeepUnmatched=true;
 addRequired(parser,'samp_1',@isnumeric);
 addRequired(parser,'samp_2',@isnumeric);
 addRequired(parser,'reg', @(x) isstruct(x) || isa(x,'function_handle'));
@@ -48,7 +49,7 @@ samp_val_mat(1,2)=sum(~samp_1_correct)*vals(1,2);
 samp_val_mat(2,2)=sum(samp_2_correct)*vals(2,2);
 samp_val_mat(2,1)=sum(~samp_2_correct)*vals(2,1);
 
-samp_ex_val=sum(samp_val_mat(:))/(size(samp_1,1)+size(samp_2,1));
+samp_val=sum(samp_val_mat(:));
 
 end
 

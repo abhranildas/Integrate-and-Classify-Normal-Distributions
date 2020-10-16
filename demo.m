@@ -16,12 +16,19 @@ reg_quad.q1=1;
 reg_quad.q0=1;
 integrate_normal(mu,v,reg_quad);
 
-% you can zoom and pan all plots.
+% most plots can be zoomed and panned.
 
 % integrate in a region defined by a non-quadratic f(x)>0
-f=@(x) cos(x.^2);
+fun=@(x) cos(x.^2);
 figure;
-integrate_normal(mu,v,f,'reg_type','fun','fun_span',5,'fun_resol',500);
+integrate_normal(mu,v,fun,'reg_type','fun','fun_span',5,'fun_resol',500);
+
+% plot the pdf and cdf of f(x)
+x=linspace(-2,2,100);
+f=norm_fun_pdf(x,mu,v,fun,'fun_span',5,'fun_resol',500,'dx',1e-2);
+figure; plot(x,f);
+F=norm_fun_cdf(x,mu,v,fun,'fun_span',5,'fun_resol',500);
+figure; plot(x,F);
 
 %% 1D, classify
 mu_1=0;
@@ -36,9 +43,9 @@ results=classify_normals([mu_1,v_1],[mu_2,v_2])
 results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7)
 
 % with outcome values
-results=classify_normals([mu_1,v_1],[mu_2,v_2],'vals',[3 0; 0 1])
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7,'vals',[3 0; 0 1])
 
-%% 1D, classify using samples (priors are taken to be prop. to sample sizes)
+%% 1D, classify using samples (priors are assumed prop. to sample sizes)
 mu_1=0;
 v_1=1;
 samp_1=normrnd(mu_1,sqrt(v_1),[700 1]);
@@ -59,8 +66,9 @@ reg_quad.q2=[1 1; 1 1];
 reg_quad.q1=[-1;0];
 reg_quad.q0=-1;
 
-integrate_normal(mu,v,reg_quad);
-%xlim([-5 5])
+% compare two integration algorithms
+figure; integrate_normal(mu,v,reg_quad); % ray method
+figure; integrate_normal(mu,v,reg_quad,'method','gx2'); % gx2 method
 
 %% 2D, classify two normals, one inside the other
 mu_1=[4; 5];
@@ -69,7 +77,9 @@ v_1=[2 1; 1 1];
 mu_2=mu_1;
 v_2=3*[2 -1; -1 1];
 
-results=classify_normals([mu_1,v_1],[mu_2,v_2])
+% compare two integration algorithms
+results_ray=classify_normals([mu_1,v_1],[mu_2,v_2])
+results_gx2=classify_normals([mu_1,v_1],[mu_2,v_2],'method','gx2')
 
 %% PAPER 2D, classify with custom boundaries and from samples
 
@@ -80,6 +90,7 @@ mu_2=[5;0];
 v_2=[3 0; 0 1];
 
 results=classify_normals([mu_1,v_1],[mu_2,v_2])
+axis image; xlim([-10 10]); ylim([-10 10])
 
 % now supply a custom linear boundary
 linear_bd.q2=zeros(2);
@@ -113,48 +124,67 @@ axis image; xlim([-10 10]); ylim([-10 10])
 %% PAPER 2D, classify non-normal samples
 n_samp=1e3;
 samp_1=exp(mvnrnd([0 0],eye(2),n_samp));
-samp_2=exp(mvnrnd([1 1],eye(2),n_samp));
+samp_2=-exp(mvnrnd([1 1],eye(2),n_samp));
 
 results=classify_normals(samp_1,samp_2,'type','samp')
-axis image; xlim([-10 20]); ylim([-5 20])
+axis image; xlim([-20 15]); ylim([-20 15])
 set(gca,'fontsize',13); box off
 
-%% PAPER Inversion/union/intersection of integration/classification regions
+%% Inversion/union/intersection of integration/classification regions
 mu=[0;0];
 v=[.5 0; 0 1];
 
-circle_left.q2=-eye(2);
-circle_left.q1=[-2;0];
-circle_left.q0=4;
+% circle_left.q2=-eye(2);
+% circle_left.q1=[-2;0];
+% circle_left.q0=4;
+% 
+% circle_right=circle_left;
+% circle_right.q1=-circle_left.q1;
+% 
+% circle_left_rayscan=@(n,mu,v)ray_scan(circle_left,n,'mu',mu,'v',v);
+% circle_right_rayscan=@(n,mu,v)ray_scan(circle_right,n,'mu',mu,'v',v);
 
-circle_right=circle_left;
-circle_right.q1=-circle_left.q1;
+% circle_union_rayscan=@(n,mu,v) combine_regs({circle_left_rayscan,circle_right_rayscan},'or',n,'mu',mu,'v',v);
+% circle_intersection_rayscan=@(n,mu,v) combine_regs({circle_left_rayscan,circle_right_rayscan},'and',n,'mu',mu,'v',v);
 
-circle_left_rayscan=@(n,mu,v)ray_scan(circle_left,n,'mu',mu,'v',v);
-circle_right_rayscan=@(n,mu,v)ray_scan(circle_right,n,'mu',mu,'v',v);
+% integrate_normal(mu,v,circle_union_rayscan,'reg_type','ray_scan','AbsTol',0,'RelTol',1e-10);
+% axis image; xlim([-4 4]); ylim([-4 4])
 
-circle_union_rayscan=@(n,mu,v) combine_regs({circle_left_rayscan,circle_right_rayscan},'or',n,'mu',mu,'v',v);
-circle_intersection_rayscan=@(n,mu,v) combine_regs({circle_left_rayscan,circle_right_rayscan},'and',n,'mu',mu,'v',v);
+circle_left=@(x,y) -(x+1).^2-y.^2+5;
+circle_right=@(x,y) -(x-1).^2-y.^2+5;
 
-integrate_normal(mu,v,circle_union_rayscan,'reg_type','ray_scan');
+circle_union=@(x,y) max(circle_left(x,y), circle_right(x,y));
+integrate_normal(mu,v,circle_union,'reg_type','fun','fun_span',5);
 axis image; xlim([-4 4]); ylim([-4 4])
 
+% figure
+% integrate_normal(mu,v,circle_intersection_rayscan,'reg_type','ray_scan');
+% axis image; xlim([-4 4]); ylim([-4 4])
+
+circle_intersection=@(x,y) min(circle_left(x,y), circle_right(x,y));
+
 figure
-integrate_normal(mu,v,circle_intersection_rayscan,'reg_type','ray_scan');
+integrate_normal(mu,v,circle_intersection,'reg_type','fun','fun_span',5);
 axis image; xlim([-4 4]); ylim([-4 4])
 
-circle_left_invert_rayscan=@(n,mu,v) invert_reg(circle_left_rayscan,n,'mu',mu,'v',v);
+% circle_right_invert_rayscan=@(n,mu,v) invert_reg(circle_right_rayscan,n,'mu',mu,'v',v);
 
-crescent_rayscan=@(n,mu,v) combine_regs({circle_left_invert_rayscan,circle_right_rayscan},'and',n,'mu',mu,'v',v);
+% crescent_rayscan=@(n,mu,v) combine_regs({circle_left_rayscan,circle_right_invert_rayscan},'or',n,'mu',mu,'v',v);
+% 
+% figure
+% integrate_normal(mu,v,crescent_rayscan,'reg_type','ray_scan');
+% axis image; xlim([-4 4]); ylim([-4 4])
+
+crescent=@(x,y) max(circle_left(x,y), -circle_right(x,y));
 
 figure
-integrate_normal(mu,v,crescent_rayscan,'reg_type','ray_scan');
+integrate_normal(mu,v,crescent,'reg_type','fun','fun_span',5);
 axis image; xlim([-4 4]); ylim([-4 4])
 
 % classify normals using this region
 mu_2=[2.2;0];
 v_2=[.5 0; 0 .25];
-classify_normals([mu,v],[mu_2,v_2],'reg',crescent_rayscan,'reg_type','ray_scan');
+classify_normals([mu,v],[mu_2,v_2],'reg',crescent,'reg_type','fun','fun_span',5);
 axis image; xlim([-2 4]); ylim([-3 3])
 set(gca,'fontsize',13); box off
 
@@ -166,10 +196,6 @@ mu_2=[2;1;1];
 v_2=2*eye(3);
 
 results=classify_normals([mu_1,v_1],[mu_2,v_2])
-
-% plot the boundary points used for integration
-%hold on
-%plot3(results.norm_bd_pts(1,:),results.norm_bd_pts(2,:),results.norm_bd_pts(3,:),'.','markersize',4)
 
 %% High-accuracy estimation of tiny errors (large d')
 format long
@@ -193,11 +219,20 @@ v=[1 0 0;
    0 8 4;
    0 4 8];
 
-torus=@(x1,x2,x3) 1.5-(5-(x1.^2+x2.^2).^0.5).^2-x3.^2;
-integrate_normal(mu,v,torus,'reg_type','fun','fun_span',5,'fun_resol',10);
+fun_torus=@(x1,x2,x3) 1.5-(5-(x1.^2+x2.^2).^0.5).^2-x3.^2;
+integrate_normal(mu,v,fun_torus,'reg_type','fun','fun_span',3,'fun_resol',10,'RelTol',1e-1);
 axis image; xlim([-7 7]); ylim([-7 7]); zlim([-7 7]);
 set(gca,'xtick',linspace(-7,7,5)); set(gca,'ytick',linspace(-7,7,5)); set(gca,'ztick',linspace(-7,7,5))
 set(gca,'fontsize',13)
+
+% plot the pdf and cdf of f(x)
+x=[linspace(-80,-20,30) linspace(-20,10,20)];
+pdf=norm_fun_pdf(x,mu,v,fun_torus,'fun_span',3,'fun_resol',10,'RelTol',1e-1,'dx',8);
+colors=colororder;
+figure; area(x,pdf,'facecolor',colors(1,:),'facealpha',0.4,'edgecolor',colors(1,:))
+set(gca,'ytick',[]); set(gca,'fontsize',13); box off
+cdf=norm_fun_cdf(x,mu,v,fun_torus,'fun_span',3,'fun_resol',10,'RelTol',1e-1);
+figure; plot(x,cdf)
 
 %% PAPER 4D, integrate
 mu=[1;1;1;1];
@@ -210,7 +245,7 @@ reg_quad.q1=zeros(4,1);
 reg_quad.q0=-25;
 
 integrate_normal(mu,v,reg_quad);
-xlim([-40 40]); ylim([0 .06]);
+xlim([-30 40]); ylim([0 .06]);
 set(gca,'ytick',[])
 set(gca,'fontsize',13); box off
 
@@ -247,49 +282,6 @@ ylim([0 .12])
 n_samp=1e3;
 results=classify_normals(mvnrnd(mu_1',v_1,n_samp),mvnrnd(mu_2',v_2,n_samp),'type','samp','prior_1',.7,'vals',[4 0; 0 1])
 set(gca,'fontsize',13); box off
-
-%% REMOVE THIS
-% Integrate non-quadratic function f of a normal,
-% equivalent to integrating normal in the non-quadratic region f>0
-
-mu_1=[2;3];
-v_1=[1 -.5; -.5 2];
-e=12;
-
-e_fun=@(x,y) e-x.*y.^2/2; % define f
-
-integrate_normal(mu_1,v_1,e_fun,'reg_type','fun');
-
-% classify normals and samples wrt this region
-mu_2=[3;4];
-v_2=[2 -1; -1 4];
-n_samp=1e3;
-samp_1=mvnrnd(mu_1,v_1,n_samp);
-samp_2=mvnrnd(mu_2,v_2,n_samp);
-results=classify_normals(samp_1,samp_2,'prior_1',.8,'type','samp','reg',e_fun,'reg_type','fun');
-
-% integrate vector-valued function of a normal
-% integrate [f,g]=[e_func,p_func] where both are +ve
-p=7;
-p_quad.q2=(eye(2)-1)/2;
-p_quad.q1=[0;0];
-p_quad.q0=p;
-
-e_rayscan=@(n,mu,v)ray_scan(e_fun,n,'mu',mu,'v',v,'reg_type','fun','fun_span',15);
-p_rayscan=@(n,mu,v)ray_scan(p_quad,n,'mu',mu,'v',v);
-ep_rayscan=@(n,mu,v) combine_regs({e_rayscan,p_rayscan},'and',n,'mu',mu,'v',v);
-
-figure; hold on
-plot_boundary(e_fun,2,'reg_type','fun','plot_color','b')
-plot_boundary(p_quad,2,'reg_type','quad','plot_color','r')
-xlim([-5 15])
-ylim([-15 15])
-
-% classify normals and samples using this region
-results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.8,'reg',ep_rayscan,'reg_type','ray_scan');
-xlim([-5 20]); ylim([-15 15])
-results=classify_normals(samp_1,samp_2,'prior_1',.8,'type','samp','reg',ep_rayscan,'reg_type','ray_scan');
-xlim([-5 20]); ylim([-15 15])
 
 %% PAPER Integrate vector-valued function of a normal
 
@@ -348,18 +340,15 @@ results=classify_normals_multi(normals,'priors',priors,'vals',vals)
 
 %% Classifying 4 normals, 2D
 
-% define means and vcovs of the normals
-mus=[[1;0],[0;1],[-1;0],[0;-1]];
-vs=cat(3,2*eye(2),eye(2),eye(2),eye(2));
-
 % define struct of all normals
 normals=struct;
-for i=1:4
-    normals(i).mu=mus(:,i); normals(i).v=vs(:,:,i);
-end
+normals(1).mu=[1;0]; normals(1).v=2*eye(2);
+normals(2).mu=[0;1]; normals(2).v=eye(2);
+normals(3).mu=[-1;0]; normals(3).v=eye(2);
+normals(4).mu=[0;-1]; normals(4).v=eye(2);
 
 % plot the multi-class boundary of normal 3
-plot_boundary(@(n,mu,v) opt_class_multi(n,mus,vs,3,'mu',mu,'v',v),2,'mu',mus(:,3),'reg_type','ray_scan')
+plot_boundary(@(n,mu,v) opt_class_multi(n,normals,3,'mu',mu,'v',v),2,'mu',normals(3).mu,'reg_type','ray_scan')
 title 'boundary of normal 3'
 
 % classify
@@ -367,30 +356,24 @@ results=classify_normals_multi(normals)
 axis image
 
 % now classify using samples from these normals
-dists2=struct;
+samples=struct;
 for i=1:4
-    dists2(i).sample=mvnrnd(normals(i).mu,normals(i).v,1e2);
+    samples(i).sample=mvnrnd(normals(i).mu,normals(i).v,1e4);
 end
-results_samp=classify_normals_multi(dists2,'type','samp')
+results_samp=classify_normals_multi(samples,'type','samp')
 axis image
 
 %% PAPER Classifying 7 normals, 2D
-% define means and vcovs of the normals
-mus=[[2;0],[0;1],[-1;0],[0;-1],[-2;2],[2;-3],[-2;-2.5]];
-vs=cat(3,...
-    [2 1; 1 2],...
-    [.5 0; 0 1],...
-    [1 .3; .3 1],...
-    [.5 -.5; -.5 1],...
-    .5*[1 1; 1 5],...
-    .3*eye(2),...
-    [1 0; 0 .1]);
 
 % define struct of all normals
 normals=struct;
-for i=1:7
-    normals(i).mu=mus(:,i); normals(i).v=vs(:,:,i);
-end
+normals(1).mu=[2;0]; normals(1).v=[2 1; 1 2];
+normals(2).mu=[0;1]; normals(2).v=[.5 0; 0 1];
+normals(3).mu=[-1;0]; normals(3).v=[1 .3; .3 1];
+normals(4).mu=[0;-1]; normals(4).v=[.5 -.5; -.5 1];
+normals(5).mu=[-2;2]; normals(5).v=.5*[1 1; 1 5];
+normals(6).mu=[2;-3]; normals(6).v=.3*eye(2);
+normals(7).mu=[-2;-2.5]; normals(7).v=[1 0; 0 .1];
 
 % classify
 results=classify_normals_multi(normals)
@@ -406,19 +389,32 @@ normals(4).mu=[0;-1;0]; normals(4).v=eye(3);
 
 results=classify_normals_multi(normals)
 
+%% Classifying 4 normals, 4D
+normals=struct;
+normals(1).mu=[0;0;0;0]; normals(1).v=diag([1 2 3 4]);
+normals(2).mu=[1;1;0;0]; normals(2).v=eye(4);
+normals(3).mu=[2;2;1;0]; normals(3).v=eye(4);
+normals(4).mu=[3;3;0;1]; normals(4).v=eye(4);
+
+results=classify_normals_multi(normals,'mc_samples',1e3,'plotmode',[1;1;1;1])
+
+% now classify using samples from these normals
+samples=struct;
+for i=1:4
+    samples(i).sample=mvnrnd(normals(i).mu,normals(i).v,1e2);
+end
+results_samp=classify_normals_multi(samples,'type','samp','mc_samples',1e3,'plotmode',[1;1;1;1])
+
 %% PAPER Actual vision research data: occluding target detection
 
-dataArray = textscan(fopen('absent.txt','r'), '%*q%f%f%f%[^\n\r]', 'Delimiter', ',', 'HeaderLines' ,1);
-absent = [dataArray{1:end-1}];
+absent=importdata('absent_new.txt',',',1);
+present=importdata('present_new.txt',',',1);
 
-dataArray = textscan(fopen('present.txt','r'), '%*q%f%f%f%[^\n\r]', 'Delimiter', ',', 'HeaderLines' ,1);
-present = [dataArray{1:end-1}];
+results=classify_normals(absent.data,present.data,'type','samp')
 
-results=classify_normals(absent,present,'type','samp')
 axis normal
-xlim([-1 2]); ylim([0 .5]); zlim([-400 400]); view(28,18);
-set(gca,'ytick',0:.2:.4);
-xlabel('edge'); ylabel('luminance'); zlabel('pattern');
+xlim([-50 170]); ylim([-320 200]); zlim([0 1000]); view(166,40);
+xlabel('template'); ylabel('silhouette'); zlabel('edge');
 set(gca,'fontsize',13); box off
 
 %% PAPER Actual vision research data: camouflage detection

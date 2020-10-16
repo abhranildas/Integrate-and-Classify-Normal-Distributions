@@ -14,85 +14,45 @@ function [p,pc,bd_pts]=int_norm_ray(mu,v,reg,varargin)
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 parser = inputParser;
+parser.KeepUnmatched=true;
 addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
 addRequired(parser,'reg');
 addParameter(parser,'reg_type','quad');
 addParameter(parser,'fun_span',3);
 addParameter(parser,'fun_resol',100);
+addParameter(parser,'fun_level',0);
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
+addParameter(parser,'mc_samples',500);
 parse(parser,mu,v,reg,varargin{:});
-reg=parser.Results.reg;
-reg_type=parser.Results.reg_type;
-fun_span=parser.Results.fun_span;
-fun_resol=parser.Results.fun_resol;
 AbsTol=parser.Results.AbsTol;
 RelTol=parser.Results.RelTol;
+mc_samples=parser.Results.mc_samples;
 
 dim=length(mu);
-
-% if ~exist('n_rays','var')
-%     n_rays=1e4;
-% end
-
-% Grid of unit vectors in standardized space
-% if dim==1
-%     n_z=1;
-% elseif dim==2
-%     dth=pi/n_rays;
-%     th=0:dth:pi;
-%     n_z=[cos(th);sin(th)];
-% elseif dim==3
-%     n_z=fibonacci_sphere(n_rays);
-%     %     dth=5e-2; dph=5e-2;
-%     %     th=0:dth:pi/2;
-%     %     ph=0:dph:2*pi;
-%     %     n_list=[];
-%     %     for i=1:length(th)
-%     %         for j=1:length(ph)
-%     %             n_list=[n_list,[sin(th(i))*cos(ph(j)); sin(th(i))*sin(ph(j)); cos(th(i))]];
-%     %         end
-%     %     end
-% end
-
-% unit rays in the original space:
-% n_x=sqrtm(v)*n_z;
-% n_x=n_x./vecnorm(n_x);
-
-% initial signs and boundary distances along each direction
-% [init_sign,x]=reg_fn(n_x);
-
-% relative boundary points in original space
-% bd_pts_rel=cellfun(@(x_ray,n_ray) x_ray.*n_ray, x,num2cell(n_x,1),'un',0);
-
-% boundary points in original space
-% bd_pts=horzcat(bd_pts_rel{:})+mu;
-
-% standard boundary points
-% bd_pts_std=cellfun(@(bd_pt_rel) sqrtm(v)\bd_pt_rel, bd_pts_rel,'un',0);
-
-% standard boundary distances, sorted
-% z=cellfun(@(n_ray,bd_pt_std) sort(n_ray'*bd_pt_std), num2cell(n_z,1), bd_pts_std,'un',0);
-
-% total integral
-% [p_rays,pc_rays]=cellfun(@(init_sign_ray,z_ray) prob_ray(init_sign_ray,z_ray,dim),num2cell(init_sign),z);
-% p=mean(p_rays);
-% pc=mean(pc_rays);
 
 global bd_pts
 bd_pts=[];
 
 if dim==1
-    p=prob_bd_angle(mu,v,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol);
-    pc=prob_bd_angle(mu,v,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'side','complement');
+    p=int_norm_along_angles(mu,v,reg,varargin{:});
+    pc=int_norm_along_angles(mu,v,reg,'side','complement',varargin{:});
 elseif dim==2
-    p=integral(@(theta) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'theta',theta),0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
-    pc=integral(@(theta) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'theta',theta,'side','complement'),0,pi);    
+    p=integral(@(theta) int_norm_along_angles(mu,v,reg,'theta',theta,varargin{:}),0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
+    pc=integral(@(theta) int_norm_along_angles(mu,v,reg,'theta',theta,'side','complement',varargin{:}),0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
 elseif dim==3
-    p=integral2(@(theta,phi) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'theta',theta,'phi',phi),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
-    pc=integral2(@(theta,phi) prob_bd_angle(mu,v,reg,'reg_type',reg_type,'fun_span',fun_span,'fun_resol',fun_resol,'theta',theta,'phi',phi,'side','complement'),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
-    %[~,bd_pts]=prob_bd_angle(mu,v,reg_fn,linspace(0,pi,1e4),nan);
+    p=integral2(@(theta,phi) int_norm_along_angles(mu,v,reg,'theta',theta,'phi',phi,varargin{:}),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
+    pc=integral2(@(theta,phi) int_norm_along_angles(mu,v,reg,'theta',theta,'phi',phi,'side','complement',varargin{:}),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
+elseif dim>3 % Monte-Carlo integration
+    
+    % uniform random rays (points on n-sphere)
+    n_z=mvnrnd(zeros(dim,1),eye(dim),mc_samples)';
+    n_z=n_z./vecnorm(n_z,2);
+    
+    p_rays=int_norm_along_rays(mu,v,reg,n_z,varargin{:});
+    p=mean(p_rays);
+    pc_rays=int_norm_along_rays(mu,v,reg,n_z,'side','complement',varargin{:});
+    pc=mean(pc_rays);
 end
-% p=ps(1); pc=ps(2);
 end

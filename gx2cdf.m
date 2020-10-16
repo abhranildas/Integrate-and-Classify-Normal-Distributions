@@ -36,6 +36,7 @@ function p=gx2cdf(x,lambda,m,delta,sigma,c,varargin)
 % jov.arvojournals.org/article.aspx?articleid=2750251
 
 parser = inputParser;
+parser.KeepUnmatched = true;
 addRequired(parser,'x',@(x) isreal(x));
 addRequired(parser,'lambda',@(x) isreal(x) && isrow(x));
 addRequired(parser,'m',@(x) isreal(x) && isrow(x));
@@ -47,9 +48,15 @@ addParameter(parser,'AbsTol',1e-10,@(x) isreal(x) && isscalar(x) && (x>=0));
 addParameter(parser,'RelTol',1e-6,@(x) isreal(x) && isscalar(x) && (x>=0));
 
 parse(parser,x,lambda,m,delta,sigma,c,varargin{:});
+side=parser.Results.side;
 
-if ~sigma && isscalar(lambda)
-    p=ncx2cdf((x-c)/lambda,m,delta);
+if ~sigma && length(unique(lambda))==1
+    % native ncx2 fallback
+    if (sign(unique(lambda))==1 && strcmpi(side,'lower')) || (sign(unique(lambda))==-1 && strcmpi(side,'upper'))
+        p=ncx2cdf((x-c)/unique(lambda),sum(m),sum(delta));
+    else
+        p=ncx2cdf((x-c)/unique(lambda),sum(m),sum(delta),'upper');
+    end
 elseif ~sigma && (all(lambda>0)||all(lambda<0))
     try
         p=gx2cdf_ruben(x,lambda,m,delta,c,varargin{:});

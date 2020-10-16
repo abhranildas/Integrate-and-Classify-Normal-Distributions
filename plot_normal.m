@@ -27,24 +27,12 @@ if dim==1
     area(x,y,'facecolor',plot_color,'facealpha',0.4,'edgecolor','none')
     hold off
     
-    % plot boundary
-%     hold on
-%     for x=bd_pts
-%         xline(x,'linewidth',1);
-%     end
-    
 elseif dim==2
     % plot normal (error ellipse)
     th=linspace(0,2*pi,100);
     z=[cos(th);sin(th)];
     dist=C*z+repmat(mu,[1 length(th)]);
     fill(dist(1,:),dist(2,:),plot_color,'edgecolor','none','facealpha',.5);
-    
-    % plot boundary
-%     hold on
-%     if numel(bd_pts)
-%         plot(bd_pts(1,:),bd_pts(2,:),'.k','markersize',3)
-%     end
     
 elseif dim==3    
     % plot normal (error ellipsoid)
@@ -56,12 +44,5 @@ elseif dim==3
     rotate(err_ellipsoid,[1 0 0],rot_angles(1),mu)
     rotate(err_ellipsoid,[0 1 0],rot_angles(2),mu)
     rotate(err_ellipsoid,[0 0 1],rot_angles(3),mu)
-    
-    % plot boundary
-%     hold on
-%     if numel(bd_pts)
-%         plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.k','markersize',1);
-%     end
-%     grid on
 end
 hold off

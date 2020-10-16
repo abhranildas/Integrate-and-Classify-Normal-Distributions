@@ -53,9 +53,9 @@ addParameter(parser,'approx','none',@(x) strcmpi(x,'none') || strcmpi(x,'tail'))
 
 parse(parser,x,lambda,m,delta,c,varargin{:});
 side=parser.Results.side;
+AbsTol=parser.Results.AbsTol;
+RelTol=parser.Results.RelTol;
 approx=parser.Results.approx;
-
-flag=false;
 
 u=[]; % pre-allocate in static workspace
 
@@ -89,7 +89,7 @@ if strcmpi(approx,'tail') % compute tail approximations
     
 else
     % compute the integral
-    if any(strcmp(parser.UsingDefaults,'AbsTol')) && any(strcmp(parser.UsingDefaults,'RelTol'))
+    if any(strcmpi(parser.UsingDefaults,'AbsTol')) && any(strcmpi(parser.UsingDefaults,'RelTol'))
 %         imhof_integral=integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf);
     imhof_integral=arrayfun(@(x) integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf),x);
         if strcmpi(side,'lower')
@@ -101,7 +101,7 @@ else
         syms u
 %         imhof_integral=vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf);
             imhof_integral=arrayfun(@(x) vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),...
-        u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf),x);
+        u,0,inf,'AbsTol',AbsTol,'RelTol',RelTol,'MaxFunctionCalls',inf),x);
 
         if strcmpi(side,'lower')
             p=double(0.5-imhof_integral/pi);
