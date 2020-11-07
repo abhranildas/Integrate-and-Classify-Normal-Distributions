@@ -89,8 +89,15 @@ v_1=[1 1.5; 1.5 3];
 mu_2=[5;0];
 v_2=[3 0; 0 1];
 
-results=classify_normals([mu_1,v_1],[mu_2,v_2])
+% ray method
+results_ray=classify_normals([mu_1,v_1],[mu_2,v_2]); 
 axis image; xlim([-10 10]); ylim([-10 10])
+results_ray.norm_err
+
+% compare with generalized chi square method
+results_gx2=classify_normals([mu_1,v_1],[mu_2,v_2],'method','gx2'); 
+axis image; xlim([-10 10]); ylim([-10 10])
+results_gx2.norm_err
 
 % now supply a custom linear boundary
 linear_bd.q2=zeros(2);
@@ -202,15 +209,55 @@ format long
 dprime_true=75
 
 mu_1=[0;0;0];
-v_1=eye(3);
+v=eye(3);
 
 mu_2=dprime_true*[1;0;0];
-v_2=(1+1e-12)*eye(3);
 
-results=classify_normals([mu_1,v_1],[mu_2,v_2],'AbsTol',0,'RelTol',1e-3)
+results=classify_normals([mu_1,v],[mu_2,v],'method','gx2','AbsTol',0,'RelTol',1e-2)
 axis image; xlim([-5 80]); ylim([-2 2]); zlim([-2 2]); view(-53,25)
 dprime_computed=results.norm_dprime
 format
+
+%% PAPER accuracy vs separation between the normals
+
+mu_1=[0;0;0];
+
+% both normals have the same covariance, so we can check against
+% the true d' (Mahalanobis distance).
+v=[1 .5 .7;
+  .5  2  1 ;
+  .7  1  3];
+
+steps=linspace(1,100,20);
+d_true=nan(size(steps));
+d_gx2=nan(size(steps));
+d_ray=nan(size(steps));
+
+parfor i=1:length(steps)
+    i
+    mu_2=steps(i)*[1;1;1];
+    
+    results_gx2=classify_normals([mu_1,v],[mu_2,v],'method','gx2','AbsTol',0,'RelTol',0,'bPlot',false);
+    d_true(i)=results_gx2.norm_maha_dprime;
+    d_gx2(i)=results_gx2.norm_dprime;
+    
+    results_ray=classify_normals([mu_1,v],[mu_2,v],'method','ray','AbsTol',0,'RelTol',0,'bPlot',false);
+    d_ray(i)=results_ray.norm_dprime;
+end
+
+rel_err_gx2=abs(d_gx2-d_true)./d_true;
+rel_err_ray=abs(d_ray-d_true)./d_true;
+
+figure; hold on
+plot(d_true,rel_err_gx2,'-o')
+plot(d_true,rel_err_ray,'-o')
+xline(-2*norminv(realmin)) % largest computable d', corr. to the smallest possible error representable in double-precision 
+yline(eps) % machine epsilon for double precision
+xlim([1 80]); ylim([0 2.2e-15])
+xlabel 'true d'''
+ylabel('$\epsilon$','interpreter','latex')
+legend({'$\tilde{\chi}^2$','ray'},'interpreter','latex');
+set(gca,'fontsize',13); box off; legend boxoff
 
 %% PAPER Integrate in a toroidal region defined by implicit function f(x)>0
 
@@ -219,7 +266,11 @@ v=[1 0 0;
    0 8 4;
    0 4 8];
 
+% plot the error ellipsoid of the normal
+plot_normal(mu,v);
+
 fun_torus=@(x1,x2,x3) 1.5-(5-(x1.^2+x2.^2).^0.5).^2-x3.^2;
+figure;
 integrate_normal(mu,v,fun_torus,'reg_type','fun','fun_span',3,'fun_resol',10,'RelTol',1e-1);
 axis image; xlim([-7 7]); ylim([-7 7]); zlim([-7 7]);
 set(gca,'xtick',linspace(-7,7,5)); set(gca,'ytick',linspace(-7,7,5)); set(gca,'ztick',linspace(-7,7,5))
@@ -244,7 +295,7 @@ reg_quad.q2=eye(4);
 reg_quad.q1=zeros(4,1);
 reg_quad.q0=-25;
 
-integrate_normal(mu,v,reg_quad);
+p=integrate_normal(mu,v,reg_quad)
 xlim([-30 40]); ylim([0 .06]);
 set(gca,'ytick',[])
 set(gca,'fontsize',13); box off
@@ -276,6 +327,9 @@ v_2=[2 0 0 0;
 % correct classification of class 1 is valued 4x than class 2
 % here the Bayes decision variable is distributed as a generalized chi-square
 results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7,'vals',[4 0; 0 1])
+tic
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7,'vals',[4 0; 0 1],'method','ray','mc_samples',5e2,'bPlot',false)
+t=toc
 ylim([0 .12])
 
 % now classify using samples
@@ -283,34 +337,51 @@ n_samp=1e3;
 results=classify_normals(mvnrnd(mu_1',v_1,n_samp),mvnrnd(mu_2',v_2,n_samp),'type','samp','prior_1',.7,'vals',[4 0; 0 1])
 set(gca,'fontsize',13); box off
 
+%% PAPER 4D Integrate in a custom region, using Monte Carlo
+mu=zeros(4,1);
+v=eye(4);
+
+fun=@(x1,x2,x3,x4) 1-abs(x1)-abs(x2)-abs(x3)-abs(x4);
+mc_samples=round(10.^linspace(1,4,20)); % # of Monte Carlo samples
+n_repeat=5;
+plist=nan(length(mc_samples),n_repeat);
+
+for k=1:n_repeat
+    for i=1:length(mc_samples)
+        [k i]
+        p=integrate_normal(mu,v,fun,'reg_type','fun','fun_span',3,'fun_resol',10,'mc_samples',mc_samples(i))
+        plist(i,k)=p;
+    end
+end
+
+plot(mc_samples,plist,'-k','marker','.','markersize',10)
+xlabel 'Monte Carlo sample size'
+ylabel 'p'
+set(gca,'xscale','log')
+set(gca,'fontsize',13); box off
+
 %% PAPER Integrate vector-valued function of a normal
 
+% (x,y) is a normal vector with these parameters:
 mu=[6;-19];
 v=[1 -.7; -.7 2];
 
+% functions of the normal vector
 f1=@(x,y) cos(x);
 f2=@(x,y) cos(y);
 
 % integrate f1 above 0
 figure;
 integrate_normal(mu,v,f1,'reg_type','fun');
+axis image; xlim([-10 20]); ylim([-50 10]);
 
 % integrate f2 above 0
 figure;
 integrate_normal(mu,v,f2,'reg_type','fun');
+axis image; xlim([-10 20]); ylim([-50 10]);
 
-% first convert the regions to ray-scan format
-% f1r=@(n,mu,v)ray_scan(f1,n,'mu',mu,'v',v,'reg_type','func','func_span',15);
-% f2r=@(n,mu,v)ray_scan(f2,n,'mu',mu,'v',v,'reg_type','func','func_span',15);
-
-% you can combine ray-scan regions, here using 'and', i.e. intersection.
-% f_domain1=@(n,mu,v) combine_regs({f1r,f2r},'and',n,'mu',mu,'v',v);
-
-% now integrate in the combined region
-% figure;
-% integrate_normal(mu,v,f_domain1,'reg_type','ray_scan');
-
-% integrate vector function f=[f1,f2] in the domain f1>0 and f2>0, i.e. min(f1,f2)>0.
+% prob. that cos(x) and cos(y) are both >0
+% i.e. integrate vector function f=[f1,f2] in the domain f1>0 and f2>0, i.e. min(f1,f2)>0.
 f_domain1=@(x,y) min(f1(x,y),f2(x,y));
 
 figure;
@@ -318,7 +389,8 @@ integrate_normal(mu,v,f_domain1,'reg_type','fun','fun_span',10);
 axis image; xlim([-10 20]); ylim([-50 10]);
 set(gca,'fontsize',13); box off
 
-% integrate the vector function in an implicit domain such as f1+f2 > 0.2
+% prob. that cos(x) + cos(y) > 0.5
+% i.e. integrate the vector function in the implicit domain f1+f2-0.5 > 0
 f_domain2=@(x,y) f1(x,y)+f2(x,y)-.5;
 
 figure;
@@ -355,6 +427,13 @@ title 'boundary of normal 3'
 results=classify_normals_multi(normals)
 axis image
 
+q12=opt_class_quad([normals(1).mu normals(1).v],[normals(2).mu normals(2).v]);
+q13=opt_class_quad([normals(1).mu normals(1).v],[normals(3).mu normals(3).v]);
+f12=quad2fun(q12,1);
+f13=quad2fun(q13,1);
+f=@(x,y) min(f12(x,y),f13(x,y));
+plot_boundary(f,2,'reg_type','fun','plot_type','line')
+
 % now classify using samples from these normals
 samples=struct;
 for i=1:4
@@ -389,26 +468,29 @@ normals(4).mu=[0;-1;0]; normals(4).v=eye(3);
 
 results=classify_normals_multi(normals)
 
-%% Classifying 4 normals, 4D
+%% PAPER Classifying 4 normals, 4D
 normals=struct;
-normals(1).mu=[0;0;0;0]; normals(1).v=diag([1 2 3 4]);
-normals(2).mu=[1;1;0;0]; normals(2).v=eye(4);
-normals(3).mu=[2;2;1;0]; normals(3).v=eye(4);
-normals(4).mu=[3;3;0;1]; normals(4).v=eye(4);
+normals(1).mu=[0;0;-1;-1]; normals(1).v=diag([1 2 3 4]);
+normals(2).mu=[1;1;0;0]; normals(2).v=eye(4)/4;
+normals(3).mu=[2;2;1;1]; normals(3).v=eye(4);
+normals(4).mu=[3;3;3;3]; normals(4).v=eye(4);
 
-results=classify_normals_multi(normals,'mc_samples',1e3,'plotmode',[1;1;1;1])
+priors=[.3 .3 .35 .05];
+results=classify_normals_multi(normals,'priors',priors,'mc_samples',1e3,'plotmode',[1;1;1;1])
 
 % now classify using samples from these normals
 samples=struct;
 for i=1:4
-    samples(i).sample=mvnrnd(normals(i).mu,normals(i).v,1e2);
+    samples(i).sample=mvnrnd(normals(i).mu,normals(i).v,2e2);
 end
-results_samp=classify_normals_multi(samples,'type','samp','mc_samples',1e3,'plotmode',[1;1;1;1])
+results_samp=classify_normals_multi(samples,'type','samp','priors',priors,'mc_samples',1e3,'plotmode',[1;1;1;1])
+set(gca,'fontsize',13); box off
 
-%% PAPER Actual vision research data: occluding target detection
 
-absent=importdata('absent_new.txt',',',1);
-present=importdata('present_new.txt',',',1);
+%% PAPER Actual vision research data: detecting targets on natural scenes
+
+absent=importdata('target_absent.txt',',',1);
+present=importdata('target_present.txt',',',1);
 
 results=classify_normals(absent.data,present.data,'type','samp')
 
@@ -417,7 +499,7 @@ xlim([-50 170]); ylim([-320 200]); zlim([0 1000]); view(166,40);
 xlabel('template'); ylabel('silhouette'); zlabel('edge');
 set(gca,'fontsize',13); box off
 
-%% PAPER Actual vision research data: camouflage detection
+%% PAPER Actual vision research data: detecting camouflage
 
 load camouflage_edge_data
 results_joint_2=classify_normals([edge_powers_2(:,1),edge_lpr_2(:,1)],[edge_powers_2(:,2),edge_lpr_2(:,2)],'type','samp');

@@ -9,6 +9,10 @@ function plot_normal(mu,v,prior,plot_color)
 %   A new method to compute classification error
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
+if ~exist('prior','var')
+    prior=1;
+end
+
 if ~exist('plot_color','var')
     colors=colororder;
     plot_color=colors(1,:);

@@ -50,9 +50,9 @@ elseif dim>3 % Monte-Carlo integration
     n_z=mvnrnd(zeros(dim,1),eye(dim),mc_samples)';
     n_z=n_z./vecnorm(n_z,2);
     
-    p_rays=int_norm_along_rays(mu,v,reg,n_z,varargin{:});
+    p_rays=int_norm_along_rays(mu,v,reg,n_z,varargin{:})/2;
     p=mean(p_rays);
     pc_rays=int_norm_along_rays(mu,v,reg,n_z,'side','complement',varargin{:});
-    pc=mean(pc_rays);
+    pc=mean(pc_rays)/2;
 end
 end

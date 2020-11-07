@@ -12,7 +12,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 %% parse inputs
-parser = inputParser;
+parser=inputParser;
+parser.KeepUnmatched=true;
 addRequired(parser,'dist_1',@isnumeric);
 addRequired(parser,'dist_2',@isnumeric);
 addParameter(parser,'prior_1',0.5, @(x) isnumeric(x) && isscalar(x) && (x > 0) && (x < 1));
@@ -270,7 +271,7 @@ if bPlot
             plot_sample(dv_2,priors(2),colors(2,:))
         end
         if ~exist('samp_opt_err','var') % if custom boundary
-            title(sprintf("error = %g / %g",[norm_err,samp_errcount])) % plot title
+            title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
             % don't plot sample boundary
         else
             title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
