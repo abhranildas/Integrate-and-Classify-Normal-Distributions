@@ -1,8 +1,8 @@
-function plot_boundary(reg,dim,varargin)
+function plot_boundary(dom,dim,varargin)
 parser = inputParser;
 parser.KeepUnmatched=true;
-addRequired(parser,'reg',@(x) isnumeric(x)||isstruct(x)|| isa(x,'function_handle'));
-addParameter(parser,'reg_type','quad');
+addRequired(parser,'dom',@(x) isnumeric(x)||isstruct(x)|| isa(x,'function_handle'));
+addParameter(parser,'dom_type','quad');
 addRequired(parser,'dim',@(x) ismember(x,1:x));
 addParameter(parser,'mu',zeros(dim,1), @isnumeric);
 addParameter(parser,'v',eye(dim), @isnumeric);
@@ -12,9 +12,8 @@ addParameter(parser,'line_color',[0 0 0]);
 colors=colororder;
 addParameter(parser,'fill_colors',flipud(.1*colors(1:2,:)+.9*[1 1 1]));
 
-parse(parser,reg,dim,varargin{:});
-reg_type=parser.Results.reg_type;
-dim=parser.Results.dim;
+parse(parser,dom,dim,varargin{:});
+dom_type=parser.Results.dom_type;
 mu=parser.Results.mu;
 v=parser.Results.v;
 plot_type=parser.Results.plot_type;
@@ -25,15 +24,15 @@ if isrow(fill_colors)
 end
 
 if dim>3
-    plot_boundary(@(x) x,1,'reg_type','fun','plot_type','line');
-    plot_boundary(@(x) x,1,'reg_type','fun','plot_type','fill','fill_colors',fill_colors);
+    plot_boundary(@(x) x,1,'dom_type','fun','plot_type','line');
+    plot_boundary(@(x) x,1,'dom_type','fun','plot_type','fill','fill_colors',fill_colors);
 else
-    if strcmpi(reg_type,'fun') || strcmpi(reg_type,'quad')
+    if strcmpi(dom_type,'fun') || strcmpi(dom_type,'quad')
         
-        if strcmpi(reg_type,'fun')
-            f=reg;
-        elseif strcmpi(reg_type,'quad')
-            f=quad2fun(reg,1);
+        if strcmpi(dom_type,'fun')
+            f=dom;
+        elseif strcmpi(dom_type,'quad')
+            f=quad2fun(dom,1);
         end
         
         if dim==1 || dim==2
@@ -51,14 +50,14 @@ else
             fimplicit3(f,'facecolor',line_color,'facealpha',0.1,'edgecolor','none','meshdensity',20)
         end
         
-    elseif strcmpi(reg_type,'ray_scan') || strcmpi(reg_type,'bd_pts')
+    elseif strcmpi(dom_type,'ray_scan') || strcmpi(dom_type,'bd_pts')
         
-        if strcmpi(reg_type,'ray_scan')
+        if strcmpi(dom_type,'ray_scan')
             global bd_pts
             bd_pts=[];
-            [~,bd_pts]=int_norm_along_angles(mu,v,reg,varargin{:});
-        elseif strcmpi(reg_type,'bd_pts')
-            bd_pts=reg;
+            [~,bd_pts]=int_norm_along_angles(mu,v,dom,varargin{:});
+        elseif strcmpi(dom_type,'bd_pts')
+            bd_pts=dom;
         end
         
         if dim==1
@@ -74,22 +73,3 @@ else
         
     end
 end
-
-
-
-
-% Create grid of unit vectors
-% if dim==1
-%     n=1;
-% elseif dim==2
-%     dth=pi/n_rays;
-%     th=0:dth:pi;
-%     n=[cos(th);sin(th)];
-% elseif dim==3
-%     n=fibonacci_sphere(n_rays);
-% end
-%
-% [~,x]=reg_ray_scan(n,orig);
-% bd_pts_rel=cellfun(@(x,y) x.*y,x,num2cell(n,1),'un',0); % convert to co-ordinates
-% bd_pts=horzcat(bd_pts_rel{:})+orig;
-

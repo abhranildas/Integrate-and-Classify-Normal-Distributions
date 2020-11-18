@@ -1,13 +1,13 @@
-function [p_angles,bd_pts_angles]=int_norm_along_angles(mu,v,reg,varargin)
+function [p_angles,bd_pts_angles]=int_norm_along_angles(mu,v,dom,varargin)
 
 % parse inputs
 parser=inputParser;
 parser.KeepUnmatched=true;
 addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
-addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
+addRequired(parser,'dom',@(x) isstruct(x)|| isa(x,'function_handle'));
 addParameter(parser,'side','normal');
-addParameter(parser,'reg_type','quad');
+addParameter(parser,'dom_type','quad');
 addParameter(parser,'fun_span',3);
 addParameter(parser,'fun_resol',100);
 addParameter(parser,'fun_level',0);
@@ -15,7 +15,7 @@ addParameter(parser,'n_bd_pts',500);
 addParameter(parser,'theta',nan,@isnumeric);
 addParameter(parser,'phi',nan,@isnumeric);
 
-parse(parser,mu,v,reg,varargin{:});
+parse(parser,mu,v,dom,varargin{:});
 
 n_bd_pts=parser.Results.n_bd_pts;
 theta=parser.Results.theta;
@@ -44,7 +44,7 @@ elseif dim==3
     n_z=[x(:)';y(:)';z(:)'];
 end
 
-[p_angles,bd_pts_angles]=int_norm_along_rays(mu,v,reg,n_z,varargin{:});
+[p_angles,bd_pts_angles]=int_norm_along_rays(mu,v,dom,n_z,varargin{:});
 
 % factors
 if dim==1

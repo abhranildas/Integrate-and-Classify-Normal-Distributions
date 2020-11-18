@@ -16,6 +16,7 @@ function results=classify_normals_multi(dists,varargin)
 n_dists=length(dists);
 parser=inputParser;
 parser.KeepUnmatched=true;
+addParameter(parser,'doms',[],@iscell);
 addRequired(parser,'dists',@isstruct);
 addParameter(parser,'priors',ones(1,n_dists)/n_dists,@(x) isnumeric(x) && all(x > 0) && all(x < 1));
 addParameter(parser,'vals',eye(n_dists),@(x) isnumeric(x) && ismatrix(x));
@@ -33,12 +34,13 @@ else
     normals=dists;
 end
 dim=length(normals(1).mu);
+
 vals=parser.Results.vals;
 plotmode=parser.Results.plotmode;
 if dim>3
     if isequal(plotmode,true)
         plotmode=[1;zeros(dim-1,1)];
-    elseif isvector(plotmode)
+    elseif ~isequal(plotmode,false)
         plotmode=plotmode/norm(plotmode);
     end
 end
@@ -52,16 +54,26 @@ else
     priors=parser.Results.priors;
 end
 
+% classification domains
+doms=parser.Results.doms;
+if isempty(doms) % no domains supplied
+    % compute optimal domains
+    doms=cell(length(normals),1);
+    for i=1:length(normals)
+        doms{i}=@(n,mu,v) opt_class_multi(n,normals,i,'mu',mu,'v',v,varargin{:});
+    end
+end
+
 norm_bd_pts=cell(n_dists,1);
 norm_errmat=nan(n_dists);
 norm_errs=nan(n_dists,1);
+
 % compute accuracy and boundary for each normal, and combine
 for i=1:n_dists % integrate each normal
     for j=1:n_dists % within the boundary of each normal
         [p,pc,bd_pts]=integrate_normal(normals(i).mu,normals(i).v,...
-            @(n,mu,v) opt_class_multi(n,normals,j,'mu',mu,'v',v,varargin{:}),...
-            'reg_type','ray_scan','bPlot',false,varargin{:});
-        fprintf('Integrating normal %d in region %d\n',[i j])
+            doms{j},'dom_type','ray_scan',varargin{:},'plotmode',false);
+        fprintf('Integrating normal %d in domain %d\n',[i j])
         norm_errmat(i,j)=p*priors(i);
         if j==i
             norm_errs(i)=pc;
@@ -88,13 +100,12 @@ end
 
 % sample classification errors
 if strcmpi(parser.Results.type,'samp')
-    samp_counts=samp_counts_multi(normals,dists,varargin{:});
-    results.samp_errmat=samp_counts;
-    %results.samp_errs=samp_counts./sum(samp_counts,2);
-    samp_err=sum(samp_counts(~eye(n_dists)))/sum(samp_counts(:));
+    samp_errmat=samp_errmat_multi(dists,doms);
+    results.samp_errmat=samp_errmat;
+    samp_err=sum(samp_errmat(~eye(n_dists)))/sum(samp_errmat(:));
     results.samp_err=samp_err;
     if ~isequal(vals,eye(n_dists)) % if outcome values are supplied
-        results.samp_valmat=samp_counts.*vals;
+        results.samp_valmat=samp_errmat.*vals;
         results.samp_val=sum(results.samp_valmat(:));
     end
 end
@@ -109,12 +120,6 @@ if ~isequal(plotmode,false)
     elseif strcmpi(parser.Results.type,'samp')
         title(sprintf("error = %g / %g",[norm_err,samp_err]))
     end
-
-    
-    % Colormap of the different regions
-    %     fcontour(@(x,y) multifun(x,y,normals,1),'levellist',0.5:1:4.5,'fill','on','linecolor','none');
-    %     caxis([.5 4.5]);
-    %     colormap((colors(1:4,:)+[1 1 1])/2)
     
     % plot samples
     if strcmpi(parser.Results.type,'samp')
@@ -126,6 +131,7 @@ if ~isequal(plotmode,false)
             end
         end
     end
+    
     % plot normals and boundaries
     for i=1:n_dists
         if dim<=3
@@ -135,7 +141,7 @@ if ~isequal(plotmode,false)
         end
         hold on
         if dim<=3
-            plot_boundary(@(n,mu,v) opt_class_multi(n,normals,i,'mu',mu,'v',v,varargin{:}),dim,'mu',normals(i).mu,'reg_type','ray_scan')
+            plot_boundary(doms{i},dim,'mu',normals(i).mu,'dom_type','ray_scan')
         end
     end
     hold off

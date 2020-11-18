@@ -1,4 +1,4 @@
-function [merged_init_sign,merged_x]=opt_class_multi(n,normals,idx,varargin)
+function [merged_init_sign,merged_x,merged_samp_correct]=opt_class_multi(n,normals,idx,varargin)
 % Return distances and signs of the optimal boundary between normal 1 and
 % several others (standardized wrt normal 1, or optional normal_wrt), in the direction
 % of vector(s) n.
@@ -29,19 +29,22 @@ addParameter(parser,'vals',eye(n_normals), @(x) isnumeric(x) && ismatrix(x));
 parse(parser,n,normals,idx,varargin{:});
 mu=parser.Results.mu;
 v=parser.Results.v;
-% if isempty(mu) % if origin is not given,
-%     mu=mus(:,idx); % take the mean of the normal whose boundary is being computed
-% end
 vals=parser.Results.vals;
 priors=parser.Results.priors;
 
 other_idxs=[1:idx-1, idx+1:n_normals];
-reglist=cell(length(other_idxs),1);
-for i=1:length(reglist)
+domlist=cell(length(other_idxs),1);
+for i=1:length(domlist)
     other_idx=other_idxs(i);
-    reglist{i}=@(n,mu,v) ray_scan(opt_class_quad([normals(idx).mu, normals(idx).v],[normals(other_idx).mu, normals(other_idx).v],...
+    domlist{i}=@(n,mu,v) ray_scan(opt_class_quad([normals(idx).mu, normals(idx).v],[normals(other_idx).mu, normals(other_idx).v],...
         'prior_1',priors(idx)/(priors(idx)+priors(other_idx)),'vals',vals([idx other_idx],[idx other_idx])),n,'mu',mu,'v',v);
 end
 
-[merged_init_sign,merged_x]=combine_regs(reglist,'and',n,'mu',mu,'v',v);
+if nargout==3
+    [~,~,merged_samp_correct]=combine_doms(domlist,'and',n,'mu',mu,'v',v);
+    merged_init_sign=[];
+    merged_x=[];
+else
+    [merged_init_sign,merged_x]=combine_doms(domlist,'and',n,'mu',mu,'v',v);
+end
 end

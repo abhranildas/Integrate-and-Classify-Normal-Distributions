@@ -54,7 +54,7 @@ fsurf(@(x,y) x.^2-y.^2.*sign(y),'ShowContours','on')
 
 fsurf(@(x,y) (x+y).^2-(x-y).^2.*sign(x-y),'ShowContours','on')
 
-%% implicit function for the intersection of two quadratic regions
+%% implicit function for the intersection of two quadratic domains
 quad1.q2=[1 1; 1 1];
 quad1.q1=[-1;0];
 quad1.q0=-1;

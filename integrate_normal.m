@@ -1,5 +1,5 @@
-function [p,pc,bd_pts]=integrate_normal(mu,v,reg,varargin)
-% Integrate a normal distribution over a specified region.
+function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
+% Integrate a normal distribution over a specified domain.
 %
 % How to use this command:
 % See github readme at https://github.com/abhranildas/classify
@@ -18,8 +18,8 @@ parser=inputParser;
 parser.KeepUnmatched=true;
 addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
-addRequired(parser,'reg',@(x) isstruct(x)|| isa(x,'function_handle'));
-addParameter(parser,'reg_type','quad');
+addRequired(parser,'dom',@(x) isstruct(x)|| isa(x,'function_handle'));
+addParameter(parser,'dom_type','quad');
 addParameter(parser,'method','ray');
 addParameter(parser,'fun_span',3);
 addParameter(parser,'fun_resol',100);
@@ -27,61 +27,61 @@ addParameter(parser,'fun_level',0);
 addParameter(parser,'prior',1,@isnumeric);
 addParameter(parser,'AbsTol',1e-10);
 addParameter(parser,'RelTol',1e-2);
-addParameter(parser,'bPlot',2);
+addParameter(parser,'plotmode',2);
 colors=colororder;
 addParameter(parser,'plot_color',colors(1,:));
 
-parse(parser,mu,v,reg,varargin{:});
-reg_type=parser.Results.reg_type;
+parse(parser,mu,v,dom,varargin{:});
+dom_type=parser.Results.dom_type;
 method=parser.Results.method;
 prior=parser.Results.prior;
-bPlot=parser.Results.bPlot;
+plotmode=parser.Results.plotmode;
 plot_color=parser.Results.plot_color;
 
 dim=length(mu);
 
-if any(strcmpi(parser.UsingDefaults,'method')) && dim>3 && strcmpi(reg_type,'quad')
+if any(strcmpi(parser.UsingDefaults,'method')) && dim>3 && strcmpi(dom_type,'quad')
     method='gx2';
 end
 
 if strcmpi(method,'ray')
-    [p,pc,bd_pts]=int_norm_ray(mu,v,reg,varargin{:});
+    [p,pc,bd_pts]=int_norm_ray(mu,v,dom,varargin{:});
 elseif strcmpi(method,'gx2')
     % get integral from the generalized chi-squared method
-    [p,pc]=int_norm_quad_gx2(mu,v,reg,varargin{:});
+    [p,pc]=int_norm_quad_gx2(mu,v,dom,varargin{:});
     bd_pts=[];
 end
 
 % plot
-if bPlot
+if plotmode
     if dim<=3
         plot_normal(mu,v,prior,plot_color)
         hold on
-        if bPlot==2
-            plot_boundary(reg,dim,'mu',mu,'v',v,'fill_colors',plot_color,varargin{:});
+        if plotmode==2
+            plot_boundary(dom,dim,'mu',mu,'v',v,'fill_colors',plot_color,varargin{:});
         end
         if strcmpi(method,'ray')
-            plot_boundary(bd_pts,dim,'reg_type','bd_pts');
+            plot_boundary(bd_pts,dim,'dom_type','bd_pts');
         end
     else
-        if strcmpi(reg_type,'quad')
+        if strcmpi(dom_type,'quad')
             % plot distribution of q(x)
-            if nnz(reg.q2) % if the quadratic term exists
+            if nnz(dom.q2) % if the quadratic term exists
                 % q(x) ~ generalized chi-squared
-                [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,reg);
+                [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,dom);
                 [mu_q,v_q]=gx2stat(lambda,m,delta,sigma,c); % mean and variance of q(x)
                 x=linspace(mu_q-5*sqrt(v_q),mu_q+5*sqrt(v_q),1e3);
                 y=prior*arrayfun(@(x) gx2pdf(x,lambda,m,delta,sigma,c),x);
                 area(x,y,'facecolor',plot_color,'facealpha',0.4,'edgecolor',plot_color,'edgealpha',0.5,'linewidth',1)
             else % q(x) ~ normal
-                mu_q=reg.q1'*mu+reg.q0;
-                v_q=reg.q1'*v*reg.q1;
+                mu_q=dom.q1'*mu+dom.q0;
+                v_q=dom.q1'*v*dom.q1;
                 plot_normal(mu_q,v_q,prior,plot_color);
             end
             hold on
             % plot boundary
-            if bPlot==2
-                plot_boundary(reg,dim,'fill_colors',plot_color);
+            if plotmode==2
+                plot_boundary(dom,dim,'fill_colors',plot_color);
             end
             xlabel('$q(${\boldmath$x$}$)$','interpreter','latex');
         end

@@ -11,13 +11,12 @@ function v=samp_value_flat(x,samp_1,samp_2,vals)
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
 dim=size(samp_1,2);
-%n_q2=(dim^2+dim)/2;
 q2=zeros(dim);
 q2(triu(true(dim)))=x(1:(dim^2+dim)/2);
 q2=q2+triu(q2,1)';
 
 quad=struct;
-quad.q2=q2;%reshape(x(1:dim^2),[dim dim])';
+quad.q2=q2;
 quad.q1=x(end-dim:end-1);
 quad.q0=x(end);
 

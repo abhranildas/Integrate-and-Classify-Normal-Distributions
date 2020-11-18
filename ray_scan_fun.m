@@ -1,12 +1,4 @@
 function [init_sign,r]=ray_scan_fun(fun,xrange,resolution)
-% Inputs :
-% f : function of one variable
-% [xmin - xmax] : range where f is continuous containing zeros
-% N : control of the minimum distance (xmax-xmin)/N between two zeros
-
-% g=sym(f); %converted to symbolic
-% h=finverse(g); %inverse of the function
-% F=matlabFunction(h)
 
 if (nargin<3)
     resolution=1e2;

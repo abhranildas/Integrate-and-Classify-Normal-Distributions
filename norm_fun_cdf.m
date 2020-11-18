@@ -16,7 +16,7 @@ addParameter(parser,'RelTol',1e-2);
 parse(parser,x,mu,v,fun,varargin{:});
 side=parser.Results.side;
 
-[pc,p]=arrayfun(@(fun_level) integrate_normal(mu,v,fun,'reg_type','fun','fun_level',fun_level,'bPlot',false,varargin{:}), x);
+[pc,p]=arrayfun(@(fun_level) integrate_normal(mu,v,fun,'dom_type','fun','fun_level',fun_level,'plotmode',false,varargin{:}), x);
 
 if strcmpi(side,'upper')
     p=pc;

@@ -90,8 +90,7 @@ if strcmpi(approx,'tail') % compute tail approximations
 else
     % compute the integral
     if any(strcmpi(parser.UsingDefaults,'AbsTol')) && any(strcmpi(parser.UsingDefaults,'RelTol'))
-%         imhof_integral=integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf);
-    imhof_integral=arrayfun(@(x) integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf),x);
+        imhof_integral=arrayfun(@(x) integral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),0,inf),x);
         if strcmpi(side,'lower')
             p=0.5-imhof_integral/pi;
         elseif strcmpi(side,'upper')
@@ -99,10 +98,9 @@ else
         end
     else
         syms u
-%         imhof_integral=vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),u,0,inf,'AbsTol',parser.Results.AbsTol,'RelTol',parser.Results.RelTol,'MaxFunctionCalls',inf);
-            imhof_integral=arrayfun(@(x) vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),...
-        u,0,inf,'AbsTol',AbsTol,'RelTol',RelTol,'MaxFunctionCalls',inf),x);
-
+        imhof_integral=arrayfun(@(x) vpaintegral(@(u) imhof_integrand(u,x-c,lambda',m',delta'),...
+            u,0,inf,'AbsTol',AbsTol,'RelTol',RelTol,'MaxFunctionCalls',inf),x);
+        
         if strcmpi(side,'lower')
             p=double(0.5-imhof_integral/pi);
         elseif strcmpi(side,'upper')
