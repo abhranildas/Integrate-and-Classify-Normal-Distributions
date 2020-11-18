@@ -1,5 +1,6 @@
-# Classify
+# Classify [![View Integrate and classify normal distributions on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/82410-integrate-and-classify-normal-distributions)
 A set of tools related to computing classification accuracy between two Gaussian distributions or two sets of observations. This provides some functionalities that are not provided by the [classify function in MATLAB's Statistics and Machine Learning Toolbox](https://www.mathworks.com/help/stats/classify.html).
+
 
 ## Credits
 Abhranil Das, R Calen Walshe and Wilson Geisler, Center for Perceptual Systems, The University of Texas at Austin.
