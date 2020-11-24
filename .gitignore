@@ -1,5 +1,5 @@
 *.asv
-/paper/*
-/deprecated/*
+/paper/
+/deprecated/
 gx2_icon.png
-/gx2_doc/*
+/gx2_doc/
