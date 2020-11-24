@@ -9,7 +9,7 @@ addRequired(parser,'n',@isnumeric);
 addParameter(parser,'mu',zeros(dim,1),@isnumeric);
 addParameter(parser,'v',eye(dim),@isnumeric);
 addParameter(parser,'dom_type','quad');
-addParameter(parser,'fun_span',3);
+addParameter(parser,'fun_span',5);
 addParameter(parser,'fun_resol',100);
 addParameter(parser,'fun_level',0);
 

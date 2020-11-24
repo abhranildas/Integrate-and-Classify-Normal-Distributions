@@ -54,7 +54,7 @@ mu_2=1.5;
 v_2=1.5;
 samp_2=normrnd(mu_2,sqrt(v_2),[300 1]);
 
-results=classify_normals(samp_1,samp_2,'type','samp')
+results=classify_normals(samp_1,samp_2,'input_type','samp')
 
 %% 2D, integrate
 mu=[-1; -1];
@@ -120,7 +120,7 @@ n_samp=1e3;
 samp_1=mvnrnd(mu_1,v_1,n_samp);
 samp_2=mvnrnd(mu_2,v_2,n_samp);
 
-results_samp=classify_normals(samp_1,samp_2,'type','samp')
+results_samp=classify_normals(samp_1,samp_2,'input_type','samp')
 axis image; xlim([-10 10]); ylim([-10 10])
 
 % modify the sample-optimized boundary
@@ -129,15 +129,15 @@ custom_bd.q2=custom_bd.q2+.1;
 custom_bd.q1=custom_bd.q1-2.5;
 custom_bd.q0=custom_bd.q0+5;
 
-results_samp_custom=classify_normals(samp_1,samp_2,'type','samp','dom',custom_bd)
+results_samp_custom=classify_normals(samp_1,samp_2,'input_type','samp','dom',custom_bd)
 axis image; xlim([-10 10]); ylim([-10 10])
 
 %% PAPER 2D, classify non-normal samples
-n_samp=1e3;
+n_samp=1e4;
 samp_1=exp(mvnrnd([0 0],eye(2),n_samp));
-samp_2=-exp(mvnrnd([1 1],eye(2),n_samp));
+samp_2=-exp(mvnrnd([1 1],eye(2),n_samp))+[2 2];
 
-results=classify_normals(samp_1,samp_2,'type','samp')
+results=classify_normals(samp_1,samp_2,'input_type','samp')
 axis image; xlim([-20 15]); ylim([-20 15])
 set(gca,'fontsize',13); box off
 
@@ -186,8 +186,7 @@ mu_1=[0;0;0];
 v=eye(3);
 
 mu_2=dprime_true*[1;0;0];
-
-results=classify_normals([mu_1,v],[mu_2,v],'method','gx2','AbsTol',0,'RelTol',1e-2)
+results=classify_normals([mu_1,v],[mu_2,v],'AbsTol',0,'RelTol',1e-2)
 axis image; xlim([-5 80]); ylim([-2 2]); zlim([-2 2]); view(-53,25)
 dprime_computed=results.norm_dprime
 format
@@ -306,7 +305,7 @@ ylim([0 .12])
 
 % now classify using samples
 n_samp=1e3;
-results=classify_normals(mvnrnd(mu_1',v_1,n_samp),mvnrnd(mu_2',v_2,n_samp),'type','samp','prior_1',.7,'vals',[4 0; 0 1])
+results=classify_normals(mvnrnd(mu_1',v_1,n_samp),mvnrnd(mu_2',v_2,n_samp),'input_type','samp','prior_1',.7,'vals',[4 0; 0 1])
 set(gca,'fontsize',13); box off
 
 %% PAPER 4D Integrate in an octahedral domain, using Monte Carlo
@@ -406,12 +405,13 @@ f13=quad2fun(q13,1);
 f=@(x,y) min(f12(x,y),f13(x,y));
 plot_boundary(f,2,'dom_type','fun','plot_type','line')
 
-% now classify using samples from these normals
+% now classify using samples from these normals, with outcome values
 samples=struct;
 for i=1:4
     samples(i).sample=mvnrnd(normals(i).mu,normals(i).v,1e4);
 end
-results_samp=classify_normals_multi(samples,'type','samp')
+vals=diag([1 2 3 4]);
+results_samp=classify_normals_multi(samples,'input_type','samp','vals',vals)
 axis image
 
 % now classify using samples from t distributions similar to these normals
@@ -419,7 +419,7 @@ samples=struct;
 for i=1:4
     samples(i).sample=mvtrnd(normals(i).v,3,1e4)+normals(i).mu';
 end
-results_samp=classify_normals_multi(samples,'type','samp')
+results_samp=classify_normals_multi(samples,'input_type','samp')
 axis image; xlim([-6 6]); ylim([-6 6]);
 
 %% PAPER Classifying 7 normals, 2D
@@ -463,7 +463,7 @@ results=classify_normals_multi(normals)
 % for i=1:4
 %     samples(i).sample=mvnrnd(normals(i).mu,normals(i).v,2e2);
 % end
-% results_samp=classify_normals_multi(samples,'type','samp','priors',priors,'mc_samples',1e3,'plotmode',[1;1;1;1])
+% results_samp=classify_normals_multi(samples,'input_type','samp','priors',priors,'mc_samples',1e3,'plotmode',[1;1;1;1])
 % set(gca,'fontsize',13); box off
 
 %% PAPER Classifying 4 4D t distribution samples
@@ -480,7 +480,7 @@ samples=struct;
 for i=1:4
     samples(i).sample=mvtrnd(params(i).v,3,n_samp)+params(i).mu';
 end
-results_samp=classify_normals_multi(samples,'type','samp','priors',priors,'mc_samples',1e3,'plotmode',[1;1;1;1])
+results_samp=classify_normals_multi(samples,'input_type','samp','priors',priors,'mc_samples',1e3,'plotmode',[1;1;1;1])
 set(gca,'fontsize',13); box off
 
 %% PAPER testing the normal approximation for 2 2d classes
@@ -489,7 +489,7 @@ N_samp=1e4; n_samp=1e2;
 mu_1=[5 5]; v_1=[1 .5; .5 1]; samp_1=mvnrnd(mu_1,v_1,N_samp).^3; % not normal
 mu_2=[-200 -200]; v_2=[1 1; 1 3]*2e3; samp_2=mvnrnd(mu_2,v_2,N_samp);
 
-results=classify_normals(samp_1,samp_2,'type','samp','samp_opt',false);
+results=classify_normals(samp_1,samp_2,'input_type','samp','samp_opt',false);
 xlim([-300 600]); ylim([-400 600]); hold on
 bd=results.norm_bd;
 
@@ -503,7 +503,7 @@ for i=1:length(q0s)
     if ~rem(i,10)
         plot_boundary(bd_shift,2,'plot_type','line','line_color',.5*[1 1 1]);
     end
-    results_shift=classify_normals(samp_1,samp_2,'type','samp','dom',bd_shift,'samp_opt',false,'plotmode',false);
+    results_shift=classify_normals(samp_1,samp_2,'input_type','samp','dom',bd_shift,'samp_opt',false,'plotmode',false);
     
     % true outcomes
     true_p11(i)=results_shift.samp_errmat(1,1)/N_samp;
@@ -541,7 +541,7 @@ fill([x;flipud(x)],[y-dy;flipud(y+dy)],'k','facecolor','none','edgecolor',colors
 xlim([min(q0s) max(q0s)]); ylim([-.01 1.01]); xlabel('boundary offset q_0')
 set(gca,'fontsize',13); box off
 
-%% PAPER testing the normal approximation for 4 4d classes
+%% PAPER testing the normal approximation for 4 4d t distributions
 n_class=4; N_samp=1e4; n_samp=1e2;
 
 % t distribution parameters
@@ -594,7 +594,7 @@ parfor i=1:len_fam
 %         domains_shift{k}=@(n,mu,v) opt_class_multi(n,params_samp_shift,k,'mu',mu,'v',v);
 %     end
     
-    results_shift=classify_normals_multi(samples,'type','samp','doms',domains_shift,'mc_samples',5e3,'plotmode',false);
+    results_shift=classify_normals_multi(samples,'input_type','samp','doms',domains_shift,'mc_samples',5e3,'plotmode',false);
     
     % true error rates
     true_p22_mean(i)=results_shift.samp_errmat(2,2)/N_samp;
@@ -649,7 +649,7 @@ set(gca,'fontsize',13); box off
 absent=importdata('target_absent.txt',',',1);
 present=importdata('target_present.txt',',',1);
 
-results=classify_normals(absent.data,present.data,'type','samp')
+results=classify_normals(absent.data,present.data,'input_type','samp')
 
 axis normal
 xlim([-50 170]); ylim([-320 200]); zlim([0 1000]); view(166,40);
@@ -659,20 +659,20 @@ set(gca,'fontsize',13); box off
 %% PAPER Actual vision research data: detecting camouflage
 
 load camouflage_edge_data
-results_joint_2=classify_normals([edge_powers_2(:,1),edge_lpr_2(:,1)],[edge_powers_2(:,2),edge_lpr_2(:,2)],'type','samp');
+results_joint_2=classify_normals([edge_powers_2(:,1),edge_lpr_2(:,1)],[edge_powers_2(:,2),edge_lpr_2(:,2)],'input_type','samp');
 xlim([0.2 1]); ylim([-900 400])
 xlabel 'edge power'; ylabel 'edge spectrum'
 set(gca,'fontsize',13); box off
 
-results_dv_2=classify_normals(results_joint_2.samp_opt_dv{1},results_joint_2.samp_opt_dv{2},'type','samp','dom',@(x) x,'dom_type','fun','samp_opt',false);
+results_dv_2=classify_normals(results_joint_2.samp_opt_dv{1},results_joint_2.samp_opt_dv{2},'input_type','samp','dom',@(x) x,'dom_type','fun','samp_opt',false);
 xlim([-50 100]); ylim([0 .04]); set(gca,'ytick',[]);
 set(gca,'fontsize',13); box off
 xlabel('$q_s(${\boldmath$x$}$)$','interpreter','latex');
 
-results_joint_4=classify_normals([edge_powers_4(:,1),edge_lpr_4(:,1)],[edge_powers_4(:,2),edge_lpr_4(:,2)],'type','samp','plotmode',false);
-results_joint_8=classify_normals([edge_powers_8(:,1),edge_lpr_8(:,1)],[edge_powers_8(:,2),edge_lpr_8(:,2)],'type','samp','plotmode',false);
+results_joint_4=classify_normals([edge_powers_4(:,1),edge_lpr_4(:,1)],[edge_powers_4(:,2),edge_lpr_4(:,2)],'input_type','samp','plotmode',false);
+results_joint_8=classify_normals([edge_powers_8(:,1),edge_lpr_8(:,1)],[edge_powers_8(:,2),edge_lpr_8(:,2)],'input_type','samp','plotmode',false);
 
-results_dv_joint=classify_normals([results_joint_2.samp_opt_dv{1},results_joint_4.samp_opt_dv{1},results_joint_8.samp_opt_dv{1}],[results_joint_2.samp_opt_dv{2},results_joint_4.samp_opt_dv{2},results_joint_8.samp_opt_dv{2}],'type','samp');
+results_dv_joint=classify_normals([results_joint_2.samp_opt_dv{1},results_joint_4.samp_opt_dv{1},results_joint_8.samp_opt_dv{1}],[results_joint_2.samp_opt_dv{2},results_joint_4.samp_opt_dv{2},results_joint_8.samp_opt_dv{2}],'input_type','samp');
 axis image; xlim([-100 125]); ylim([-50 75]); zlim([-50 50]); view(-20,24)
 xlabel('$q_s(${\boldmath$x$}$)$ (2px)','interpreter','latex');
 ylabel('$q_s(${\boldmath$x$}$)$ (4px)','interpreter','latex');
@@ -684,14 +684,14 @@ results_all=classify_normals([edge_powers_2(:,1),edge_lpr_2(:,1),...
                               edge_powers_8(:,1),edge_lpr_8(:,1)],...
                              [edge_powers_2(:,2),edge_lpr_2(:,2),...
                               edge_powers_4(:,2),edge_lpr_4(:,2),...
-                              edge_powers_8(:,2),edge_lpr_8(:,2)],'type','samp');
+                              edge_powers_8(:,2),edge_lpr_8(:,2)],'input_type','samp');
                           
 results_all_samp_opt=classify_normals([edge_powers_2(:,1),edge_lpr_2(:,1),...
                               edge_powers_4(:,1),edge_lpr_4(:,1),...
                               edge_powers_8(:,1),edge_lpr_8(:,1)],...
                              [edge_powers_2(:,2),edge_lpr_2(:,2),...
                               edge_powers_4(:,2),edge_lpr_4(:,2),...
-                              edge_powers_8(:,2),edge_lpr_8(:,2)],'type','samp',...
+                              edge_powers_8(:,2),edge_lpr_8(:,2)],'input_type','samp',...
                               'dom',results_all.samp_opt_bd,'samp_opt',false);
 xlabel('$q_s(${\boldmath$x$}$)$ (2, 4 and 8px)','interpreter','latex');
 xlim([-125 150]); set(gca,'ytick',[]);
