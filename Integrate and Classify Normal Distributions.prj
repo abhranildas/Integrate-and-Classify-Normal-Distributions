@@ -55,6 +55,7 @@ Try the Getting Started guide, and type help integrate_normal, help classify_nor
 test.m
 paper
 deprecated
+gx2/gx2_doc
 icon.png
 LICENSE
 README.md</param.exclude.filters>
@@ -78,22 +79,12 @@ README.md</param.exclude.filters>
     <param.compatiblity.macos>true</param.compatiblity.macos>
     <param.compatiblity.linux>true</param.compatiblity.linux>
     <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
-    <param.installation.map>+IntClassNorm\getInstallationLocation.mlx</param.installation.map>
-    <param.additional.sw.names>
-      <item>Generalized chi-square distribution</item>
-    </param.additional.sw.names>
-    <param.additional.sw.licenses>
-      <item>Matlab license</item>
-    </param.additional.sw.licenses>
-    <param.additional.sw.win.url>
-      <item>https://www.mathworks.com/matlabcentral/fileexchange/74663-generalized-chi-square-distribution</item>
-    </param.additional.sw.win.url>
-    <param.additional.sw.mac.url>
-      <item>https://www.mathworks.com/matlabcentral/fileexchange/74663-generalized-chi-square-distribution</item>
-    </param.additional.sw.mac.url>
-    <param.additional.sw.linux.url>
-      <item>https://www.mathworks.com/matlabcentral/fileexchange/74663-generalized-chi-square-distribution</item>
-    </param.additional.sw.linux.url>
+    <param.installation.map />
+    <param.additional.sw.names />
+    <param.additional.sw.licenses />
+    <param.additional.sw.win.url />
+    <param.additional.sw.mac.url />
+    <param.additional.sw.linux.url />
     <unset>
       <param.version />
       <param.output />
@@ -115,12 +106,16 @@ README.md</param.exclude.filters>
       <param.compatiblity.macos />
       <param.compatiblity.linux />
       <param.compatiblity.matlabonline />
+      <param.additional.sw.names />
+      <param.additional.sw.licenses />
+      <param.additional.sw.win.url />
+      <param.additional.sw.mac.url />
+      <param.additional.sw.linux.url />
     </unset>
     <fileset.rootdir>
       <file>${PROJECT_ROOT}</file>
     </fileset.rootdir>
     <fileset.rootfiles>
-      <file>${PROJECT_ROOT}\+IntClassNorm</file>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
