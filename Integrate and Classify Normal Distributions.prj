@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration file="C:\Users\abhra\Google Drive\Geisler Lab\classify\Integrate and Classify Normal Distributions.prj" location="C:\Users\abhra\Google Drive\Geisler Lab\classify" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
+  <configuration file="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>Integrate and Classify Normal Distributions</param.appname>
     <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
     <param.email>abhranil.das@utexas.edu</param.email>
@@ -78,12 +78,22 @@ README.md</param.exclude.filters>
     <param.compatiblity.macos>true</param.compatiblity.macos>
     <param.compatiblity.linux>true</param.compatiblity.linux>
     <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
-    <param.installation.map />
-    <param.additional.sw.names />
-    <param.additional.sw.licenses />
-    <param.additional.sw.win.url />
-    <param.additional.sw.mac.url />
-    <param.additional.sw.linux.url />
+    <param.installation.map>+IntClassNorm\getInstallationLocation.mlx</param.installation.map>
+    <param.additional.sw.names>
+      <item>Generalized chi-square distribution</item>
+    </param.additional.sw.names>
+    <param.additional.sw.licenses>
+      <item>Matlab license</item>
+    </param.additional.sw.licenses>
+    <param.additional.sw.win.url>
+      <item>https://www.mathworks.com/matlabcentral/fileexchange/74663-generalized-chi-square-distribution</item>
+    </param.additional.sw.win.url>
+    <param.additional.sw.mac.url>
+      <item>https://www.mathworks.com/matlabcentral/fileexchange/74663-generalized-chi-square-distribution</item>
+    </param.additional.sw.mac.url>
+    <param.additional.sw.linux.url>
+      <item>https://www.mathworks.com/matlabcentral/fileexchange/74663-generalized-chi-square-distribution</item>
+    </param.additional.sw.linux.url>
     <unset>
       <param.version />
       <param.output />
@@ -105,17 +115,12 @@ README.md</param.exclude.filters>
       <param.compatiblity.macos />
       <param.compatiblity.linux />
       <param.compatiblity.matlabonline />
-      <param.installation.map />
-      <param.additional.sw.names />
-      <param.additional.sw.licenses />
-      <param.additional.sw.win.url />
-      <param.additional.sw.mac.url />
-      <param.additional.sw.linux.url />
     </unset>
     <fileset.rootdir>
       <file>${PROJECT_ROOT}</file>
     </fileset.rootdir>
     <fileset.rootfiles>
+      <file>${PROJECT_ROOT}\+IntClassNorm</file>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
@@ -128,7 +133,6 @@ README.md</param.exclude.filters>
       <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
       <file>${PROJECT_ROOT}\int_norm_ray.m</file>
-      <file>${PROJECT_ROOT}\integrate_normal.asv</file>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
       <file>${PROJECT_ROOT}\invert_dom.m</file>
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
@@ -155,7 +159,7 @@ README.md</param.exclude.filters>
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\abhra\Google Drive\Geisler Lab\classify\Integrate and Classify Normal Distributions.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>

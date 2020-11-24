@@ -1,2 +1,4 @@
 *.asv
 /paper/*
+/deprecated/*
+gx2_icon.png
