@@ -8,25 +8,33 @@ function results=classify_normals_multi(dists,varargin)
 	% <a href="matlab:web('https://jov.arvojournals.org/article.aspx?articleid=2750251')"
 	% >A new method to compute classification error</a>.
 	%
+    % Example:
+    % normals=struct;
+    % normals(1).mu=[1;0]; normals(1).v=2*eye(2);
+    % normals(2).mu=[0;1]; normals(2).v=eye(2);
+    % normals(3).mu=[-1;0]; normals(3).v=eye(2);
+    % normals(4).mu=[0;-1]; normals(4).v=eye(2);
+    % results=classify_normals_multi(normals)
+    %
 	% Required inputs:
-	% dists			struct of parameters, with each element containing mu and v
+	% dists         struct of parameters, with each element containing mu and v
 	%               or struct of samples, with each element containing a sample
 	%
 	% Optional name-value inputs:
-	% doms			custom (non-optimal) classification domains, as a cell
+	% doms          custom (non-optimal) classification domains, as a cell
 	%               array, whose elements are ray-scan functions defining the
 	%               the classification domain of each normal
-	% priors		vector of priors of the normals. Default is equal priors.
+	% priors        vector of priors of the normals. Default is equal priors.
 	% vals          matrix of outcome values. v(i,j) is the value of
-	%				classifying a sample from i as j.
+	%               classifying a sample from i as j.
 	% input_type    'norm' for normal parameter inputs (default), 'samp' for
-	%				sample inputs.
+	%               sample inputs.
 	% AbsTol        absolute tolerance for the error rate computations.
 	% RelTol        relative tolerance for the error rate computations.
 	%               The absolute OR the relative tolerance will be satisfied.
 	% plotmode      true (default) for plot, or false, or column vector along
-	%				which a >3d multi-class problem will be projected (default
-	%				is along the first dimension.
+	%               which a >3d multi-class problem will be projected (default
+	%               is along the first dimension.
 	%
 	% Output: struct containing
 	% norm_bd_pts   cell array containing points on the optimal boundaries
@@ -40,7 +48,7 @@ function results=classify_normals_multi(dists,varargin)
 	% norm_val      overall expected outcome value. Returned only when custom
 	%               values are suppliued.
 	% samp_errmat   error matrix of classified samples. e(i,j)= no. of i
-	%				samples classified as j.
+	%               samples classified as j.
 	% samp_err      overall error rate of classifying the samples.
 	% samp_valmat   matrix of total sample classification outcome values.
 	%               Returned only when custom values are supplied.

@@ -8,6 +8,11 @@ function results=classify_normals(dist_1,dist_2,varargin)
 	% <a href="matlab:web('https://jov.arvojournals.org/article.aspx?articleid=2750251')"
 	% >A new method to compute classification error</a>.
 	%
+	% Example:
+	% mu_1=[4; 5]; v_1=[2 1; 1 1];
+	% mu_2=mu_1; v_2=3*[2 -1; -1 1];
+	% results=classify_normals([mu_1,v_1],[mu_2,v_2])
+	%
 	% Required inputs:
 	% dist_1        normal 1 parameters [mu_1,v_1] (where mu_1 is a column
 	%               vector, and v_1 is the covariance matrix), or sample 1,
@@ -20,25 +25,25 @@ function results=classify_normals(dist_1,dist_2,varargin)
 	%               sample sizes. If prior is specified then, it is taken to be
 	%               the prior of the normal fitted to the data, and affects
 	%               only the normal-fit-based outputs, not the sample-based
-	%				outputs.
+	%               outputs.
 	% vals          matrix of outcome values. v(i,j) is the value of
-	%				classifying a sample from i as j.
+	%               classifying a sample from i as j.
 	% input_type    'norm' for normal parameter inputs (default), 'samp' for
-	%				sample inputs.
+	%               sample inputs.
 	% dom           custom (non-optimal) classification domain, in one of three
-	%				forms:
-	%               struct containing coefficients a2 (matrix), a1 (column
-	%               vector) and a0 (scalar) of a quadratic domain:
-	%               x'*a2*x + a1'*x + a0 > 0; or
-	%				handle to a ray-scan function, returning the starting sign
-	%               and roots of the domain along any ray; or handle to an
-	%				implicit function f(x) defining the domain f(x)>0.
+	%               forms:
+	%               • struct containing coefficients a2 (matrix), a1 (column
+	%                 vector) and a0 (scalar) of a quadratic domain:
+	%                 x'*a2*x + a1'*x + a0 > 0
+	%               • handle to a ray-scan function, returning the starting sign
+	%                 and roots of the domain along any ray
+	%               • handle to an implicit function f(x) defining the domain f(x)>0.
 	% dom_type      'quad' (default), 'ray_scan' or 'fun' for the above three
-	%				types resp.
+    %               types resp.
 	% fun_span      scan radius (in Mahalanobis distance) for implicit function
 	%               domains. Default=5.
 	% fun_resol     resolution of scanning (finding roots) of implicit domain.
-	%				Default=100.
+	%               Default=100.
 	% method        Integration method. 'ray' (default) for ray-scan, or 'gx2'
 	%               for generalized chi-square (quad domains only).
 	% samp_opt      true (default) if boundary will be optimized for the
@@ -52,7 +57,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
 	% Output: struct containing
 	% norm_bd       struct of coefficients of the optimal quadratic boundary
 	%               between the normals supplied, or fitted to the samples
-	%				supplied.
+	%               supplied.
 	% norm_bd_pts   points on the above boundary computed by the ray-scan
 	%               integration method.
 	% norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
@@ -60,7 +65,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
 	% norm_err      overall error rate
 	% norm_dprime   discriminability d' between the distributions. Returned
 	%               only when priors are equal, values are default, and domain
-	%				is optimal.
+	%               is optimal.
 	% norm_maha_dprime  approximate d' (Mahalanobis distance) assuming the
 	%                   normals to have covariance equal to their average.
 	% norm_valmat   matrix of expected classification outcome values. v(i,j)=
@@ -73,7 +78,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
 	% samp_err      overall error rate of classifying the samples.
 	% samp_dprime   d' based on samp_err. Returned
 	%               only when sample sizes are equal, values are default, and
-	%				domain is optimal.
+	%               domain is optimal.
 	% samp_dv       scalar decision variables that the supplied samples are
 	%               mapped to using norm_bd
 	% samp_valmat   matrix of total sample classification outcome values using
@@ -81,24 +86,24 @@ function results=classify_normals(dist_1,dist_2,varargin)
 	% samp_val      total value of classifying the samples using norm_bd.
 	%               Returned only when custom values are supplied.
 	% samp_opt_bd   struct containing coefficients of the boundary optimized
-	%				for the samples
+	%               for the samples
 	% samp_opt_bd_pts   points on samp_opt_bd computed by the ray-scan
-	%					integration method
+	%                   integration method
 	% samp_opt_errmat   error matrix (counts) of supplied samples using
 	%                   samp_opt_bd.
 	% samp_opt_err  overall error rate of classifying the samples using
-	%				samp_opt_bd
+	%               samp_opt_bd
 	% samp_opt_dprime   d' based on samp_opt_err. Returned only when sample
-	%					sizes are equal, values are default, and domain is
-	%					optimal.
+	%                   sizes are equal, values are default, and domain is
+	%                   optimal.
 	% samp_opt_dv   scalar decision variables that the supplied samples are
 	%               mapped to using samp_opt_bd
 	% samp_opt_valmat   matrix of total sample classification outcome values
 	%                   using samp_opt_bd. Returned only when custom values are
-	%					supplied.
+	%                   supplied.
 	% samp_opt_val      total value of classifying the samples using
 	%                   samp_opt_bd. Returned only when custom values are
-	%					supplied.
+	%                   supplied.
 	%
 	% See also classify_normals_multi.
 	

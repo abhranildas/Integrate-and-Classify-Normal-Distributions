@@ -18,13 +18,15 @@ function [p,errbnd]=gx2cdf_ruben(x,lambda,m,delta,c,varargin)
 	% Example:
 	% [p,err]=gx2cdf_ruben(25,[1 5 2],[1 2 3],[2 3 7],0,100)
 	%
-	% Inputs:
+	% Required inputs:
 	% x         points at which to evaluate the cdf
 	% lambda    row vector of coefficients of the non-central chi-squares
 	% m         row vector of degrees of freedom of the non-central chi-squares
 	% delta     row vector of non-centrality paramaters (sum of squares of
 	%           means) of the non-central chi-squares
 	% c         constant term
+	%
+	% Optional positional input:
 	% N         no. of terms in the approximation. Default = 1000.
 	%
 	% Outputs:

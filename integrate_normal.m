@@ -1,6 +1,5 @@
 function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
-	% INTEGRATE_NORMAL Integrate a uni- or multi-variate normal
-	% in any domain.
+	% INTEGRATE_NORMAL Integrate a (multi)normal in any domain.
 	%
 	% Abhranil Das <abhranil.das@utexas.edu>
 	% Center for Perceptual Systems, University of Texas at Austin
@@ -8,41 +7,46 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
 	% <a href="matlab:web('https://jov.arvojournals.org/article.aspx?articleid=2750251')"
 	% >A new method to compute classification error</a>.
 	%
+	% Example:
+	% mu=[-1; -1]; v=[1 0.5; 0.5 2];
+	% fun=@(x,y) x.*sin(y) - y.*cos(x) -1;
+	% [p,pc,bd_pts]=integrate_normal(mu,v,fun,'dom_type','fun')
+	%
 	% Required inputs:
-	% mu			mean as column vector
-	% v             variance-covariance matrix
+	% mu            normal mean as column vector
+	% v             normal variance-covariance matrix
 	% dom           integration domain, in one of three forms:
-	%               struct containing coefficients a2 (matrix), a1 (column
-	%               vector) and a0 (scalar) of a quadratic domain:
-	%               x'*a2*x + a1'*x + a0 > 0; or
-	%				handle to a ray-scan function, returning the starting sign
-	%               and roots of the domain along any ray; or handle to an
-	%				implicit function f(x) defining the domain f(x)>0.
+	%               • struct containing coefficients a2 (matrix), a1 (column
+	%                 vector) and a0 (scalar) of a quadratic domain:
+	%                 x'*a2*x + a1'*x + a0 > 0
+	%               • handle to a ray-scan function, returning the starting sign
+	%                 and roots of the domain along any ray
+	%               • handle to an implicit function f(x) defining the domain f(x)>0.
 	%
 	% Optional name-value inputs:
 	% dom_type      'quad' (default), 'ray_scan' or 'fun' for the above three
-	%				types resp.
+	%               types resp.
 	% method        Integration method. 'ray' (default) for ray-scan, or 'gx2'
 	%               for generalized chi-square (quad domains only).
 	% fun_span      scan radius (in Mahalanobis distance) for implicit function
 	%               domains. Default=5.
 	% fun_resol     resolution of scanning (finding roots) of implicit domain.
-	%				Default=100.	
+	%               Default=100.	
 	% fun_level     level c for defining domain as f(x)>c. Default=0.	
 	% prior         prior probability. Only used for scaling plots.
-	%				Default=1.
+	%               Default=1.
 	% AbsTol        absolute tolerance for the integral
 	% RelTol        relative tolerance for the integral
 	%               The absolute OR the relative tolerance will be satisfied.
 	% plotmode      0 for no plot, 1 for plotting the normal, 2 (default)
-	%				for plotting the normal and the domain boundary.
+	%               for plotting the normal and the domain boundary.
 	% plot_color    color of the plotted normal
 	%
 	% Outputs:
-	% p				integrated probability
-	% pc			complement of the probability (more accurate when it is
-	%				small)
-	% bd_pts		points on the domain boundary computed by the ray-scan
+	% p             integrated probability
+	% pc            complement of the probability (more accurate when it is
+	%               small)
+	% bd_pts        points on the domain boundary computed by the ray-scan
 	%               integration method.
 	%
 	% See also classify_normals.

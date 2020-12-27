@@ -17,7 +17,7 @@ function f=gx2pdf(x,lambda,m,delta,sigma,c,varargin)
 	% Example:
 	% f=gx2pdf(25,[1 -5 2],[1 2 3],[2 3 7],5,0)
 	%
-	% Inputs:
+	% Required inputs:
 	% x         points at which to evaluate the pdf
 	% lambda    row vector of coefficients of the non-central chi-squares
 	% m         row vector of degrees of freedom of the non-central chi-squares
@@ -25,6 +25,9 @@ function f=gx2pdf(x,lambda,m,delta,sigma,c,varargin)
 	%           means) of the non-central chi-squares
 	% sigma     sd of normal term
 	% c         constant term
+	%
+	% Optional name-value inputs:
+	% dx		step-size for numerically differentiating cdf
 	% 'AbsTol'  absolute error tolerance for the output
 	% 'RelTol'  relative error tolerance for the output
 	%           The absolute OR the relative tolerance is satisfied.

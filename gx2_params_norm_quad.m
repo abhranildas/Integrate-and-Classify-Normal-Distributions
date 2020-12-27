@@ -21,7 +21,7 @@ function [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,quad)
 	%
 	% [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,quad)
 	%
-	% Inputs:
+	% Required inputs:
 	% mu        column vector of normal mean
 	% v         normal covariance matrix
 	% quad      struct with quadratic form coefficients:

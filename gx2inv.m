@@ -17,7 +17,7 @@ function x=gx2inv(p,lambda,m,delta,sigma,c,varargin)
 	% Example:
 	% x=gx2inv(0.9,[1 -5 2],[1 2 3],[2 3 7],5,0)
 	%
-	% Inputs:
+	% Required inputs:
 	% p         probabilities at which to evaluate the inverse cdf
 	% lambda    row vector of coefficients of the non-central chi-squares
 	% m         row vector of degrees of freedom of the non-central chi-squares
@@ -25,6 +25,8 @@ function x=gx2inv(p,lambda,m,delta,sigma,c,varargin)
 	%           means) of the non-central chi-squares
 	% sigma     sd of normal term
 	% c         constant term
+	%
+	% Optional name-value inputs:
 	% 'AbsTol'  absolute error tolerance for the cdf function that is inverted
 	% 'RelTol'  relative error tolerance for the cdf function that is inverted
 	%           The absolute OR the relative tolerance is satisfied.

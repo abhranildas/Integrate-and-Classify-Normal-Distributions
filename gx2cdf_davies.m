@@ -18,7 +18,7 @@ function [p,flag]=gx2cdf_davies(x,lambda,m,delta,sigma,c,varargin)
 	% Example:
 	% p=gx2cdf_davies(25,[1 -5 2],[1 2 3],[2 3 7],5,0)
 	%
-	% Inputs:
+	% Required inputs:
 	% x         points at which to evaluate the cdf
 	% lambda    row vector of coefficients of the non-central chi-squares
 	% m         row vector of degrees of freedom of the non-central chi-squares
@@ -26,7 +26,11 @@ function [p,flag]=gx2cdf_davies(x,lambda,m,delta,sigma,c,varargin)
 	%           means) of the non-central chi-squares
 	% sigma     sd of normal term
 	% c         constant term
+	%
+	% Optional positional input:
 	% 'upper'   more accurate estimate of the complementary CDF when it's small
+	%
+	% Optional name-value inputs:
 	% 'AbsTol'  absolute error tolerance for the output
 	% 'RelTol'  relative error tolerance for the output
 	%           The absolute OR the relative tolerance is satisfied.

@@ -15,7 +15,7 @@ function [mu,v]=gx2stat(lambda,m,delta,sigma,c)
 	% Example:
 	% [mu,v]=gx2stat([1 -5 2],[1 2 3],[2 3 7],4,0)
 	%
-	% Inputs:
+	% Required inputs:
 	% lambda    row vector of coefficients of the non-central chi-squares
 	% m         row vector of degrees of freedom of the non-central chi-squares
 	% delta     row vector of non-centrality paramaters (sum of squares of

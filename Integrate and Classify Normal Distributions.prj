@@ -4,9 +4,9 @@
     <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
     <param.email>abhranil.das@utexas.edu</param.email>
     <param.company>The University of Texas at Austin</param.company>
-    <param.summary>Integrate the multinormal in any domain, compute the pdf/cdf of any function of a multinormal, and classification error among multinormals.</param.summary>
-    <param.description>Suite of tools to integrate multinormals in any domain, compute pdf's and cdf's of any function of a multinormal variable, and compute quantities concerning classification performance among two or more multinormals.
-Try the Getting Started guide, and type help integrate_normal, help classify_normals, or help classify_normals_multi for more documentation.</param.description>
+    <param.summary>Integrate the Gaussian (normal) in any domain, compute the pdf/cdf/icdf of any function of a normal, and classification error among normals.</param.summary>
+    <param.description>Tools to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
+After installing, try the Getting Started live script.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
     <param.version>1.0</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
@@ -60,7 +60,16 @@ icon.png
 LICENSE
 README.md</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
-    <param.examples />
+    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;examples&gt;
+   &lt;exampleCategory name="doc"&gt;
+      &lt;example name="GettingStarted" type="html"&gt;
+         &lt;file type="source"&gt;/doc/html/GettingStarted.html&lt;/file&gt;
+         &lt;file type="main"&gt;/doc/GettingStarted.mlx&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+   &lt;/exampleCategory&gt;
+&lt;/examples&gt;</param.examples>
     <param.demosxml />
     <param.apps />
     <param.registered.apps />
@@ -72,7 +81,7 @@ README.md</param.exclude.filters>
     <param.required.addons />
     <param.matlab.project.id />
     <param.matlab.project.name />
-    <param.release.start>R2019b</param.release.start>
+    <param.release.start>R2020a</param.release.start>
     <param.release.end>latest</param.release.end>
     <param.release.current.only>false</param.release.current.only>
     <param.compatiblity.windows>true</param.compatiblity.windows>
@@ -86,11 +95,13 @@ README.md</param.exclude.filters>
     <param.additional.sw.mac.url />
     <param.additional.sw.linux.url />
     <unset>
+      <param.authnamewatermark />
+      <param.email />
+      <param.company />
       <param.version />
       <param.output />
       <param.platforms />
       <param.exclude.pcodedmfiles />
-      <param.examples />
       <param.demosxml />
       <param.apps />
       <param.registered.apps />
@@ -121,9 +132,20 @@ README.md</param.exclude.filters>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
       <file>${PROJECT_ROOT}\combine_doms.m</file>
       <file>${PROJECT_ROOT}\combine_doms_ray.m</file>
+      <file>${PROJECT_ROOT}\demos.xml</file>
       <file>${PROJECT_ROOT}\doc</file>
       <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
-      <file>${PROJECT_ROOT}\gx2</file>
+      <file>${PROJECT_ROOT}\gx2_doc</file>
+      <file>${PROJECT_ROOT}\gx2_icon.png</file>
+      <file>${PROJECT_ROOT}\gx2_params_norm_quad.m</file>
+      <file>${PROJECT_ROOT}\gx2cdf.m</file>
+      <file>${PROJECT_ROOT}\gx2cdf_davies.m</file>
+      <file>${PROJECT_ROOT}\gx2cdf_imhof.m</file>
+      <file>${PROJECT_ROOT}\gx2cdf_ruben.m</file>
+      <file>${PROJECT_ROOT}\gx2inv.m</file>
+      <file>${PROJECT_ROOT}\gx2pdf.m</file>
+      <file>${PROJECT_ROOT}\gx2rnd.m</file>
+      <file>${PROJECT_ROOT}\gx2stat.m</file>
       <file>${PROJECT_ROOT}\int_norm_along_angles.m</file>
       <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
@@ -131,8 +153,10 @@ README.md</param.exclude.filters>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
       <file>${PROJECT_ROOT}\invert_dom.m</file>
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
+      <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
       <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
       <file>${PROJECT_ROOT}\norm_rad_surv_split.m</file>
+      <file>${PROJECT_ROOT}\norm_vfun_cdf.m</file>
       <file>${PROJECT_ROOT}\opt_class_multi.m</file>
       <file>${PROJECT_ROOT}\opt_class_quad.m</file>
       <file>${PROJECT_ROOT}\plot_boundary.m</file>

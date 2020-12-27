@@ -17,13 +17,15 @@ function r=gx2rnd(lambda,m,delta,sigma,c,varargin)
 	% Example:
 	% r=gx2rnd([1 -5 2],[1 2 3],[2 3 7],5,1,5)
 	%
-	% Inputs:
+	% Required inputs:
 	% lambda    row vector of coefficients of the non-central chi-squares
 	% m         row vector of degrees of freedom of the non-central chi-squares
 	% delta     row vector of non-centrality paramaters (sum of squares of
 	%           means) of the non-central chi-squares
 	% sigma     sd of normal term
 	% c         constant term
+	%
+	% Optional positional input:
 	% sz		size(s) of the requested array
 	%
 	% Output:
