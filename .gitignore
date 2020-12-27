@@ -1,6 +1,7 @@
 *.asv
+*.mltbx
+*.prj
 /paper/
 /deprecated/
 gx2_icon.png
 /gx2_doc/
-*.mltbx
