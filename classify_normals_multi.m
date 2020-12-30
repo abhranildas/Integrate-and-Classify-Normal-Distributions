@@ -5,8 +5,8 @@ function results=classify_normals_multi(dists,varargin)
 	% Abhranil Das <abhranil.das@utexas.edu>
 	% Center for Perceptual Systems, University of Texas at Austin
 	% If you use this code, please cite:
-	% <a href="matlab:web('https://jov.arvojournals.org/article.aspx?articleid=2750251')"
-	% >A new method to compute classification error</a>.
+	% <a href="matlab:web('https://arxiv.org/abs/2012.14331')"
+	% >A method to integrate and classify normal distributions</a>.
 	%
     % Example:
     % normals=struct;
@@ -55,7 +55,9 @@ function results=classify_normals_multi(dists,varargin)
 	% samp_val      total value of classifying the samples. Returned only when
 	%               custom values are supplied.
 	%
-	% See also classify_normals.
+	% See also:
+	% <a href="matlab:open(strcat(fileparts(which('integrate_normal')),filesep,'doc',filesep,'GettingStarted.mlx'))">Interactive demos</a>
+	% classify_normals
 	
 	% parse inputs
 	n_dists=length(dists);

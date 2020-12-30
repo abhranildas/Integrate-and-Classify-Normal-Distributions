@@ -4,8 +4,8 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
 	% Abhranil Das <abhranil.das@utexas.edu>
 	% Center for Perceptual Systems, University of Texas at Austin
 	% If you use this code, please cite:
-	% <a href="matlab:web('https://jov.arvojournals.org/article.aspx?articleid=2750251')"
-	% >A new method to compute classification error</a>.
+	% <a href="matlab:web('https://arxiv.org/abs/2012.14331')"
+	% >A method to integrate and classify normal distributions</a>.
 	%
 	% Example:
 	% mu=[-1; -1]; v=[1 0.5; 0.5 2];
@@ -49,7 +49,10 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
 	% bd_pts        points on the domain boundary computed by the ray-scan
 	%               integration method.
 	%
-	% See also classify_normals.
+	% See also:
+	% <a href="matlab:open(strcat(fileparts(which('integrate_normal')),filesep,'doc',filesep,'GettingStarted.mlx'))">Interactive demos</a>
+	% norm_fun_cdf
+	% classify_normals
 	
 	% parse inputs
 	parser=inputParser;
