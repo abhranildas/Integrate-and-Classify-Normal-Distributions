@@ -8,7 +8,7 @@
     <param.description>Tools to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
 After installing, try the Getting Started live script.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>1.6.1</param.version>
+    <param.version>1.5.4</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
