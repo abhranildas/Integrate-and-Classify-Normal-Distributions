@@ -2,7 +2,7 @@
 Matlab toolbox to
  * integrate normal (Gaussian) distributions in any dimensions with any parameters, in any domain
  * compute pdf/cdf/inverse cdf of any function of a normal vector
- * compute measures of classification performance among any number of multivariate normal classes, like error matrix and discriminability d'.
+ * compute measures of classification performance among any number of multivariate normal classes, like classification error, error matrix, and discriminability d'.
 
 ## Author
 Abhranil Das, Center for Perceptual Systems, The University of Texas at Austin.
