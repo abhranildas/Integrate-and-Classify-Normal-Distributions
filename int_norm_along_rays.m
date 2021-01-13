@@ -10,7 +10,6 @@ addParameter(parser,'side','normal');
 addParameter(parser,'dom_type','quad');
 addParameter(parser,'fun_span',5);
 addParameter(parser,'fun_resol',100);
-addParameter(parser,'fun_level',0);
 addParameter(parser,'n_bd_pts',1e4);
 
 parse(parser,mu,v,dom,varargin{:});

@@ -330,7 +330,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
 		end
 		
 		if strcmpi(parser.Results.input_type,'norm')
-			title(sprintf("error = %g",norm_err)) % plot title
+			title(sprintf("$p_e = %g$",norm_err)) % plot title
 		elseif strcmpi(parser.Results.input_type,'samp')
 			
 			if dim <=3
@@ -342,10 +342,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
 				plot_sample(dv_2,priors(2),colors(2,:))
 			end
 			if ~exist('samp_opt_err','var') % if custom boundary
-				title(sprintf("error = %g / %g",[norm_err,samp_err])) % plot title
+				title(sprintf("$p_e = %g / %g$",[norm_err,samp_err])) % plot title
 				% don't plot sample boundary
 			else
-				title(sprintf("error = %g / %g / %g",[norm_err,samp_err,samp_opt_err])) % plot title
+				title(sprintf("$p_e = %g / %g / %g$",[norm_err,samp_err,samp_opt_err])) % plot title
 				if dim <=3
 					plot_boundary(samp_dom_1,dim,'dom_type','quad','plot_type','line','line_color',[0 .7 0]);
 				end

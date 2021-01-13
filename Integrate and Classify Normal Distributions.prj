@@ -1,14 +1,18 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="3707816588" file="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="1150364" file="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>Integrate and Classify Normal Distributions</param.appname>
     <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
     <param.email>abhranil.das@utexas.edu</param.email>
     <param.company>The University of Texas at Austin</param.company>
     <param.summary>Integrate the Gaussian (normal) in any domain, compute the pdf/cdf/icdf of any function of a normal, and classification error among normals.</param.summary>
     <param.description>Tools to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
-After installing, try the Getting Started live script.</param.description>
+
+Begin with the Getting Started live script with interactive examples:
+• run the command:
+open(strcat(fileparts(which('integrate_normal')),filesep,'doc',filesep,'GettingStarted.mlx'))
+• or, after installation, click 'Open Folder' (or at any time, go to Matlab Home tab &gt; Add-Ons &gt; Manage Add-Ons &gt; this toolbox &gt; Open Folder). Then open the toolbox folder/doc/GettingStarted.mlx.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>1.5.4</param.version>
+    <param.version>1.6</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -54,10 +58,10 @@ After installing, try the Getting Started live script.</param.description>
 .gitignore
 paper
 deprecated
-gx2
 icon.png
 LICENSE
-README.md</param.exclude.filters>
+README.md
+wiki</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;examples&gt;
@@ -74,13 +78,14 @@ README.md</param.exclude.filters>
     <param.registered.apps />
     <param.docs />
     <param.getting.started.guide>${PROJECT_ROOT}\doc\GettingStarted.mlx</param.getting.started.guide>
-    <param.matlabpath.excludes />
+    <param.matlabpath.excludes>
+      <item>/gx2/doc</item>
+      <item>/gx2/doc/html</item>
+    </param.matlabpath.excludes>
     <param.javaclasspath.excludes />
-    <param.exported.on.package>true</param.exported.on.package>
+    <param.exported.on.package>false</param.exported.on.package>
     <param.required.addons>
-      <requiredaddons>
-        <requiredAddOn earliest="earliest" fromRepository="true" id="9bcfd531-5c40-48c5-937b-7483df20e94f" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
-      </requiredaddons>
+      <requiredaddons />
     </param.required.addons>
     <param.matlab.project.id />
     <param.matlab.project.name />
@@ -108,8 +113,8 @@ README.md</param.exclude.filters>
       <param.apps />
       <param.registered.apps />
       <param.docs />
-      <param.matlabpath.excludes />
       <param.javaclasspath.excludes />
+      <param.exported.on.package />
       <param.matlab.project.id />
       <param.matlab.project.name />
       <param.release.current.only />
@@ -135,6 +140,7 @@ README.md</param.exclude.filters>
       <file>${PROJECT_ROOT}\demos.xml</file>
       <file>${PROJECT_ROOT}\doc</file>
       <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
+      <file>${PROJECT_ROOT}\gx2</file>
       <file>${PROJECT_ROOT}\int_norm_along_angles.m</file>
       <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
