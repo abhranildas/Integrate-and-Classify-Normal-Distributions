@@ -6,6 +6,7 @@ Matlab toolbox to
 
 ## Author
 Abhranil Das, Center for Perceptual Systems, The University of Texas at Austin.
+
 Bugs/comments/questions/suggestions to abhranil.das@utexas.edu.
 
 If you use this code, please cite the accompanying paper: [A method to integrate and classify normal distributions.](https://arxiv.org/abs/2012.14331)
