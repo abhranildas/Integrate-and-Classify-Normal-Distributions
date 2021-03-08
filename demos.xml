@@ -6,10 +6,7 @@
    <website/>
    <description>Tools to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
 
-Begin with the Getting Started live script with interactive examples:
-• run the command:
-open(strcat(fileparts(which('integrate_normal')),filesep,'doc',filesep,'GettingStarted.mlx'))
-• or, after installation, click 'Open Folder' (or at any time, go to Matlab Home tab &gt; Add-Ons &gt; Manage Add-Ons &gt; this toolbox &gt; Open Folder). Then open the toolbox folder/doc/GettingStarted.mlx.</description>
+Begin with the Getting Started live script with interactive examples.</description>
    <demosection>
       <label>doc</label>
       <demoitem>

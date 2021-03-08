@@ -32,8 +32,10 @@ if strcmpi(dom_type,'quad')
     samp_2_correct=dot(samp_2,samp_2*q2',2) + samp_2*q1 + q0 < 0;
     
 elseif strcmpi(dom_type,'ray_scan')    
-    [~,~,samp_1_correct]=dom(samp_1',[],[]);
-    [~,~,samp_2_correct]=invert_dom(dom,samp_2');
+    [~,~,samp_1_correct]=dom(samp_1',[]);
+%     [~,~,samp_2_correct]=invert_ray_scan_dom(dom,samp_2');
+    [~,~,samp_2_correct]=dom(samp_2',[]);
+    samp_2_correct=~samp_2_correct;
     
 elseif strcmpi(dom_type,'fun')
     samp_1_cell=num2cell(samp_1,1);

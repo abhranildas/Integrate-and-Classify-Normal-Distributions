@@ -22,7 +22,7 @@ samp_errmat=nan(n_dists);
 for i_samp=1:n_dists
     for i_norm=1:n_dists
         dom=doms{i_norm};
-        [~,~,samp_correct]=dom(samples(i_samp).sample',[],[]);
+        [~,~,samp_correct]=dom(samples(i_samp).sample',[]);
         samp_errmat(i_samp,i_norm)=nnz(samp_correct);
     end
 end

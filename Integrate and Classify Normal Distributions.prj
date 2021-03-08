@@ -7,12 +7,9 @@
     <param.summary>Integrate the Gaussian (normal) in any domain, compute the pdf/cdf/icdf of any function of a normal, and classification error among normals.</param.summary>
     <param.description>Tools to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
 
-Begin with the Getting Started live script with interactive examples:
-• run the command:
-open(strcat(fileparts(which('integrate_normal')),filesep,'doc',filesep,'GettingStarted.mlx'))
-• or, after installation, click 'Open Folder' (or at any time, go to Matlab Home tab &gt; Add-Ons &gt; Manage Add-Ons &gt; this toolbox &gt; Open Folder). Then open the toolbox folder/doc/GettingStarted.mlx.</param.description>
+Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>1.6</param.version>
+    <param.version>1.7</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -61,7 +58,11 @@ deprecated
 icon.png
 LICENSE
 README.md
-wiki</param.exclude.filters>
+wiki
+ray_scan_demo.m
+test.m
+gx2/doc/*
+kris_demo.m</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;examples&gt;
@@ -81,11 +82,14 @@ wiki</param.exclude.filters>
     <param.matlabpath.excludes>
       <item>/gx2/doc</item>
       <item>/gx2/doc/html</item>
+      <item>/gx2</item>
     </param.matlabpath.excludes>
     <param.javaclasspath.excludes />
     <param.exported.on.package>false</param.exported.on.package>
     <param.required.addons>
-      <requiredaddons />
+      <requiredaddons>
+        <requiredAddOn earliest="1.7.6" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
+      </requiredaddons>
     </param.required.addons>
     <param.matlab.project.id />
     <param.matlab.project.name />
@@ -135,18 +139,18 @@ wiki</param.exclude.filters>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
-      <file>${PROJECT_ROOT}\combine_doms.m</file>
-      <file>${PROJECT_ROOT}\combine_doms_ray.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_scan_doms.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_scan_doms_ray.m</file>
       <file>${PROJECT_ROOT}\demos.xml</file>
       <file>${PROJECT_ROOT}\doc</file>
       <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
-      <file>${PROJECT_ROOT}\gx2</file>
       <file>${PROJECT_ROOT}\int_norm_along_angles.m</file>
       <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
       <file>${PROJECT_ROOT}\int_norm_ray.m</file>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
-      <file>${PROJECT_ROOT}\invert_dom.m</file>
+      <file>${PROJECT_ROOT}\invert_ray_scan_dom.m</file>
+      <file>${PROJECT_ROOT}\line_ray_scan.m</file>
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
       <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
       <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
@@ -158,13 +162,13 @@ wiki</param.exclude.filters>
       <file>${PROJECT_ROOT}\plot_sample.m</file>
       <file>${PROJECT_ROOT}\prob_ray.m</file>
       <file>${PROJECT_ROOT}\quad2fun.m</file>
-      <file>${PROJECT_ROOT}\ray_scan.m</file>
       <file>${PROJECT_ROOT}\ray_scan_fun.m</file>
       <file>${PROJECT_ROOT}\samp_errmat_multi.m</file>
       <file>${PROJECT_ROOT}\samp_value.m</file>
       <file>${PROJECT_ROOT}\samp_value_flat.m</file>
       <file>${PROJECT_ROOT}\standard_quad.m</file>
       <file>${PROJECT_ROOT}\standard_ray_fun.m</file>
+      <file>${PROJECT_ROOT}\standard_ray_scan.m</file>
       <file>${PROJECT_ROOT}\target_absent.txt</file>
       <file>${PROJECT_ROOT}\target_present.txt</file>
     </fileset.rootfiles>

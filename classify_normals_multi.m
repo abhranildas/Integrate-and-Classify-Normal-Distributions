@@ -107,7 +107,7 @@ function results=classify_normals_multi(dists,varargin)
 		% compute optimal domains
 		doms=cell(length(normals),1);
 		for i=1:length(normals)
-			doms{i}=@(n,mu,v) opt_class_multi(n,normals,i,'mu',mu,'v',v,varargin{:});
+			doms{i}=@(n,orig) opt_class_multi(n,normals,i,'orig',orig,varargin{:});
 		end
 	end
 	

@@ -19,14 +19,11 @@ side=parser.Results.side;
 
 dim=length(mu);
 
-% rayscan any domain
-if strcmpi(dom_type,'ray_scan') % ray format region
-    dom_s_rayscan=@(n) dom(n,mu,v);
-else
-    dom_s_rayscan=@(n) ray_scan(dom,n,'mu',mu,'v',v,varargin{:});
-end
-% initial signs and boundary distances in standardized space
-[init_sign,z]=dom_s_rayscan(n_z);
+% ray-scan the domain
+dom_standard_rayscan=@(n) standard_ray_scan(dom,n,'mu',mu,'v',v,varargin{:});
+
+    % initial signs and boundary distances in standardized space
+[init_sign,z]=dom_standard_rayscan(n_z);
 
 % standard boundary points
 std_bd_pts_ray=cellfun(@(z_ray,n_ray) z_ray.*n_ray, z,num2cell(n_z,1),'un',0);
