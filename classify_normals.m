@@ -134,6 +134,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     addParameter(parser,'plotmode',true,@islogical);
     
     parse(parser,dist_1,dist_2,varargin{:});
+    method=parser.Results.method;
     dom=parser.Results.dom;
     dom_type=parser.Results.dom_type;
     vals=parser.Results.vals;
@@ -197,13 +198,16 @@ function results=classify_normals(dist_1,dist_2,varargin)
             if strcmpi(dom_type,'quad') % custom quad coefficients
                 % flip boundary sign for 2nd normal
                 %norm_dom_2=structfun(@uminus,dom,'un',0);
-                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
-                if plotmode, hold on, end
-                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+%                 if strcmpi(method,'ray'), plotmode_quad=2*plotmode; else, plotmode_quad=plotmode; end
+                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plotmode',plotmode,'plot_color',colors(1,:),varargin{:});
+                if plotmode, hold on, plot_boundary(norm_bd_pts_1,dim,'dom_type','bd_pts'), end
+                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plotmode',plotmode,'plot_color',colors(2,:),varargin{:});
+                if plotmode, hold on, plot_boundary(norm_bd_pts_2,dim,'dom_type','bd_pts'), end
             elseif strcmpi(dom_type,'fun') % region defined by a function
-                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
-                if plotmode && dim<=3, hold on, end
-                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plotmode',plotmode,'plot_color',colors(1,:),varargin{:});
+                if plotmode && dim<=3, hold on, plot_boundary(norm_bd_pts_1,dim,'dom_type','bd_pts'), end
+                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plotmode',plotmode,'plot_color',colors(2,:),varargin{:});
+                if plotmode && dim<=3, hold on, plot_boundary(norm_bd_pts_2,dim,'dom_type','bd_pts'), end
             end
             % plot boundary
             if plotmode, hold on, plot_boundary(dom,dim,'dom_type',dom_type), end
@@ -356,10 +360,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
                 plot_sample(dv_2,priors(2),colors(2,:))
             end
             if ~exist('samp_opt_err','var') % if custom boundary
-                title(sprintf("$p_e = %g / %g$",[norm_err,samp_err])) % plot title
+                title(sprintf("$p_e = %g / %g$",[norm_err,samp_err]),'interpreter','latex') % plot title
                 % don't plot sample boundary
             else
-                title(sprintf("$p_e = %g / %g / %g$",[norm_err,samp_err,samp_opt_err])) % plot title
+                title(sprintf("$p_e = %g / %g / %g$",[norm_err,samp_err,samp_opt_err]),'interpreter','latex') % plot title
                 if dim <=3
                     plot_boundary(samp_dom_1,dim,'dom_type','quad','plot_type','line','line_color',[0 .7 0]);
                 end

@@ -119,7 +119,7 @@ function results=classify_normals_multi(dists,varargin)
 	for i=1:n_dists % integrate each normal
 		for j=1:n_dists % within the boundary of each normal
 			[p,pc,bd_pts]=integrate_normal(normals(i).mu,normals(i).v,...
-				doms{j},'dom_type','ray_scan',varargin{:},'plotmode',false,varargin{:});
+				doms{j},'dom_type','ray_scan',varargin{:},'plotmode',false);
 			fprintf('Integrating normal %d in domain %d\n',[i j])
 			norm_errmat(i,j)=p*priors(i);
 			if j==i
@@ -163,9 +163,9 @@ function results=classify_normals_multi(dists,varargin)
 		colors=colororder;
 		% plot title
 		if strcmpi(parser.Results.input_type,'norm')
-			title(sprintf("error = %g",norm_err),'interpreter','latex')
+			title(sprintf("$p_e = %g$",norm_err),'interpreter','latex')
 		elseif strcmpi(parser.Results.input_type,'samp')
-			title(sprintf("error = %g / %g",[norm_err,samp_err]))
+			title(sprintf("$p_e = %g / %g$",[norm_err,samp_err]),'interpreter','latex')
 		end
 		
 		% plot samples

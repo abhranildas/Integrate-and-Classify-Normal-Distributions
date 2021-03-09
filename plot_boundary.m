@@ -73,10 +73,14 @@ function plot_boundary(dom,dim,varargin)
                     xline(x,'color',line_color,'linewidth',1);
                 end
             elseif dim==2
-                plot(bd_pts(1,:),bd_pts(2,:),'.','color',line_color,'markersize',3)
+                if ~isempty(bd_pts)
+                    plot(bd_pts(1,:),bd_pts(2,:),'.','color',line_color,'markersize',3)
+                end
             elseif dim==3
                 grid on
-                plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.','color',line_color,'markersize',3);
+                if ~isempty(bd_pts)
+                    plot3(bd_pts(1,:),bd_pts(2,:),bd_pts(3,:),'.','color',line_color,'markersize',3);
+                end
             end
             
         end
