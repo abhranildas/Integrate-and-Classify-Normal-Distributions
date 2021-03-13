@@ -1,4 +1,4 @@
-# Integrate and classify normal distributions [![View Integrate and Classify Normal Distributions on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/82410-integrate-and-classify-normal-distributions)
+# Integrate and classify normal distributions [![View Integrate and Classify Normal Distributions on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/84973-integrate-and-classify-normal-distributions)
 Matlab toolbox to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
 
 #### Author
