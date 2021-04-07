@@ -29,7 +29,7 @@ if ~nnz(quad.q2) % if q2 is zero, linear discriminant
     pc=normcdf(-quad_s.q0/norm(quad_s.q1));
 else    
     % get generalized chi-squared parameters
-    [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,quad);
-    pc=gx2cdf(0,lambda,m,delta,sigma,c,varargin{:});
-    p=gx2cdf(0,lambda,m,delta,sigma,c,'upper',varargin{:});
+    [w,k,lambda,m,s]=gx2_params_norm_quad(mu,v,quad);
+    pc=gx2cdf(0,w,k,lambda,m,s,varargin{:});
+    p=gx2cdf(0,w,k,lambda,m,s,'upper',varargin{:});
 end

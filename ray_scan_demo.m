@@ -41,7 +41,7 @@ dom_rays = @(nu_, mu_, P_) interval_collision_detect_ray_scan_normalized(nu_, mu
 s = interval_collision_detect(mu_p, mu_v, T, Q, q, q0);
 fprintf('Domain value at mean: %0.3f -- positive if mean state is currently "safe" but headed for collision by time T.\n', s);
 P
-F0 = integrate_normal(mu, P, dom, 'dom_type', 'fun', 'plotmode', 0);
+F0 = integrate_normal(mu, P, dom, 'dom_type', 'fun', 'mc_samples',1e4,'plotmode', 0);
 F1 = integrate_normal(mu, P, dom_rays, 'dom_type', 'ray_scan', 'plotmode', 0);
 fprintf('Probability of \"new\" collision: exact ray scan %0.3f vs numerically-sampled %0.3f.\n', F0, F1);
 

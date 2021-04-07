@@ -28,9 +28,10 @@ function x=norm_fun_inv(p,mu,v,fun,varargin)
 	%               Default=5.
 	% fun_resol     resolution of scanning (finding roots) of function.
 	%               Default=100.
-	% AbsTol        absolute tolerance for the output
-	% RelTol        relative tolerance for the output
+	% AbsTol        absolute tolerance for computing the cdf to be inverted
+	% RelTol        relative tolerance for computing the cdf to be inverted
 	%               The absolute OR the relative tolerance will be satisfied.
+    % InvTol        tolerance for inverting the cdf
 	%
 	% Outputs:
 	% x             inverse cdf
@@ -47,13 +48,15 @@ function x=norm_fun_inv(p,mu,v,fun,varargin)
 	addRequired(parser,'mu',@isnumeric);
 	addRequired(parser,'v',@isnumeric);
 	addRequired(parser,'fun',@(x) isstruct(x)|| isa(x,'function_handle'));
-	
+	addParameter(parser,'tol',eps,@isnumeric)
 	parse(parser,p,mu,v,fun,varargin{:});
-	
+	InvTol=parser.Results.tol;
+    
 	if isa(fun,'function_handle')
-		x=arrayfun(@(p) fzero(@(x) norm_fun_cdf(x,mu,v,fun,varargin{:})-p,0),p);
+        options=optimset('TolX',InvTol);
+		x=arrayfun(@(p) fzero(@(x) norm_fun_cdf(x,mu,v,fun,varargin{:})-p,0,options),p);
 	elseif isstruct(fun)
-		[lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,fun);
-		x=gx2inv(p,lambda,m,delta,sigma,c,varargin{:});
+		[w,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,fun);
+		x=gx2inv(p,w,m,delta,sigma,c,varargin{:});
 	end
 end

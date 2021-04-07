@@ -52,7 +52,14 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % RelTol        relative tolerance for the error rate computations.
     %               The absolute OR the relative tolerance will be satisfied.
     % n_samp_bd_pts number of sample boundary points to be computed
-    % plotmode      true (default) for plot, or false
+    % plotmode      'norm_prob' (default): normal probability picture, i.e.
+    %               plot of the normals and their classification domains,
+    %               'fun_prob': function probability picture, i.e. plot of
+    %               the 1d pdfs of the scalar function of the normals that
+    %               defines the domain. For >3 dimensions, only fun_prob is
+    %               possible. For ray-scan domains, only norm_prob is
+    %               possible.
+    %               false or 0, for no plot.
     %
     % Output: struct containing
     % norm_bd       struct of coefficients of the optimal quadratic boundary
@@ -63,17 +70,17 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
     %               normal i as j.
     % norm_err      overall error rate
-    % norm_dprime_o     discriminability d' between the distributions,
-    %                   based on their overlap. Equal to the separation
-    %                   between two unit-variance normals that have the
-    %                   same overlap. Returned only when priors are equal,
-    %                   values are default, and domain is optimal.
-    % norm_dprime_a     Simpson and Fitter's d'. Mahalanobis distance
-    %                   between the normals, that averages the two
-    %                   variance-covariance matrices.
-    % norm_dprime_e     Egan and Clarke's d'. Mahalanobis distance between
-    %                   the normals, that averages the two square roots of
-    %                   the variance-covariance matrices (i.e. the sd's).
+    % norm_d_o      optimal discriminability index between the
+    %               distributions. Equal to the separation between two
+    %               unit-variance normals that have the same overlap.
+    %               Returned only when priors are equal, values are
+    %               default, and the classifier is optimal.
+    % norm_d_a      Simpson and Fitter's discriminability index. Mahalanobis
+    %               distance between the normals, that averages the two
+    %               covariance matrices.
+    % norm_d_e      Egan and Clarke's discriminability index. Mahalanobis
+    %               distance between the normals, that averages the two
+    %               square roots of the covariance matrices (i.e. the sd's).
     % norm_valmat   matrix of expected classification outcome values. v(i,j)=
     %               expected value of classifying sample from i as j. Returned
     %               only when custom values are supplied.
@@ -82,9 +89,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % samp_errmat   error matrix of supplied samples classified using norm_bd.
     %               e(i,j)= no. of i samples classified as j.
     % samp_err      overall error rate of classifying the samples.
-    % samp_dprime   d' based on samp_err. Returned
-    %               only when sample sizes are equal, values are default, and
-    %               domain is optimal.
+    % samp_d_o      overlap-based discriminability, using samp_err.
+    %               Returned only when sample sizes are equal, values are
+    %               default, and the classifier is optimal.
     % samp_dv       scalar decision variables that the supplied samples are
     %               mapped to using norm_bd
     % samp_valmat   matrix of total sample classification outcome values using
@@ -99,9 +106,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %                   samp_opt_bd.
     % samp_opt_err  overall error rate of classifying the samples using
     %               samp_opt_bd
-    % samp_opt_dprime   d' based on samp_opt_err. Returned only when sample
-    %                   sizes are equal, values are default, and domain is
-    %                   optimal.
+    % samp_opt_d_o  discriminability based on samp_opt_err. Returned only
+    %               when sample sizes are equal, values are default, and
+    %               the classifier is optimal.
     % samp_opt_dv   scalar decision variables that the supplied samples are
     %               mapped to using samp_opt_bd
     % samp_opt_valmat   matrix of total sample classification outcome values
@@ -131,12 +138,12 @@ function results=classify_normals(dist_1,dist_2,varargin)
     addParameter(parser,'input_type','norm', @(s) strcmpi(s,'norm') || strcmpi(s,'samp'));
     addParameter(parser,'samp_opt',true, @islogical);
     addParameter(parser,'n_samp_bd_pts',1e4);
-    addParameter(parser,'plotmode',true,@islogical);
+    addParameter(parser,'plotmode','norm_prob',@(s) strcmpi(s,'norm_prob') || strcmpi(s,'fun_prob') || s==false);
     
     parse(parser,dist_1,dist_2,varargin{:});
-    method=parser.Results.method;
     dom=parser.Results.dom;
     dom_type=parser.Results.dom_type;
+    method=parser.Results.method;
     vals=parser.Results.vals;
     n_samp_bd_pts=parser.Results.n_samp_bd_pts;
     plotmode=parser.Results.plotmode;
@@ -172,7 +179,18 @@ function results=classify_normals(dist_1,dist_2,varargin)
     dim=length(mu_1); % dimension
     
     colors=colororder;
-    if plotmode, figure, hold on, end
+    if strcmpi('dom_type','ray_scan') && dim>3
+        plotmode=false;
+    end
+    if ~isequal(plotmode,false)
+        figure; hold on
+        if dim>3
+            plotmode='fun_prob';
+        elseif strcmpi('dom_type','ray_scan')
+            plotmode='norm_prob';
+        end
+    end
+    
     
     %% normal inputs
     
@@ -190,27 +208,29 @@ function results=classify_normals(dist_1,dist_2,varargin)
         end
         
         if strcmpi(dom_type,'ray_scan') % ray-scanned region functions
-            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plotmode',plotmode*2,'plot_color',colors(1,:),varargin{:});
-            if plotmode && dim<=3, hold on, end
+            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
             dom_inv=@(n,orig) invert_ray_scan_dom(dom,n,'orig',orig);
-            [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom_inv,'prior',priors(2),'plotmode',plotmode*2,'plot_color',colors(2,:),varargin{:});
+            [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom_inv,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
         else
-            if strcmpi(dom_type,'quad') % custom quad coefficients
-                % flip boundary sign for 2nd normal
-                %norm_dom_2=structfun(@uminus,dom,'un',0);
-%                 if strcmpi(method,'ray'), plotmode_quad=2*plotmode; else, plotmode_quad=plotmode; end
-                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plotmode',plotmode,'plot_color',colors(1,:),varargin{:});
-                if plotmode, hold on, plot_boundary(norm_bd_pts_1,dim,'dom_type','bd_pts'), end
-                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plotmode',plotmode,'plot_color',colors(2,:),varargin{:});
-                if plotmode, hold on, plot_boundary(norm_bd_pts_2,dim,'dom_type','bd_pts'), end
-            elseif strcmpi(dom_type,'fun') % region defined by a function
-                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plotmode',plotmode,'plot_color',colors(1,:),varargin{:});
-                if plotmode && dim<=3, hold on, plot_boundary(norm_bd_pts_1,dim,'dom_type','bd_pts'), end
-                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plotmode',plotmode,'plot_color',colors(2,:),varargin{:});
-                if plotmode && dim<=3, hold on, plot_boundary(norm_bd_pts_2,dim,'dom_type','bd_pts'), end
+            if strcmpi(dom_type,'quad') % quadratic domain
+                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+            elseif strcmpi(dom_type,'fun') % function domain
+                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                if strcmpi(plotmode,'norm_prob'), hold on, plot_boundary(norm_bd_pts_1,dim,'dom_type','bd_pts'), end
+                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+                if strcmpi(plotmode,'norm_prob'), hold on, plot_boundary(norm_bd_pts_2,dim,'dom_type','bd_pts'), end
             end
             % plot boundary
-            if plotmode, hold on, plot_boundary(dom,dim,'dom_type',dom_type), end
+            if strcmpi(plotmode,'norm_prob')
+                plot_boundary(dom,dim,'dom_type',dom_type);
+                if strcmpi(method,'gx2')
+                    plot_boundary(dom,dim,'dom_type',dom_type,'plot_type','line');
+                end
+            elseif strcmpi(plotmode,'fun_prob')
+                plot_boundary(@(x) x,1,'dom_type','fun','plot_type','fill');
+                plot_boundary(@(x) x,1,'dom_type','fun','plot_type','line');
+            end
         end
         norm_bd_pts=uniquetol([norm_bd_pts_1,norm_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
     end
@@ -226,21 +246,21 @@ function results=classify_normals(dist_1,dist_2,varargin)
     
     % d'
     if optimal_case
-        norm_dprime_o=-2*norminv(norm_err);
-        results.norm_dprime_o=norm_dprime_o;
+        norm_d_o=-2*norminv(norm_err);
+        results.norm_d_o=norm_d_o;
     end
     
     % Other indices of d'
     if optimal_case
         % d'_a
-        v_rms=(v_1+v_2)/2;
-        results.norm_dprime_a=sqrt((mu_1-mu_2)'/(v_rms)*(mu_1-mu_2));
+        s_rms=sqrtm((v_1+v_2)/2);
+        results.norm_d_a=norm(s_rms\(mu_1-mu_2));
         % d'_e
-        v_avg=((sqrtm(v_1)+sqrtm(v_2))/2)^2;
-        results.norm_dprime_e=sqrt((mu_1-mu_2)'/(v_avg)*(mu_1-mu_2));
+        s_avg=(sqrtm(v_1)+sqrtm(v_2))/2;
+        results.norm_d_e=norm(s_avg\(mu_1-mu_2));
         % if d'_o is too large to compute, supply d'_e instead.
-        if isinf(norm_dprime_o)
-            results.norm_dprime_o=results.norm_dprime_e;
+        if isinf(norm_d_o)
+            results.norm_d_o=results.norm_d_e;
         end
     end
     
@@ -259,7 +279,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         results.samp_errmat=samp_countmat;
         results.samp_err=samp_err;
         if optimal_case
-            results.samp_dprime=-2*norminv(samp_err); % samp error can be used to compute samp d'
+            results.samp_d_o=-2*norminv(samp_err); % samp error can be used to compute samp d'
         elseif ~isequal(vals,eye(2)) % if outcome values are supplied
             [samp_val,samp_valmat]=samp_value(dist_1,dist_2,dom,varargin{:});
             results.samp_valmat=samp_valmat;
@@ -324,7 +344,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
             results.samp_opt_err=samp_opt_err;
             
             if optimal_case
-                results.samp_opt_dprime=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
+                results.samp_opt_d_o=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
             elseif ~isequal(vals,eye(2)) % if outcome values are supplied
                 [samp_opt_val,samp_opt_valmat]=samp_value(dist_1,dist_2,samp_dom_1,'vals',vals);
                 results.samp_opt_valmat=samp_opt_valmat;
@@ -336,10 +356,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
     end
     
     %% Plot samples
-    if plotmode
-        hold on
-        
-        if dim>3
+    if ~isequal(plotmode,false)
+        if strcmpi(plotmode,'fun_prob')
             if isequal(vals,eye(2))
                 xlabel('Bayes decision variable: $\ln \frac{p(N_1 | x)}{p(N_2 | x)}$','interpreter','latex','fontsize',15)
             else
@@ -351,10 +369,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
             title(sprintf("$p_e = %g$",norm_err),'interpreter','latex') % plot title
         elseif strcmpi(parser.Results.input_type,'samp')
             
-            if dim <=3
+            if strcmpi(plotmode,'norm_prob')
                 plot_sample(dist_1,priors(1),colors(1,:));
                 plot_sample(dist_2,priors(2),colors(2,:));
-            elseif dim>3
+            elseif strcmpi(plotmode,'fun_prob')
                 % plot sample log posterior ratios
                 plot_sample(dv_1,priors(1),colors(1,:))
                 plot_sample(dv_2,priors(2),colors(2,:))
@@ -364,13 +382,13 @@ function results=classify_normals(dist_1,dist_2,varargin)
                 % don't plot sample boundary
             else
                 title(sprintf("$p_e = %g / %g / %g$",[norm_err,samp_err,samp_opt_err]),'interpreter','latex') % plot title
-                if dim <=3
+                if strcmpi(plotmode,'norm_prob')
                     plot_boundary(samp_dom_1,dim,'dom_type','quad','plot_type','line','line_color',[0 .7 0]);
                 end
             end
             % boundary legends
             legend_marker=line(nan, nan,'color','none','linestyle','none');
-            if parser.Results.samp_opt && dim <=3
+            if parser.Results.samp_opt && strcmpi(plotmode,'norm_prob')
                 legend(legend_marker,'\color[rgb]{0,.7,0}sample-optimized boundary')
                 legend box off
             end

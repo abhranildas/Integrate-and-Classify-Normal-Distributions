@@ -58,7 +58,7 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
 		p_right=norm_fun_cdf(x+dx,mu,v,fun,varargin{:});
 		f=max((p_right-p_left)/(2*dx),0);
 	elseif isstruct(fun)
-		[lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,fun);
-		f=gx2pdf(x,lambda,m,delta,sigma,c,varargin{:});
+		[w,k,lambda,m,s]=gx2_params_norm_quad(mu,v,fun);
+		f=gx2pdf(x,w,k,lambda,m,s,varargin{:});
 	end	
 end

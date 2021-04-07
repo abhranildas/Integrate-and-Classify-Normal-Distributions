@@ -58,13 +58,13 @@ function p=norm_fun_cdf(x,mu,v,fun,varargin)
 	side=parser.Results.side;
 	
 	if isa(fun,'function_handle')
-		[pc,p]=arrayfun(@(fun_level) integrate_normal(mu,v,fun,'dom_type','fun','fun_level',fun_level,'plotmode',false,varargin{:}), x);
+		[pc,p]=arrayfun(@(fun_level) integrate_normal(mu,v,fun,'dom_type','fun','fun_level',fun_level,varargin{:},'plotmode',false), x);
 		
 		if strcmpi(side,'upper')
 			p=pc;
 		end
 	elseif isstruct(fun)
-		[lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,fun);
-		p=gx2cdf(x,lambda,m,delta,sigma,c,varargin{:});
+		[w,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,fun);
+		p=gx2cdf(x,w,m,delta,sigma,c,varargin{:});
 	end
 end

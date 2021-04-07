@@ -38,9 +38,17 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     % AbsTol        absolute tolerance for the integral
     % RelTol        relative tolerance for the integral
     %               The absolute OR the relative tolerance will be satisfied.
-    % plotmode      0 for no plot, 1 for plotting the normal, 2 (default)
-    %               for plotting the normal and the domain boundary.
-    % plot_color    color of the plotted normal
+    % plotmode      'norm_prob' (default): normal probability picture, i.e.
+    %               plot of the normal and the domain,
+    %               'fun_prob': function probability picture, i.e. plot of
+    %               the 1d pdf of the scalar function of the normal that
+    %               defines the domain. For >3 dimensions, only fun_prob is
+    %               possible. For ray-scan domains, only norm_prob is
+    %               possible.
+    %               false or 0, for no plot.
+    % plot_color    2-row array of plot colors of the normal and the
+    %               domain respectively. Single row to skip coloring the
+    %               domain.
     %
     % Outputs:
     % p             integrated probability
@@ -67,9 +75,9 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     addParameter(parser,'prior',1,@isnumeric);
     addParameter(parser,'AbsTol',1e-10);
     addParameter(parser,'RelTol',1e-2);
-    addParameter(parser,'plotmode',2);
+    addParameter(parser,'plotmode','norm_prob');
     colors=colororder;
-    addParameter(parser,'plot_color',colors(1,:));
+    addParameter(parser,'plot_color',[colors(1,:);colors(1,:)]);
     
     parse(parser,mu,v,dom,varargin{:});
     dom_type=parser.Results.dom_type;
@@ -92,43 +100,36 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
         bd_pts=[];
     end
     
-    % plot
-    if plotmode
-        if dim<=3
-            plot_normal(mu,v,prior,plot_color)
+    % plotting
+    if strcmpi('dom_type','ray_scan') && dim>3
+        plotmode=false;
+    end
+    if ~isequal(plotmode,false)
+        holdon=ishold;
+        if dim>3
+            plotmode='fun_prob';
+        elseif strcmpi('dom_type','ray_scan')
+            plotmode='norm_prob';
+        end
+        if strcmpi(plotmode,'norm_prob')
+            plot_normal(mu,v,prior,plot_color(1,:))
             hold on
-            if plotmode==2
-                if strcmpi(method,'ray')
-                    plot_boundary(bd_pts,dim,'dom_type','bd_pts');
-                end                
-                plot_boundary(dom,dim,'mu',mu,'v',v,'fill_colors',plot_color,varargin{:});
+            if strcmpi(method,'ray')
+                plot_boundary(bd_pts,dim,'dom_type','bd_pts');
             end
-        else
-            if strcmpi(dom_type,'quad')
-                % plot distribution of q(x)
-                if nnz(dom.q2) % if the quadratic term exists
-                    % q(x) ~ generalized chi-squared
-                    [lambda,m,delta,sigma,c]=gx2_params_norm_quad(mu,v,dom);
-                    [mu_q,v_q]=gx2stat(lambda,m,delta,sigma,c); % mean and variance of q(x)
-                    x=linspace(mu_q-5*sqrt(v_q),mu_q+5*sqrt(v_q),1e3);
-                    y=prior*arrayfun(@(x) gx2pdf(x,lambda,m,delta,sigma,c),x);
-                    area(x,y,'facecolor',plot_color,'facealpha',0.4,'edgecolor',plot_color,'edgealpha',0.5,'linewidth',1)
-                else % q(x) ~ normal
-                    mu_q=dom.q1'*mu+dom.q0;
-                    v_q=dom.q1'*v*dom.q1;
-                    plot_normal(mu_q,v_q,prior,plot_color);
-                end
+            if size(plot_color,1)==2
+                plot_boundary(dom,dim,'mu',mu,'v',v,'fill_colors',plot_color(2,:),varargin{:});
+            end
+        elseif strcmpi(plotmode,'fun_prob')
+            plot_norm_fun(mu,v,dom,prior,plot_color(1,:),varargin{:})
+            if size(plot_color,1)==2
                 hold on
-                % plot boundary
-                if plotmode==2
-                    plot_boundary(dom,dim,'fill_colors',plot_color);
-                end
-                xlabel('$q(${\boldmath$x$}$)$','interpreter','latex');
+                plot_boundary(@(x) x,1,'dom_type','fun','plot_type','fill','fill_colors',plot_color(2,:));
+                plot_boundary(@(x) x,1,'dom_type','fun','plot_type','line');
             end
         end
-        hold off;
         title(sprintf('$p=%g, \\, \\overline{p}=%g$',[p,pc]),'interpreter','latex')
+        if ~holdon
+            hold off
+        end
     end
-    
-end
-
