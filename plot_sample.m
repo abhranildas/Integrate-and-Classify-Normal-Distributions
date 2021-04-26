@@ -11,7 +11,7 @@ elseif dim==2
     % plot sample points
     h=plot(dist(:,1),dist(:,2),'.','markersize',4,'color',hsv2rgb(rgb2hsv(color)-[0 .5 0]));
     uistack(h,'bottom')
-    uistack(h,'up',3)
+    uistack(h,'up',1)
 elseif dim==3
     % plot sample points
     plot3(dist(:,1),dist(:,2),dist(:,3),'.','color',color,'markersize',4);

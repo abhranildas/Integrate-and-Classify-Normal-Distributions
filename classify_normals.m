@@ -70,7 +70,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
     %               normal i as j.
     % norm_err      overall error rate
-    % norm_d_o      optimal discriminability index between the
+    % norm_d_b      Bayes-optimal discriminability index between the
     %               distributions. Equal to the separation between two
     %               unit-variance normals that have the same overlap.
     %               Returned only when priors are equal, values are
@@ -89,7 +89,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % samp_errmat   error matrix of supplied samples classified using norm_bd.
     %               e(i,j)= no. of i samples classified as j.
     % samp_err      overall error rate of classifying the samples.
-    % samp_d_o      overlap-based discriminability, using samp_err.
+    % samp_d_b      Bayes-optimal discriminability using samp_err.
     %               Returned only when sample sizes are equal, values are
     %               default, and the classifier is optimal.
     % samp_dv       scalar decision variables that the supplied samples are
@@ -106,9 +106,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %                   samp_opt_bd.
     % samp_opt_err  overall error rate of classifying the samples using
     %               samp_opt_bd
-    % samp_opt_d_o  discriminability based on samp_opt_err. Returned only
-    %               when sample sizes are equal, values are default, and
-    %               the classifier is optimal.
+    % samp_opt_d_b  Bayes-optimal discriminability based on samp_opt_err.
+    %               Returned only when sample sizes are equal, values are 
+    %               default, and the classifier is optimal.
     % samp_opt_dv   scalar decision variables that the supplied samples are
     %               mapped to using samp_opt_bd
     % samp_opt_valmat   matrix of total sample classification outcome values
@@ -246,8 +246,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
     
     % d'
     if optimal_case
-        norm_d_o=-2*norminv(norm_err);
-        results.norm_d_o=norm_d_o;
+        norm_d_b=-2*norminv(norm_err);
+        results.norm_d_b=norm_d_b;
     end
     
     % Other indices of d'
@@ -258,9 +258,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
         % d'_e
         s_avg=(sqrtm(v_1)+sqrtm(v_2))/2;
         results.norm_d_e=norm(s_avg\(mu_1-mu_2));
-        % if d'_o is too large to compute, supply d'_e instead.
-        if isinf(norm_d_o)
-            results.norm_d_o=results.norm_d_e;
+        % if d'_b is too large to compute in 1d, supply d'_e instead.
+        if dim==1 && isinf(norm_d_b)
+            results.norm_d_b=results.norm_d_e;
         end
     end
     
@@ -279,7 +279,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         results.samp_errmat=samp_countmat;
         results.samp_err=samp_err;
         if optimal_case
-            results.samp_d_o=-2*norminv(samp_err); % samp error can be used to compute samp d'
+            results.samp_d_b=-2*norminv(samp_err); % samp error can be used to compute samp d'
         elseif ~isequal(vals,eye(2)) % if outcome values are supplied
             [samp_val,samp_valmat]=samp_value(dist_1,dist_2,dom,varargin{:});
             results.samp_valmat=samp_valmat;
@@ -344,7 +344,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
             results.samp_opt_err=samp_opt_err;
             
             if optimal_case
-                results.samp_opt_d_o=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
+                results.samp_opt_d_b=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
             elseif ~isequal(vals,eye(2)) % if outcome values are supplied
                 [samp_opt_val,samp_opt_valmat]=samp_value(dist_1,dist_2,samp_dom_1,'vals',vals);
                 results.samp_opt_valmat=samp_opt_valmat;
