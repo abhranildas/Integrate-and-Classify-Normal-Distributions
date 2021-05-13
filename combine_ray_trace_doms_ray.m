@@ -1,4 +1,4 @@
-function [merged_init_sign_ray,merged_x_ray]=combine_ray_scan_doms_ray(all_init_sign_ray,all_x_ray,op)
+function [merged_init_sign_ray,merged_x_ray]=combine_ray_trace_doms_ray(all_init_sign_ray,all_x_ray,op)
 n_regs=length(all_init_sign_ray);
 
 % merged initial sign

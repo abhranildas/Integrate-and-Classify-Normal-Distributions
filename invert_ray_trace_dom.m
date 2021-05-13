@@ -1,4 +1,4 @@
-function [init_sign,x,samp_correct]=invert_ray_scan_dom(dom,n,varargin)
+function [init_sign,x,samp_correct]=invert_ray_trace_dom(dom,n,varargin)
 % Return distances and signs of the optimal boundary between normal 1 and
 % several others (standardized wrt normal 1, or optional normal_wrt), in the direction
 % of vector(s) n.

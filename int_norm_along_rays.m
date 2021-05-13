@@ -19,11 +19,11 @@ side=parser.Results.side;
 
 dim=length(mu);
 
-% ray-scan the domain
-dom_standard_rayscan=@(n) standard_ray_scan(dom,n,'mu',mu,'v',v,varargin{:});
+% ray-trace the domain
+dom_standard_raytrace=@(n) standard_ray_trace(dom,n,'mu',mu,'v',v,varargin{:});
 
     % initial signs and boundary distances in standardized space
-[init_sign,z]=dom_standard_rayscan(n_z);
+[init_sign,z]=dom_standard_raytrace(n_z);
 
 % standard boundary points
 std_bd_pts_ray=cellfun(@(z_ray,n_ray) z_ray.*n_ray, z,num2cell(n_z,1),'un',0);

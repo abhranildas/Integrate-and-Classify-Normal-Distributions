@@ -1,4 +1,4 @@
-function [merged_init_sign,merged_x,merged_samp_correct]=combine_ray_scan_doms(domlist,op,n,varargin)
+function [merged_init_sign,merged_x,merged_samp_correct]=combine_ray_trace_doms(domlist,op,n,varargin)
 % Return distances and signs of the optimal boundary between normal 1 and
 % several others (standardized wrt normal 1, or optional normal_wrt), in the direction
 % of vector(s) n.
@@ -51,6 +51,6 @@ else
         all_init_sign(i,:)=init_sign;
     end
     
-    [merged_init_sign,merged_x]=cellfun(@(all_init_sign_ray,all_x_ray) combine_ray_scan_doms_ray(all_init_sign_ray,all_x_ray,op),num2cell(all_init_sign,1),all_x,'un',0);
+    [merged_init_sign,merged_x]=cellfun(@(all_init_sign_ray,all_x_ray) combine_ray_trace_doms_ray(all_init_sign_ray,all_x_ray,op),num2cell(all_init_sign,1),all_x,'un',0);
     merged_init_sign=cell2mat(merged_init_sign);
 end

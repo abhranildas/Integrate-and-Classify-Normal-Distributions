@@ -19,18 +19,18 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               • struct containing coefficients a2 (matrix), a1 (column
     %                 vector) and a0 (scalar) of a quadratic domain:
     %                 x'*a2*x + a1'*x + a0 > 0
-    %               • handle to a ray-scan function, returning the starting sign
+    %               • handle to a ray-trace function, returning the starting sign
     %                 and roots of the domain along any ray
     %               • handle to an implicit function f(x) defining the domain f(x)>0.
     %
     % Optional name-value inputs:
-    % dom_type      'quad' (default), 'ray_scan' or 'fun' for the above three
+    % dom_type      'quad' (default), 'ray_trace' or 'fun' for the above three
     %               types resp.
-    % method        Integration method. 'ray' (default) for ray-scan, or 'gx2'
+    % method        Integration method. 'ray' (default) for ray-trace, or 'gx2'
     %               for generalized chi-square (quad domains only).
-    % fun_span      scan radius (in Mahalanobis distance) for implicit function
+    % fun_span      trace radius (in Mahalanobis distance) for implicit function
     %               domains. Default=5.
-    % fun_resol     resolution of scanning (finding roots) of implicit domain.
+    % fun_resol     resolution of tracing (finding roots) of implicit domain.
     %               Default=100.
     % fun_level     level c for defining domain as f(x)>c. Default=0.
     % prior         prior probability. Only used for scaling plots.
@@ -43,7 +43,7 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               'fun_prob': function probability picture, i.e. plot of
     %               the 1d pdf of the scalar function of the normal that
     %               defines the domain. For >3 dimensions, only fun_prob is
-    %               possible. For ray-scan domains, only norm_prob is
+    %               possible. For ray-trace domains, only norm_prob is
     %               possible.
     %               false or 0, for no plot.
     % plot_color    2-row array of plot colors of the normal and the
@@ -54,7 +54,7 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     % p             integrated probability
     % pc            complement of the probability (more accurate when it is
     %               small)
-    % bd_pts        points on the domain boundary computed by the ray-scan
+    % bd_pts        points on the domain boundary computed by the ray-trace
     %               integration method.
     %
     % See also:
@@ -101,14 +101,14 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     end
     
     % plotting
-    if strcmpi('dom_type','ray_scan') && dim>3
+    if strcmpi('dom_type','ray_trace') && dim>3
         plotmode=false;
     end
     if ~isequal(plotmode,false)
         holdon=ishold;
         if dim>3
             plotmode='fun_prob';
-        elseif strcmpi('dom_type','ray_scan')
+        elseif strcmpi('dom_type','ray_trace')
             plotmode='norm_prob';
         end
         if strcmpi(plotmode,'norm_prob')

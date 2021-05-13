@@ -58,9 +58,9 @@ function plot_boundary(dom,dim,varargin)
                 fimplicit3(f,'facecolor',line_color,'facealpha',0.1,'edgecolor','none','meshdensity',20)
             end
             
-        elseif strcmpi(dom_type,'ray_scan') || strcmpi(dom_type,'bd_pts')
+        elseif strcmpi(dom_type,'ray_trace') || strcmpi(dom_type,'bd_pts')
             
-            if strcmpi(dom_type,'ray_scan')
+            if strcmpi(dom_type,'ray_trace')
                 global bd_pts
                 bd_pts=[];
                 [~,bd_pts]=int_norm_along_angles(mu,v,dom,varargin{:});

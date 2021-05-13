@@ -25,9 +25,9 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
 	%
 	% Optional name-value inputs:
 	% dx            step-size for numerically differentiating cdf
-	% fun_span      scan radius (in Mahalanobis distance) for function.
+	% fun_span      trace radius (in Mahalanobis distance) for function.
 	%               Default=5.
-	% fun_resol     resolution of scanning (finding roots) of function.
+	% fun_resol     resolution of tracing (finding roots) of function.
 	%               Default=100.
 	% AbsTol        absolute tolerance for the output
 	% RelTol        relative tolerance for the output

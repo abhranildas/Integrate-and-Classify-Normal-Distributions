@@ -35,16 +35,16 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               • struct containing coefficients a2 (matrix), a1 (column
     %                 vector) and a0 (scalar) of a quadratic domain:
     %                 x'*a2*x + a1'*x + a0 > 0
-    %               • handle to a ray-scan function, returning the starting sign
+    %               • handle to a ray-trace function, returning the starting sign
     %                 and roots of the domain along any ray
     %               • handle to an implicit function f(x) defining the domain f(x)>0.
-    % dom_type      'quad' (default), 'ray_scan' or 'fun' for the above three
+    % dom_type      'quad' (default), 'ray_trace' or 'fun' for the above three
     %               types resp.
-    % fun_span      scan radius (in Mahalanobis distance) for implicit function
+    % fun_span      trace radius (in Mahalanobis distance) for implicit function
     %               domains. Default=5.
-    % fun_resol     resolution of scanning (finding roots) of implicit domain.
+    % fun_resol     resolution of tracing (finding roots) of implicit domain.
     %               Default=100.
-    % method        Integration method. 'ray' (default) for ray-scan, or 'gx2'
+    % method        Integration method. 'ray' (default) for ray-trace, or 'gx2'
     %               for generalized chi-square (quad domains only).
     % samp_opt      true (default) if boundary will be optimized for the
     %               sample, otherwise false.
@@ -57,7 +57,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               'fun_prob': function probability picture, i.e. plot of
     %               the 1d pdfs of the scalar function of the normals that
     %               defines the domain. For >3 dimensions, only fun_prob is
-    %               possible. For ray-scan domains, only norm_prob is
+    %               possible. For ray-trace domains, only norm_prob is
     %               possible.
     %               false or 0, for no plot.
     %
@@ -65,7 +65,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % norm_bd       struct of coefficients of the optimal quadratic boundary
     %               between the normals supplied, or fitted to the samples
     %               supplied.
-    % norm_bd_pts   points on the above boundary computed by the ray-scan
+    % norm_bd_pts   points on the above boundary computed by the ray-trace
     %               integration method.
     % norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
     %               normal i as j.
@@ -100,7 +100,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               Returned only when custom values are supplied.
     % samp_opt_bd   struct containing coefficients of the boundary optimized
     %               for the samples
-    % samp_opt_bd_pts   points on samp_opt_bd computed by the ray-scan
+    % samp_opt_bd_pts   points on samp_opt_bd computed by the ray-trace
     %                   integration method
     % samp_opt_errmat   error matrix (counts) of supplied samples using
     %                   samp_opt_bd.
@@ -179,14 +179,14 @@ function results=classify_normals(dist_1,dist_2,varargin)
     dim=length(mu_1); % dimension
     
     colors=colororder;
-    if strcmpi('dom_type','ray_scan') && dim>3
+    if strcmpi('dom_type','ray_trace') && dim>3
         plotmode=false;
     end
     if ~isequal(plotmode,false)
         figure; hold on
         if dim>3
             plotmode='fun_prob';
-        elseif strcmpi('dom_type','ray_scan')
+        elseif strcmpi('dom_type','ray_trace')
             plotmode='norm_prob';
         end
     end
@@ -207,9 +207,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
             results.norm_bd=dom;
         end
         
-        if strcmpi(dom_type,'ray_scan') % ray-scanned region functions
+        if strcmpi(dom_type,'ray_trace') % ray-traced region functions
             [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
-            dom_inv=@(n,orig) invert_ray_scan_dom(dom,n,'orig',orig);
+            dom_inv=@(n,orig) invert_ray_trace_dom(dom,n,'orig',orig);
             [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom_inv,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
         else
             if strcmpi(dom_type,'quad') % quadratic domain

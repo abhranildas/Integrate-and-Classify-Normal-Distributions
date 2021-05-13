@@ -22,7 +22,7 @@ function results=classify_normals_multi(dists,varargin)
 	%
 	% Optional name-value inputs:
 	% doms          custom (non-optimal) classification domains, as a cell
-	%               array, whose elements are ray-scan functions defining the
+	%               array, whose elements are ray-trace functions defining the
 	%               the classification domain of each normal
 	% priors        vector of priors of the normals. Default is equal priors.
 	% vals          matrix of outcome values. v(i,j) is the value of
@@ -38,7 +38,7 @@ function results=classify_normals_multi(dists,varargin)
 	%
 	% Output: struct containing
 	% norm_bd_pts   cell array containing points on the optimal boundaries
-	%               around each normal computed by the ray-scan integration
+	%               around each normal computed by the ray-trace integration
 	% norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
 	%               normal i as j.
 	% norm_err      overall error rate
@@ -119,7 +119,7 @@ function results=classify_normals_multi(dists,varargin)
 	for i=1:n_dists % integrate each normal
 		for j=1:n_dists % within the boundary of each normal
 			[p,pc,bd_pts]=integrate_normal(normals(i).mu,normals(i).v,...
-				doms{j},'dom_type','ray_scan',varargin{:},'plotmode',false);
+				doms{j},'dom_type','ray_trace',varargin{:},'plotmode',false);
 			fprintf('Integrating normal %d in domain %d\n',[i j])
 			norm_errmat(i,j)=p*priors(i);
 			if j==i
@@ -188,7 +188,7 @@ function results=classify_normals_multi(dists,varargin)
 			end
 			hold on
 			if dim<=3
-				plot_boundary(doms{i},dim,'mu',normals(i).mu,'dom_type','ray_scan')
+				plot_boundary(doms{i},dim,'mu',normals(i).mu,'dom_type','ray_trace')
 			end
 		end
 		hold off

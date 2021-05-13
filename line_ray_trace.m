@@ -1,5 +1,5 @@
-function [init_sign,x,samp_correct]=line_ray_scan(n,orig)
-    % An example domain in 2d, y>k with k=1, in ray-scan format.
+function [init_sign,x,samp_correct]=line_ray_trace(n,orig)
+    % An example domain in 2d, y>k with k=1, in ray-trace format.
     % Given a ray from a specified origin in a vector direction n, this 
     % function returns the initial sign (indicating if the beginning of the
     % ray, i.e. -∞, is inside the domain) and the crossing points. The
@@ -16,8 +16,8 @@ function [init_sign,x,samp_correct]=line_ray_scan(n,orig)
     %
     % Example:
     % n=[0 1 -1; 2 1 -1]; orig=[0;0];
-    % [init_sign,x]=line_ray_scan(n,orig)
-    % [~,~,samp_correct]=line_ray_scan(n,orig)
+    % [init_sign,x]=line_ray_trace(n,orig)
+    % [~,~,samp_correct]=line_ray_trace(n,orig)
     %
     % Inputs:
     % n             array of ray directions or sample points in each column

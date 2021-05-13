@@ -24,9 +24,9 @@ function x=norm_fun_inv(p,mu,v,fun,varargin)
 	%               • handle to a scalar-valued function
 	%
 	% Optional name-value inputs:
-	% fun_span      scan radius (in Mahalanobis distance) for function.
+	% fun_span      trace radius (in Mahalanobis distance) for function.
 	%               Default=5.
-	% fun_resol     resolution of scanning (finding roots) of function.
+	% fun_resol     resolution of tracing (finding roots) of function.
 	%               Default=100.
 	% AbsTol        absolute tolerance for computing the cdf to be inverted
 	% RelTol        relative tolerance for computing the cdf to be inverted

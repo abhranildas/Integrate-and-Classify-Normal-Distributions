@@ -27,9 +27,9 @@ function p=norm_fun_cdf(x,mu,v,fun,varargin)
 	% 'upper'       more accurate complementary cdf
 	%
 	% Optional name-value inputs:
-	% fun_span      scan radius (in Mahalanobis distance) for function.
+	% fun_span      trace radius (in Mahalanobis distance) for function.
 	%               Default=5.
-	% fun_resol     resolution of scanning (finding roots) of function.
+	% fun_resol     resolution of tracing (finding roots) of function.
 	%               Default=100.
 	% AbsTol        absolute tolerance for the output
 	% RelTol        relative tolerance for the output

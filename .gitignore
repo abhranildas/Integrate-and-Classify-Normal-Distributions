@@ -10,3 +10,6 @@ gx2_icon.png
 *.prj
 *.prj
 test.m
+*.mlx
+*.prj
+test.m

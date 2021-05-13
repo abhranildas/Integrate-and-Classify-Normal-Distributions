@@ -1,4 +1,4 @@
-function [init_sign,r]=ray_scan_fun(fun,xrange,resolution)
+function [init_sign,r]=ray_trace_fun(fun,xrange,resolution)
 
 if (nargin<3)
     resolution=1e2;

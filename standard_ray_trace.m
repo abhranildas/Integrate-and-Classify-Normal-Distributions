@@ -1,6 +1,6 @@
-function [init_sign,z,samp_correct]=standard_ray_scan(dom,n,varargin)
+function [init_sign,z,samp_correct]=standard_ray_trace(dom,n,varargin)
 
-% returns a domain in ray-scan format in the standardized space    
+% returns a domain in ray-trace format in the standardized space    
 % parse inputs
 dim=size(n,1);
 parser=inputParser;
@@ -32,9 +32,9 @@ function x_ray=roots_ray_quad(q2_pt,q1_pt)
     x_ray=x_ray(slope~=0);
 end
 
-if strcmpi(dom_type,'ray_scan')
+if strcmpi(dom_type,'ray_trace')
     n_x=sqrtm(v)*n; % transform rays to original space
-    [init_sign,x]=dom(n_x,mu); % scan in the original space from mu
+    [init_sign,x]=dom(n_x,mu); % trace in the original space from mu
     z=cellfun(@(a,b) a/b, x,num2cell(vecnorm(n_x)),'un',0); % scale back to standard space
 
 elseif strcmpi(dom_type,'quad')
@@ -67,7 +67,7 @@ elseif strcmpi(dom_type,'fun')
         init_sign=[];
         z=[];
     else
-        [init_sign,z]=cellfun(@(n_ray) ray_scan_fun(@(r)...
+        [init_sign,z]=cellfun(@(n_ray) ray_trace_fun(@(r)...
             standard_ray_fun(dom,mu,v,n_ray,r,fun_level),...
             fun_span*[-1 1],fun_resol),num2cell(n,1),'un',0);
         init_sign=cell2mat(init_sign);
