@@ -1,16 +1,16 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="1150364" file="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
-    <param.appname>Integrate and Classify Normal Distributions</param.appname>
+  <configuration build-checksum="1150364" file="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>Integrate and Classify Multinormal Distributions</param.appname>
     <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
     <param.email>abhranil.das@utexas.edu</param.email>
     <param.company>The University of Texas at Austin</param.company>
-    <param.summary>Integrate the Gaussian (normal) in any domain, compute the pdf/cdf/icdf of any function of a normal, and classification error among normals.</param.summary>
-    <param.description>Tools to integrate normal (Gaussian) distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
+    <param.summary>Integrate (multi)normals in any domain, find pdf/cdf/icdf of any function of a (multi)normal, &amp; classification error among (multi)normals.</param.summary>
+    <param.description>Tools to integrate normal (Gaussian) and multivariate normal distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>1.7</param.version>
-    <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
+    <param.version>1.9</param.version>
+    <param.output>${PROJECT_ROOT}\Integrate and Classify Multinormal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
       <item>Statistics and Machine Learning Toolbox</item>
@@ -24,10 +24,10 @@ Begin with the Getting Started live script with interactive examples.</param.des
       <item>182</item>
     </param.products.id>
     <param.products.version>
-      <item>9.9</item>
-      <item>12.0</item>
-      <item>8.6</item>
-      <item>1.0</item>
+      <item>9.13</item>
+      <item>12.4</item>
+      <item>9.2</item>
+      <item>1.4</item>
     </param.products.version>
     <param.platforms />
     <param.guid>e4c06d76-0c0b-45c4-b11f-2487ad1c50b0</param.guid>
@@ -88,7 +88,8 @@ kris_demo.m</param.exclude.filters>
     <param.exported.on.package>false</param.exported.on.package>
     <param.required.addons>
       <requiredaddons>
-        <requiredAddOn earliest="1.7.6" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
+        <requiredAddOn earliest="earliest" fromRepository="true" id="e5a0fecc-4a80-11e4-9553-005056977bd0" include="true" latest="latest">nearestSPD</requiredAddOn>
+        <requiredAddOn earliest="1.8.2" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
       </requiredaddons>
     </param.required.addons>
     <param.matlab.project.id />
@@ -107,9 +108,6 @@ kris_demo.m</param.exclude.filters>
     <param.additional.sw.mac.url />
     <param.additional.sw.linux.url />
     <unset>
-      <param.authnamewatermark />
-      <param.email />
-      <param.company />
       <param.output />
       <param.platforms />
       <param.exclude.pcodedmfiles />
@@ -139,8 +137,8 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
-      <file>${PROJECT_ROOT}\combine_ray_scan_doms.m</file>
-      <file>${PROJECT_ROOT}\combine_ray_scan_doms_ray.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_trace_doms.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_trace_doms_ray.m</file>
       <file>${PROJECT_ROOT}\demos.xml</file>
       <file>${PROJECT_ROOT}\doc</file>
       <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
@@ -149,8 +147,8 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
       <file>${PROJECT_ROOT}\int_norm_ray.m</file>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
-      <file>${PROJECT_ROOT}\invert_ray_scan_dom.m</file>
-      <file>${PROJECT_ROOT}\line_ray_scan.m</file>
+      <file>${PROJECT_ROOT}\invert_ray_trace_dom.m</file>
+      <file>${PROJECT_ROOT}\line_ray_trace.m</file>
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
       <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
       <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
@@ -158,17 +156,18 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\opt_class_multi.m</file>
       <file>${PROJECT_ROOT}\opt_class_quad.m</file>
       <file>${PROJECT_ROOT}\plot_boundary.m</file>
+      <file>${PROJECT_ROOT}\plot_norm_fun.m</file>
       <file>${PROJECT_ROOT}\plot_normal.m</file>
       <file>${PROJECT_ROOT}\plot_sample.m</file>
       <file>${PROJECT_ROOT}\prob_ray.m</file>
       <file>${PROJECT_ROOT}\quad2fun.m</file>
-      <file>${PROJECT_ROOT}\ray_scan_fun.m</file>
+      <file>${PROJECT_ROOT}\ray_trace_fun.m</file>
       <file>${PROJECT_ROOT}\samp_errmat_multi.m</file>
       <file>${PROJECT_ROOT}\samp_value.m</file>
       <file>${PROJECT_ROOT}\samp_value_flat.m</file>
       <file>${PROJECT_ROOT}\standard_quad.m</file>
       <file>${PROJECT_ROOT}\standard_ray_fun.m</file>
-      <file>${PROJECT_ROOT}\standard_ray_scan.m</file>
+      <file>${PROJECT_ROOT}\standard_ray_trace.m</file>
       <file>${PROJECT_ROOT}\target_absent.txt</file>
       <file>${PROJECT_ROOT}\target_present.txt</file>
     </fileset.rootfiles>
@@ -176,12 +175,49 @@ kris_demo.m</param.exclude.filters>
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\abhra\Google Drive\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="Integrate and Classify Multinormal Distributions.mltbx" optional="false">C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Multinormal Distributions.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2020b</root>
-      <toolboxes />
+      <root>C:\Program Files\MATLAB\R2022b</root>
+      <toolboxes>
+        <toolbox name="matlabcoder" />
+        <toolbox name="embeddedcoder" />
+        <toolbox name="gpucoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="matlabhdlcoder" />
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+      <toolbox>
+        <embeddedcoder>
+          <enabled>true</enabled>
+        </embeddedcoder>
+      </toolbox>
+      <toolbox>
+        <gpucoder>
+          <enabled>true</enabled>
+        </gpucoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <matlabhdlcoder>
+          <enabled>true</enabled>
+        </matlabhdlcoder>
+      </toolbox>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
     </matlab>
     <platform>
       <unix>false</unix>
