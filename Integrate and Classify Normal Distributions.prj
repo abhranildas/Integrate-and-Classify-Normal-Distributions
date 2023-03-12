@@ -1,6 +1,6 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="1150364" file="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
-    <param.appname>Integrate and Classify Multinormal Distributions</param.appname>
+  <configuration build-checksum="2353057259" file="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>Integrate and Classify Normal Distributions</param.appname>
     <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
     <param.email>abhranil.das@utexas.edu</param.email>
     <param.company>The University of Texas at Austin</param.company>
@@ -9,8 +9,8 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>1.9</param.version>
-    <param.output>${PROJECT_ROOT}\Integrate and Classify Multinormal Distributions.mltbx</param.output>
+    <param.version>2.0</param.version>
+    <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
       <item>Statistics and Machine Learning Toolbox</item>
@@ -175,7 +175,7 @@ kris_demo.m</param.exclude.filters>
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="Integrate and Classify Multinormal Distributions.mltbx" optional="false">C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Multinormal Distributions.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
