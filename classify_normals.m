@@ -48,9 +48,14 @@ function results=classify_normals(dist_1,dist_2,varargin)
 %               for generalized chi-square (quad domains only).
 % samp_opt      true (default) if boundary will be optimized for the
 %               sample, otherwise false.
-% AbsTol        absolute tolerance for the error rate computations.
-% RelTol        relative tolerance for the error rate computations.
+% AbsTol        absolute tolerance for the error rate computations. Default=1e-10.
+% RelTol        relative tolerance for the error rate computations. Default=1e-2.
 %               The absolute OR the relative tolerance will be satisfied.
+%               They are not used if the no. of dimensions is >3 and
+%               the domain is not a quadratic. Use mc_samples instead.
+% mc_samples    No. of Monte-Carlo samples of rays to compute error rates. 
+%               Used only if the no. of dimensions is >3 and the domain is 
+%               not a quadratic.
 % n_samp_bd_pts number of sample boundary points to be computed
 % plotmode      'norm_prob' (default): normal probability picture, i.e.
 %               plot of the normals and their classification domains,
