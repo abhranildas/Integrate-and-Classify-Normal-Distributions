@@ -14,7 +14,6 @@ addParameter(parser,'n_bd_pts',1e4);
 
 parse(parser,mu,v,dom,varargin{:});
 
-dom_type=parser.Results.dom_type;
 side=parser.Results.side;
 
 dim=length(mu);
@@ -22,7 +21,7 @@ dim=length(mu);
 % ray-trace the domain
 dom_standard_raytrace=@(n) standard_ray_trace(dom,n,'mu',mu,'v',v,varargin{:});
 
-    % initial signs and boundary distances in standardized space
+% initial signs and boundary distances in standardized space
 [init_sign,z]=dom_standard_raytrace(n_z);
 
 % standard boundary points

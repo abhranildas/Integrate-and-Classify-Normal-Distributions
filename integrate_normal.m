@@ -35,9 +35,13 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     % fun_level     level c for defining domain as f(x)>c. Default=0.
     % prior         prior probability. Only used for scaling plots.
     %               Default=1.
-    % AbsTol        absolute tolerance for the integral
-    % RelTol        relative tolerance for the integral
+    % AbsTol        absolute tolerance for the integral. Default=1e-10.
+    % RelTol        relative tolerance for the integral. Default=1e-2.
     %               The absolute OR the relative tolerance will be satisfied.
+    %               They are not used if the no. of dimensions is >3 and
+    %               the domain is not a quadratic. Use mc_samples instead.
+    % mc_samples    No. of Monte-Carlo samples of rays. Used only if the no. of
+    %               dimensions is >3 and the domain is not a quadratic.
     % plotmode      'norm_prob' (default): normal probability picture, i.e.
     %               plot of the normal and the domain,
     %               'fun_prob': function probability picture, i.e. plot of
