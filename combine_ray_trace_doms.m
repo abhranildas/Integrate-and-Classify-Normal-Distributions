@@ -1,18 +1,33 @@
-function [merged_init_sign,merged_x,merged_samp_correct]=combine_ray_trace_doms(domlist,op,n,varargin)
-% Return distances and signs of the optimal boundary between normal 1 and
-% several others (standardized wrt normal 1, or optional normal_wrt), in the direction
-% of vector(s) n.
+function [init_sign,x,samp_correct]=combine_ray_trace_doms(domlist,op,n,varargin)
+% Combine multiple domains, defined as ray-trace functions, into one
+% ray-trace domain, by intersection or union.
+% Given an array of rays n from a specified origin, this
+% function returns the initial signs (indicating if the beginning of the
+% rays, i.e. -∞, are inside the combined domain) and the crossing points. The
+% third output argument, samp_correct, treats n as an array of sample
+% points, and returns whether the samples lie within the combined domain. This
+% is used when classifying samples using this domain.
 %
-% How to use this command:
-% See github readme at https://github.com/abhranildas/classify
-%
-% Credits:
-%   Abhranil Das <abhranil.das@utexas.edu>
-%	Wilson S Geisler
-%	Center for Perceptual Systems, University of Texas at Austin
+% Abhranil Das <abhranil.das@utexas.edu>
+% Center for Perceptual Systems, University of Texas at Austin
 % If you use this code, please cite:
-%   A new method to compute classification error
-%   https://jov.arvojournals.org/article.aspx?articleid=2750251
+% <a href="matlab:web('https://arxiv.org/abs/2012.14331')"
+% >A method to integrate and classify normal distributions</a>.
+%
+% Inputs:
+% domlist       cell array of ray-traced domain functions
+% op            combination operation. 'and'=intersection, 'or'=union.
+% n             array of ray directions or sample points in each column
+% orig          column vector of the origin of rays
+%
+% Outputs:
+% init_sign     initial signs of the combined domain along each ray
+% x             cell array of crossing points of the combined domain along the
+%               ray(s). This is a cell array because there may be
+%               varying numbers of crossing points in each direction.
+% samp_correct  this treats n as an array of samples, and returns if
+%               they lie within the combined domain. If this is called, the
+%               first two outputs are not returned.
 
 % parse inputs
 dim=size(n,1);
@@ -31,26 +46,26 @@ n_dirs=size(n,2);
 if nargout==3
     all_samp_correct=nan(n_doms,n_dirs);
     for i=1:n_doms
-        [~,~,samp_correct]=domlist{i}(n,[]);
-        all_samp_correct(i,:)=samp_correct;
+        [~,~,samp_correct_each]=domlist{i}(n,[]);
+        all_samp_correct(i,:)=samp_correct_each;
     end
     if strcmpi(op,'or')
-        merged_samp_correct=any(all_samp_correct);
+        samp_correct=any(all_samp_correct);
     elseif strcmpi(op,'and')
-        merged_samp_correct=all(all_samp_correct);
+        samp_correct=all(all_samp_correct);
     end
-    merged_init_sign=[];
-    merged_x=[];
-    
-else    
+    init_sign=[];
+    x=[];
+
+else
     % compile distances and signs to all boundaries
     all_init_sign=nan(n_doms,n_dirs); all_x=cell(1,n_dirs);
     for i=1:n_doms
-        [init_sign,x]=domlist{i}(n,orig);
-        all_x=arrayfun(@(x,y) [x{:};y], all_x,x,'un',0);
-        all_init_sign(i,:)=init_sign;
+        [init_sign_each,x_each]=domlist{i}(n,orig);
+        all_x=arrayfun(@(x,y) [x{:};y], all_x,x_each,'un',0);
+        all_init_sign(i,:)=init_sign_each;
     end
-    
-    [merged_init_sign,merged_x]=cellfun(@(all_init_sign_ray,all_x_ray) combine_ray_trace_doms_ray(all_init_sign_ray,all_x_ray,op),num2cell(all_init_sign,1),all_x,'un',0);
-    merged_init_sign=cell2mat(merged_init_sign);
+
+    [init_sign,x]=cellfun(@(all_init_sign_ray,all_x_ray) combine_ray_trace_doms_ray(all_init_sign_ray,all_x_ray,op),num2cell(all_init_sign,1),all_x,'un',0);
+    init_sign=cell2mat(init_sign);
 end

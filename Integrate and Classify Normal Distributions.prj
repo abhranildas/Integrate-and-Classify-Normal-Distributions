@@ -9,7 +9,7 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>2.2</param.version>
+    <param.version>2.3</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -137,6 +137,7 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_trace_doms.asv</file>
       <file>${PROJECT_ROOT}\combine_ray_trace_doms.m</file>
       <file>${PROJECT_ROOT}\combine_ray_trace_doms_ray.m</file>
       <file>${PROJECT_ROOT}\demos.xml</file>
@@ -146,7 +147,6 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
       <file>${PROJECT_ROOT}\int_norm_ray.m</file>
-      <file>${PROJECT_ROOT}\integrate_normal.asv</file>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
       <file>${PROJECT_ROOT}\invert_ray_trace_dom.m</file>
       <file>${PROJECT_ROOT}\line_ray_trace.m</file>
