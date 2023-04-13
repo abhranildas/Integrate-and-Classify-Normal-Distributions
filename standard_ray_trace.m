@@ -1,11 +1,11 @@
 function [init_sign,z,samp_correct]=standard_ray_trace(dom,n,varargin)
 
-% returns a domain in ray-trace format in the standardized space    
+% returns a domain in ray-trace format in the standardized space
 % parse inputs
 dim=size(n,1);
 parser=inputParser;
 parser.KeepUnmatched=true;
-addRequired(parser,'dom',@(x) isstruct(x)|| isa(x,'function_handle'));
+addRequired(parser,'dom',@(x) isstruct(x) || isa(x,'function_handle') || ismatrix(x));
 addRequired(parser,'n',@isnumeric);
 addParameter(parser,'mu',zeros(dim,1),@isnumeric);
 addParameter(parser,'v',eye(dim),@isnumeric);
@@ -23,18 +23,22 @@ fun_resol=parser.Results.fun_resol;
 fun_level=parser.Results.fun_level;
 
 % root(s) along a ray through quad domain
-function x_ray=roots_ray_quad(q2_pt,q1_pt)
-    x_ray=sort(roots([q2_pt q1_pt q0]))';
-    x_ray=x_ray(~imag(x_ray)); % only real roots
+    function x_ray=roots_ray_quad(q2_pt,q1_pt)
+        x_ray=sort(roots([q2_pt q1_pt q0]))';
+        x_ray=x_ray(~imag(x_ray)); % only real roots
 
-    % remove any roots that are tangents. Only crossing points
-    slope=2*q2_pt*x_ray+q1_pt;
-    x_ray=x_ray(slope~=0);
-end
+        % remove any roots that are tangents. Only crossing points
+        slope=2*q2_pt*x_ray+q1_pt;
+        x_ray=x_ray(slope~=0);
+    end
 
-if strcmpi(dom_type,'ray_trace')
+if strcmpi(dom_type,'ray_trace') || strcmpi(dom_type,'rect')
     n_x=sqrtm(v)*n; % transform rays to original space
-    [init_sign,x]=dom(n_x,mu); % trace in the original space from mu
+    if strcmpi(dom_type,'ray_trace')
+        [init_sign,x]=dom(n_x,mu); % trace in the original space from mu
+    elseif strcmpi(dom_type,'rect')
+        [init_sign,x]=rectangle_ray_trace(dom,n_x,mu); % trace in the original space from mu
+    end
     z=cellfun(@(a,b) a/b, x,num2cell(vecnorm(n_x)),'un',0); % scale back to standard space
 
 elseif strcmpi(dom_type,'quad')

@@ -1,15 +1,15 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
   <configuration build-checksum="2716402634" file="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\Abhranil\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>Integrate and Classify Normal Distributions</param.appname>
-    <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
-    <param.email>abhranil.das@utexas.edu</param.email>
-    <param.company>The University of Texas at Austin</param.company>
+    <param.authnamewatermark />
+    <param.email />
+    <param.company />
     <param.summary>Integrate (multi)normals in any domain, find pdf/cdf/icdf of any function of a (multi)normal, &amp; classification error among (multi)normals.</param.summary>
     <param.description>Tools to integrate normal (Gaussian) and multivariate normal distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>2.3</param.version>
+    <param.version>2.4</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -62,7 +62,8 @@ wiki
 ray_scan_demo.m
 test.m
 gx2/doc/*
-kris_demo.m</param.exclude.filters>
+kris_demo.m
+*.asv</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;examples&gt;
@@ -108,6 +109,9 @@ kris_demo.m</param.exclude.filters>
     <param.additional.sw.mac.url />
     <param.additional.sw.linux.url />
     <unset>
+      <param.authnamewatermark />
+      <param.email />
+      <param.company />
       <param.output />
       <param.platforms />
       <param.exclude.pcodedmfiles />
@@ -137,7 +141,6 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
-      <file>${PROJECT_ROOT}\combine_ray_trace_doms.asv</file>
       <file>${PROJECT_ROOT}\combine_ray_trace_doms.m</file>
       <file>${PROJECT_ROOT}\combine_ray_trace_doms_ray.m</file>
       <file>${PROJECT_ROOT}\demos.xml</file>
@@ -163,6 +166,7 @@ kris_demo.m</param.exclude.filters>
       <file>${PROJECT_ROOT}\prob_ray.m</file>
       <file>${PROJECT_ROOT}\quad2fun.m</file>
       <file>${PROJECT_ROOT}\ray_trace_fun.m</file>
+      <file>${PROJECT_ROOT}\rectangle_ray_trace.m</file>
       <file>${PROJECT_ROOT}\samp_errmat_multi.m</file>
       <file>${PROJECT_ROOT}\samp_value.m</file>
       <file>${PROJECT_ROOT}\samp_value_flat.m</file>

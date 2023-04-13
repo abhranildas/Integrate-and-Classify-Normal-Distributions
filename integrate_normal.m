@@ -15,17 +15,19 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     % Required inputs:
     % mu            normal mean as column vector
     % v             normal variance-covariance matrix
-    % dom           integration domain, in one of three forms:
+    % dom           integration domain, in one of four forms:
     %               • struct containing coefficients a2 (matrix), a1 (column
     %                 vector) and a0 (scalar) of a quadratic domain:
     %                 x'*a2*x + a1'*x + a0 > 0
+    %               • 2-row matrix, where the first and second row are
+    %                 lower and upper limits of a (hyper-)rectangle
     %               • handle to a ray-trace function, returning the starting sign
     %                 and roots of the domain along any ray
     %               • handle to an implicit function f(x) defining the domain f(x)>0.
     %
     % Optional name-value inputs:
-    % dom_type      'quad' (default), 'ray_trace' or 'fun' for the above three
-    %               types resp.
+    % dom_type      'quad' (default), 'rect', 'ray_trace' or 'fun' for the
+    %               above four types resp.
     % method        Integration method. 'ray' (default) for ray-trace, or 'gx2'
     %               for generalized chi-square (quad domains only).
     % fun_span      trace radius (in Mahalanobis distance) for implicit function
@@ -42,6 +44,7 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               the domain is not a quadratic. Use mc_samples instead.
     % mc_samples    No. of Monte-Carlo samples of rays. Used only if the no. of
     %               dimensions is >3 and the domain is not a quadratic.
+    %               Default=500.
     % plotmode      'norm_prob' (default): normal probability picture, i.e.
     %               plot of the normal and the domain,
     %               'fun_prob': function probability picture, i.e. plot of
@@ -71,7 +74,7 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     parser.KeepUnmatched=true;
     addRequired(parser,'mu',@isnumeric);
     addRequired(parser,'v',@isnumeric);
-    addRequired(parser,'dom',@(x) isstruct(x)|| isa(x,'function_handle'));
+    addRequired(parser,'dom',@(x) isstruct(x) || isa(x,'function_handle') || ismatrix(x));
     addParameter(parser,'dom_type','quad');
     addParameter(parser,'method','ray');
     addParameter(parser,'fun_span',5);

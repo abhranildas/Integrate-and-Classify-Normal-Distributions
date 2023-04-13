@@ -5,7 +5,7 @@ parser=inputParser;
 parser.KeepUnmatched=true;
 addRequired(parser,'mu',@isnumeric);
 addRequired(parser,'v',@isnumeric);
-addRequired(parser,'dom',@(x) isstruct(x)|| isa(x,'function_handle'));
+addRequired(parser,'dom',@(x) isstruct(x) || isa(x,'function_handle') || ismatrix(x));
 addParameter(parser,'side','normal');
 addParameter(parser,'dom_type','quad');
 addParameter(parser,'fun_span',5);
