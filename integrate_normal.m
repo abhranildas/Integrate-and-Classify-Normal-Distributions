@@ -1,4 +1,4 @@
-function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
+function [p,bd_pts]=integrate_normal(mu,v,dom,varargin)
     % INTEGRATE_NORMAL Integrate a (multi)normal in any domain.
     %
     % Abhranil Das <abhranil.das@utexas.edu>
@@ -30,6 +30,8 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               above four types resp.
     % method        Integration method. 'ray' (default) for ray-trace, or 'gx2'
     %               for generalized chi-square (quad domains only).
+    % force_mc      set to true to force the ray method to use Monte-Carlo 
+    %               integration instead of grid integration, even for dimensions <=3.
     % fun_span      trace radius (in Mahalanobis distance) for implicit function
     %               domains. Default=5.
     % fun_resol     resolution of tracing (finding roots) of implicit domain.
@@ -42,6 +44,8 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               The absolute OR the relative tolerance will be satisfied.
     %               They are not used if the no. of dimensions is >3 and
     %               the domain is not a quadratic. Use mc_samples instead.
+    % vpa           false (default) to do ray method or Imhof's method integrals numerically,
+    %               true to do them symbolically with variable precision.
     % mc_samples    No. of Monte-Carlo samples of rays. Used only if the no. of
     %               dimensions is >3 and the domain is not a quadratic.
     %               Default=500.
@@ -68,7 +72,7 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     % <a href="matlab:open(strcat(fileparts(which('integrate_normal')),filesep,'doc',filesep,'GettingStarted.mlx'))">Interactive demos</a>
     % norm_fun_cdf
     % classify_normals
-    
+
     % parse inputs
     parser=inputParser;
     parser.KeepUnmatched=true;
@@ -85,28 +89,31 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
     addParameter(parser,'plotmode','norm_prob');
     colors=colororder;
     addParameter(parser,'plot_color',[colors(1,:);colors(1,:)]);
-    
+
     parse(parser,mu,v,dom,varargin{:});
     dom_type=parser.Results.dom_type;
     method=parser.Results.method;
     prior=parser.Results.prior;
     plotmode=parser.Results.plotmode;
     plot_color=parser.Results.plot_color;
-    
+
     dim=length(mu);
-    
+
     if any(strcmpi(parser.UsingDefaults,'method')) && dim>3 && strcmpi(dom_type,'quad')
         method='gx2';
     end
-    
+
     if strcmpi(method,'ray')
-        [p,pc,bd_pts]=int_norm_ray(mu,v,dom,varargin{:});
+        [p,bd_pts]=int_norm_ray(mu,v,dom,varargin{:});
     elseif strcmpi(method,'gx2')
-        % get integral from the generalized chi-squared method
-        [p,pc]=int_norm_quad_gx2(mu,v,dom,varargin{:});
+        p=int_norm_quad_gx2(mu,v,dom,varargin{:});
         bd_pts=[];
+        % if gx2 returns 0, use ray that can use vpa
+        if p==0 && any(strcmpi(parser.UsingDefaults,'method'))
+            [p,bd_pts]=int_norm_ray(mu,v,dom,varargin{:});
+        end
     end
-    
+
     % plotting
     if strcmpi('dom_type','ray_trace') && dim>3
         plotmode=false;
@@ -135,7 +142,7 @@ function [p,pc,bd_pts]=integrate_normal(mu,v,dom,varargin)
                 plot_boundary(@(x) x,1,'dom_type','fun','plot_type','line');
             end
         end
-        title(sprintf('$p=%g, \\, \\overline{p}=%g$',[p,pc]),'interpreter','latex')
+        title(sprintf('$p=%g$',p),'interpreter','latex')
         if ~holdon
             hold off
         end

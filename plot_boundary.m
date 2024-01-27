@@ -1,4 +1,4 @@
-function plot_boundary(dom,dim,varargin)
+function bd_handle=plot_boundary(dom,dim,varargin)
     parser = inputParser;
     parser.KeepUnmatched=true;
     addRequired(parser,'dom',@(x) isnumeric(x)||isstruct(x)|| isa(x,'function_handle'));
@@ -46,10 +46,10 @@ function plot_boundary(dom,dim,varargin)
             if dim==1 || dim==2
                 xl=xlim; yl= ylim;
                 if strcmpi(plot_type,'line')
-                    fimplicit(f,'color',line_color);
+                    bd_handle=fimplicit(f,'color',line_color,'linewidth',.75);
                 elseif strcmpi(plot_type,'fill')
                     fh=fcontour(f,'Fill','on');
-                    caxis([-eps eps])
+                    clim([-eps eps])
                     colormap(fill_colors)
                     uistack(fh,'bottom')
                 end
@@ -62,7 +62,6 @@ function plot_boundary(dom,dim,varargin)
             
             if strcmpi(dom_type,'ray_trace')
                 global bd_pts
-                bd_pts=[];
                 [~,bd_pts]=int_norm_along_angles(mu,v,dom,varargin{:});
             elseif strcmpi(dom_type,'bd_pts')
                 bd_pts=dom;

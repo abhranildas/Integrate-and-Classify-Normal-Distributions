@@ -15,7 +15,7 @@ function plot_norm_fun(mu,v,fun,prior,plot_color,varargin)
         % plot distribution of q(x)
         if nnz(fun.q2) % if the quadratic term exists
             % q(x) ~ generalized chi-squared
-            [w,k,lambda,m,s]=gx2_params_norm_quad(mu,v,fun);
+            [w,k,lambda,m,s]=norm_quad_to_gx2_params(mu,v,fun);
             [f,x]=gx2pdf('full',w,k,lambda,m,s);
             area(x,prior*f,'facecolor',plot_color,'facealpha',0.4,'edgecolor',plot_color,'edgealpha',0.5,'linewidth',1)
         else % q(x) ~ normal
@@ -26,7 +26,7 @@ function plot_norm_fun(mu,v,fun,prior,plot_color,varargin)
         if dim==1
             xlabel('$q(x)$','interpreter','latex');
         else
-            xlabel('$q(${\boldmath$x$}$)$','interpreter','latex');
+            xlabel('$q(\mbox{\boldmath $x$})$','interpreter','latex');
         end
     elseif isa(fun,'function_handle')
         xlims=norm_fun_inv([.01 .99],mu,v,fun,varargin{:});
@@ -37,6 +37,6 @@ function plot_norm_fun(mu,v,fun,prior,plot_color,varargin)
         if dim==1
             xlabel('$f(x)$','interpreter','latex');
         else
-            xlabel('$f(${\boldmath$x$}$)$','interpreter','latex');
+            xlabel('$f(\mbox{\boldmath $x$})$','interpreter','latex');
         end
     end

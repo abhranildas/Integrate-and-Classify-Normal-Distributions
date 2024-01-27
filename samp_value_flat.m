@@ -1,4 +1,4 @@
-function v=samp_value_flat(x,samp_1,samp_2,vals)
+function v=samp_value_flat(x,samp_1,samp_2,varargin)
 % Given observation samples and flattened boundary coefficients x, returns the expected value.
 % This is maximized to yield the optimal boundary coefficients.
 % Credits:
@@ -10,6 +10,14 @@ function v=samp_value_flat(x,samp_1,samp_2,vals)
 %   A new method to compute classification error
 %   https://jov.arvojournals.org/article.aspx?articleid=2750251
 
+parser=inputParser;
+parser.KeepUnmatched=true;
+addRequired(parser,'x',@isnumeric);
+addRequired(parser,'samp_1',@isnumeric);
+addRequired(parser,'samp_2',@isnumeric);
+
+parse(parser,x,samp_1,samp_2,varargin{:});
+
 dim=size(samp_1,2);
 q2=zeros(dim);
 q2(triu(true(dim)))=x(1:(dim^2+dim)/2);
@@ -20,4 +28,4 @@ quad.q2=q2;
 quad.q1=x(end-dim:end-1);
 quad.q0=x(end);
 
-v=samp_value(samp_1,samp_2,quad,'vals',vals);
+v=samp_value(samp_1,samp_2,quad,varargin{:});

@@ -47,6 +47,8 @@ function results=classify_normals_multi(dists,varargin)
 	%               only when custom values are supplied.
 	% norm_val      overall expected outcome value. Returned only when custom
 	%               values are suppliued.
+    % samp_class    a cell array of vectors indicating which classes the points
+    %               in each sample were assigned.
 	% samp_errmat   error matrix of classified samples. e(i,j)= no. of i
 	%               samples classified as j.
 	% samp_err      overall error rate of classifying the samples.
@@ -147,7 +149,8 @@ function results=classify_normals_multi(dists,varargin)
 	
 	% sample classification errors
 	if strcmpi(parser.Results.input_type,'samp')
-		samp_errmat=samp_errmat_multi(dists,doms);
+		[samp_errmat,samp_class]=samp_errmat_multi(dists,doms);
+        results.samp_class=samp_class;
 		results.samp_errmat=samp_errmat;
 		samp_err=sum(samp_errmat(~eye(n_dists)))/sum(samp_errmat(:));
 		results.samp_err=samp_err;

@@ -1,0 +1,241 @@
+<deployment-project plugin="plugin.toolbox" plugin-version="1.0">
+  <configuration build-checksum="2716402634" file="C:\Users\Abhranil Das\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\Abhranil Das\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>Integrate and Classify Normal Distributions</param.appname>
+    <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
+    <param.email>abhranil.das@utexas.edu</param.email>
+    <param.company>University of Texas at Austin</param.company>
+    <param.summary>Integrate (multi)normals in any domain, find pdf/cdf/icdf of any function of a (multi)normal, &amp; classification error among (multi)normals.</param.summary>
+    <param.description>Tools to integrate normal (Gaussian) and multivariate normal distributions in any dimensions with any parameters within any domain, compute pdf/cdf/inverse cdf of any function of a normal vector, and compute quantities concerning classification performance among two or more multinormals, such as error matrix and discriminability d'.
+
+Begin with the Getting Started live script with interactive examples.</param.description>
+    <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
+    <param.version>2.7</param.version>
+    <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
+    <param.products.name>
+      <item>MATLAB</item>
+      <item>Statistics and Machine Learning Toolbox</item>
+      <item>Symbolic Math Toolbox</item>
+      <item>UAV Toolbox</item>
+    </param.products.name>
+    <param.products.id>
+      <item>1</item>
+      <item>19</item>
+      <item>15</item>
+      <item>182</item>
+    </param.products.id>
+    <param.products.version>
+      <item>9.13</item>
+      <item>12.4</item>
+      <item>9.2</item>
+      <item>1.4</item>
+    </param.products.version>
+    <param.platforms />
+    <param.guid>e4c06d76-0c0b-45c4-b11f-2487ad1c50b0</param.guid>
+    <param.exclude.filters>% List files contained in your toolbox folder that you would like to exclude
+% from packaging.  Excludes should be listed relative to the toolbox folder.
+% Some examples of how to specify excludes are provided below:
+%
+% A single file in the toolbox folder:
+% .svn
+%
+% A single file in a subfolder of the toolbox folder:
+% example/.svn
+%
+% All files in a subfolder of the toolbox folder:
+% example/*
+%
+% All files of a certain name in all subfolders of the toolbox folder:
+% **/.svn
+%
+% All files matching a pattern in all subfolders of the toolbox folder:
+% **/*.bak
+%
+.git
+.gitattributes
+.gitignore
+paper
+deprecated
+icon.png
+LICENSE
+README.md
+wiki
+ray_scan_demo.m
+test.m
+gx2/doc/*
+kris_demo.m
+*.asv</param.exclude.filters>
+    <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
+    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;examples&gt;
+   &lt;exampleCategory name="doc"&gt;
+      &lt;example name="GettingStarted" type="html"&gt;
+         &lt;file type="source"&gt;/doc/html/GettingStarted.html&lt;/file&gt;
+         &lt;file type="main"&gt;/doc/GettingStarted.mlx&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+   &lt;/exampleCategory&gt;
+&lt;/examples&gt;</param.examples>
+    <param.demosxml />
+    <param.apps />
+    <param.registered.apps />
+    <param.docs />
+    <param.getting.started.guide>${PROJECT_ROOT}\doc\GettingStarted.mlx</param.getting.started.guide>
+    <param.matlabpath.excludes>
+      <item>/gx2/doc</item>
+      <item>/gx2/doc/html</item>
+      <item>/gx2</item>
+    </param.matlabpath.excludes>
+    <param.javaclasspath.excludes />
+    <param.exported.on.package>false</param.exported.on.package>
+    <param.required.addons>
+      <requiredaddons>
+        <requiredAddOn earliest="earliest" fromRepository="true" id="e5a0fecc-4a80-11e4-9553-005056977bd0" include="true" latest="latest">nearestSPD</requiredAddOn>
+        <requiredAddOn earliest="1.8.2" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
+      </requiredaddons>
+    </param.required.addons>
+    <param.matlab.project.id />
+    <param.matlab.project.name />
+    <param.release.start>R2020a</param.release.start>
+    <param.release.end>latest</param.release.end>
+    <param.release.current.only>false</param.release.current.only>
+    <param.compatiblity.windows>true</param.compatiblity.windows>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
+    <param.compatiblity.linux>true</param.compatiblity.linux>
+    <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
+    <param.installation.map />
+    <param.additional.sw.names />
+    <param.additional.sw.licenses />
+    <param.additional.sw.win.url />
+    <param.additional.sw.mac.url />
+    <param.additional.sw.linux.url />
+    <unset>
+      <param.output />
+      <param.platforms />
+      <param.exclude.pcodedmfiles />
+      <param.demosxml />
+      <param.apps />
+      <param.registered.apps />
+      <param.docs />
+      <param.javaclasspath.excludes />
+      <param.exported.on.package />
+      <param.matlab.project.id />
+      <param.matlab.project.name />
+      <param.release.current.only />
+      <param.compatiblity.windows />
+      <param.compatiblity.macos />
+      <param.compatiblity.linux />
+      <param.compatiblity.matlabonline />
+      <param.additional.sw.names />
+      <param.additional.sw.licenses />
+      <param.additional.sw.win.url />
+      <param.additional.sw.mac.url />
+      <param.additional.sw.linux.url />
+    </unset>
+    <fileset.rootdir>
+      <file>${PROJECT_ROOT}</file>
+    </fileset.rootdir>
+    <fileset.rootfiles>
+      <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
+      <file>${PROJECT_ROOT}\classify_normals.m</file>
+      <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_trace_doms.m</file>
+      <file>${PROJECT_ROOT}\combine_ray_trace_doms_ray.m</file>
+      <file>${PROJECT_ROOT}\demos.xml</file>
+      <file>${PROJECT_ROOT}\doc</file>
+      <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
+      <file>${PROJECT_ROOT}\histogram_overlap_err.m</file>
+      <file>${PROJECT_ROOT}\int_norm_along_angles.m</file>
+      <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
+      <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
+      <file>${PROJECT_ROOT}\int_norm_ray.m</file>
+      <file>${PROJECT_ROOT}\integrate_normal.m</file>
+      <file>${PROJECT_ROOT}\invert_ray_trace_dom.m</file>
+      <file>${PROJECT_ROOT}\line_ray_trace.m</file>
+      <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
+      <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
+      <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
+      <file>${PROJECT_ROOT}\norm_rad_surv_split.m</file>
+      <file>${PROJECT_ROOT}\opt_class_multi.m</file>
+      <file>${PROJECT_ROOT}\opt_class_quad.m</file>
+      <file>${PROJECT_ROOT}\plot_boundary.m</file>
+      <file>${PROJECT_ROOT}\plot_norm_fun.m</file>
+      <file>${PROJECT_ROOT}\plot_normal.m</file>
+      <file>${PROJECT_ROOT}\plot_sample.m</file>
+      <file>${PROJECT_ROOT}\prob_ray.m</file>
+      <file>${PROJECT_ROOT}\quad2fun.m</file>
+      <file>${PROJECT_ROOT}\ray_trace_fun.m</file>
+      <file>${PROJECT_ROOT}\rectangle_ray_trace.m</file>
+      <file>${PROJECT_ROOT}\samp_errmat_multi.m</file>
+      <file>${PROJECT_ROOT}\samp_value.m</file>
+      <file>${PROJECT_ROOT}\samp_value_flat.m</file>
+      <file>${PROJECT_ROOT}\standard_quad.m</file>
+      <file>${PROJECT_ROOT}\standard_ray_fun.m</file>
+      <file>${PROJECT_ROOT}\standard_ray_trace.m</file>
+      <file>${PROJECT_ROOT}\target_absent.txt</file>
+      <file>${PROJECT_ROOT}\target_present.txt</file>
+    </fileset.rootfiles>
+    <fileset.depfun.included />
+    <fileset.depfun.excluded />
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\Abhranil Das\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.mltbx</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2022b</root>
+      <toolboxes>
+        <toolbox name="matlabcoder" />
+        <toolbox name="embeddedcoder" />
+        <toolbox name="gpucoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="matlabhdlcoder" />
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+      <toolbox>
+        <embeddedcoder>
+          <enabled>true</enabled>
+        </embeddedcoder>
+      </toolbox>
+      <toolbox>
+        <gpucoder>
+          <enabled>true</enabled>
+        </gpucoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <matlabhdlcoder>
+          <enabled>true</enabled>
+        </matlabhdlcoder>
+      </toolbox>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

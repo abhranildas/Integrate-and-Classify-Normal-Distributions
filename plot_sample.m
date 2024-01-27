@@ -1,4 +1,8 @@
 function plot_sample(dist,prior,color)
+if ~exist('prior','var')
+    prior=0.5;
+end
+
 if ~exist('color','var')
     color='blue';
 end
