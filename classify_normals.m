@@ -42,6 +42,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               types resp.
     % force_mc      set to true to force the ray method to use Monte-Carlo
     %               integration instead of grid integration, even for dimensions <=3.
+    % mc_samples    No. of Monte-Carlo samples of rays to compute error rates. Default=500.
     % fun_span      trace radius (in Mahalanobis distance) for implicit function
     %               domains. Default=5.
     % fun_resol     resolution of tracing (finding roots) of implicit domain.
@@ -63,9 +64,6 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               the domain is not a quadratic. Use mc_samples instead.
     % vpa           false (default) to do ray method or Imhof's method integrals numerically,
     %               true to do them symbolically with variable precision.
-    % mc_samples    No. of Monte-Carlo samples of rays to compute error rates.
-    %               Used only if the no. of dimensions is >3 and the domain is
-    %               not a quadratic. Default=500.
     % n_samp_bd_pts number of sample boundary points to be computed
     % plotmode      'norm_prob' (default): normal probability picture, i.e.
     %               plot of the normals and their classification domains,

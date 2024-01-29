@@ -76,7 +76,7 @@ function [p,bd_pts]=int_norm_ray(mu,v,dom,varargin)
         elseif dim==2
             % p=integral(@(theta) norm_prob_across_angles(mu,v,dom,'theta',theta,varargin{:}),0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
             syms theta
-            p=vpaintegral(@(theta) norm_prob_across_angles_sym(mu,v,dom,theta,varargin{:}),theta,0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
+            p=vpaintegral(@(theta) norm_prob_across_angles(mu,v,dom,'theta',theta,varargin{:}),theta,0,pi,'AbsTol',AbsTol,'RelTol',RelTol);
         elseif dim==3
             p=integral2(@(theta,phi) norm_prob_across_angles(mu,v,dom,'theta',theta,'phi',phi,varargin{:}),0,pi/2,0,2*pi,'AbsTol',AbsTol,'RelTol',RelTol);
         end

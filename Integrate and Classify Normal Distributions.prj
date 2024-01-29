@@ -9,7 +9,7 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>2.7</param.version>
+    <param.version>2.8</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -24,10 +24,10 @@ Begin with the Getting Started live script with interactive examples.</param.des
       <item>182</item>
     </param.products.id>
     <param.products.version>
-      <item>9.13</item>
-      <item>12.4</item>
-      <item>9.2</item>
-      <item>1.4</item>
+      <item>23.2</item>
+      <item>23.2</item>
+      <item>23.2</item>
+      <item>23.2</item>
     </param.products.version>
     <param.platforms />
     <param.guid>e4c06d76-0c0b-45c4-b11f-2487ad1c50b0</param.guid>
@@ -63,6 +63,7 @@ ray_scan_demo.m
 test.m
 gx2/doc/*
 kris_demo.m
+dprime_scaling.gif
 *.asv</param.exclude.filters>
     <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
     <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
@@ -146,8 +147,6 @@ kris_demo.m
       <file>${PROJECT_ROOT}\doc</file>
       <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
       <file>${PROJECT_ROOT}\histogram_overlap_err.m</file>
-      <file>${PROJECT_ROOT}\int_norm_along_angles.m</file>
-      <file>${PROJECT_ROOT}\int_norm_along_rays.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
       <file>${PROJECT_ROOT}\int_norm_ray.m</file>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
@@ -156,25 +155,35 @@ kris_demo.m
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
       <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
       <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
-      <file>${PROJECT_ROOT}\norm_rad_surv_split.m</file>
+      <file>${PROJECT_ROOT}\norm_prob_across_angles.m</file>
+      <file>${PROJECT_ROOT}\norm_prob_across_rays.m</file>
       <file>${PROJECT_ROOT}\opt_class_multi.m</file>
       <file>${PROJECT_ROOT}\opt_class_quad.m</file>
+      <file>${PROJECT_ROOT}\optimize_samp_bd.m</file>
+      <file>${PROJECT_ROOT}\phi_ray.m</file>
+      <file>${PROJECT_ROOT}\Phibar_ray_split.m</file>
       <file>${PROJECT_ROOT}\plot_boundary.m</file>
       <file>${PROJECT_ROOT}\plot_norm_fun.m</file>
       <file>${PROJECT_ROOT}\plot_normal.m</file>
       <file>${PROJECT_ROOT}\plot_sample.m</file>
+      <file>${PROJECT_ROOT}\prob_dens_ray.m</file>
       <file>${PROJECT_ROOT}\prob_ray.m</file>
+      <file>${PROJECT_ROOT}\prob_ray_sym.m</file>
       <file>${PROJECT_ROOT}\quad2fun.m</file>
       <file>${PROJECT_ROOT}\ray_trace_fun.m</file>
       <file>${PROJECT_ROOT}\rectangle_ray_trace.m</file>
+      <file>${PROJECT_ROOT}\roots_ray_quad.m</file>
       <file>${PROJECT_ROOT}\samp_errmat_multi.m</file>
       <file>${PROJECT_ROOT}\samp_value.m</file>
       <file>${PROJECT_ROOT}\samp_value_flat.m</file>
+      <file>${PROJECT_ROOT}\smooth_acc_demo.m</file>
+      <file>${PROJECT_ROOT}\standard_fun_grad.m</file>
       <file>${PROJECT_ROOT}\standard_quad.m</file>
       <file>${PROJECT_ROOT}\standard_ray_fun.m</file>
       <file>${PROJECT_ROOT}\standard_ray_trace.m</file>
       <file>${PROJECT_ROOT}\target_absent.txt</file>
       <file>${PROJECT_ROOT}\target_present.txt</file>
+      <file>${PROJECT_ROOT}\valid_quad_roots.m</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
     <fileset.depfun.excluded />
@@ -184,7 +193,7 @@ kris_demo.m
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2022b</root>
+      <root>C:\Program Files\MATLAB\R2023b</root>
       <toolboxes />
     </matlab>
     <platform>

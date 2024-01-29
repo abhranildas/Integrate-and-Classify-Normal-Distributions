@@ -32,6 +32,7 @@ function [p,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               for generalized chi-square (quad domains only).
     % force_mc      set to true to force the ray method to use Monte-Carlo 
     %               integration instead of grid integration, even for dimensions <=3.
+    % mc_samples    No. of Monte-Carlo samples of rays. Default=500.
     % fun_span      trace radius (in Mahalanobis distance) for implicit function
     %               domains. Default=5.
     % fun_resol     resolution of tracing (finding roots) of implicit domain.
@@ -46,9 +47,6 @@ function [p,bd_pts]=integrate_normal(mu,v,dom,varargin)
     %               the domain is not a quadratic. Use mc_samples instead.
     % vpa           false (default) to do ray method or Imhof's method integrals numerically,
     %               true to do them symbolically with variable precision.
-    % mc_samples    No. of Monte-Carlo samples of rays. Used only if the no. of
-    %               dimensions is >3 and the domain is not a quadratic.
-    %               Default=500.
     % plotmode      'norm_prob' (default): normal probability picture, i.e.
     %               plot of the normal and the domain,
     %               'fun_prob': function probability picture, i.e. plot of

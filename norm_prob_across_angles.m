@@ -12,7 +12,7 @@ addParameter(parser,'output','prob'); % probability or probability density
 addParameter(parser,'fun_span',5);
 addParameter(parser,'fun_resol',100);
 addParameter(parser,'n_bd_pts',500);
-addParameter(parser,'theta',nan,@isnumeric);
+addParameter(parser,'theta',nan,@(x) isnumeric(x) || isa(x,'sym'));
 addParameter(parser,'phi',nan,@isnumeric);
 
 parse(parser,mu,v,dom,varargin{:});

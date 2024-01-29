@@ -9,6 +9,7 @@ function [p_rays,bd_pts_rays]=norm_prob_across_rays(mu,v,dom,n_z,varargin)
     addParameter(parser,'output','prob'); % probability or probability density
     addParameter(parser,'side','normal');
     addParameter(parser,'dom_type','quad');
+    addParameter(parser,'vpa',false,@islogical);
     addParameter(parser,'fun_span',5);
     addParameter(parser,'fun_resol',100);
     addParameter(parser,'fun_grad',[],@(x) isa(x,'function_handle'));
@@ -18,6 +19,7 @@ function [p_rays,bd_pts_rays]=norm_prob_across_rays(mu,v,dom,n_z,varargin)
     parse(parser,mu,v,dom,varargin{:});
 
     output=parser.Results.output;
+    vpaflag=parser.Results.vpa;
     dim=length(mu);
 
     % ray-trace the standardized domain/function
@@ -29,8 +31,17 @@ function [p_rays,bd_pts_rays]=norm_prob_across_rays(mu,v,dom,n_z,varargin)
         [init_sign,z]=dom_standard_raytrace(n_z);
 
         % probability on rays
-        p_rays=cellfun(@(init_sign_ray,z_ray) prob_ray(init_sign_ray,z_ray,dim,varargin{:}),num2cell(init_sign),z,'un',0);
-
+        if ~vpaflag
+            p_rays=cellfun(@(init_sign_ray,z_ray) prob_ray(init_sign_ray,z_ray,dim,varargin{:}),num2cell(init_sign),z);
+            % if there are roots on rays with 0 prob,
+            % notify to turn on vpa
+            n_roots=cellfun(@(z) numel(z)>0,z);
+            if nnz(n_roots&(~p_rays))
+                warning("Some rays contain probabilities smaller than realmin=1e-308, returning 0. Set 'vpa' to true to compute these with variable precision.")
+            end
+        else
+            p_rays=cellfun(@(init_sign_ray,z_ray) prob_ray(init_sign_ray,z_ray,dim,varargin{:}),num2cell(init_sign),z,'un',0);
+        end
     elseif strcmpi(output,'prob_dens') % probability density calculations
 
         % roots of standardized function along rays
