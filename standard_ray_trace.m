@@ -6,7 +6,10 @@ function [init_sign,z,samp_correct]=standard_ray_trace(dom,n,varargin)
     parser=inputParser;
     parser.KeepUnmatched=true;
     addRequired(parser,'dom',@(x) isstruct(x) || isa(x,'function_handle') || ismatrix(x));
-    addRequired(parser,'n',@(x) isnumeric(x) || isa(x,'sym'));
+    addRequired(parser,'n',@isnumeric);
+    % gotta keep 'side' because sometimes varargin may contain it. We'll
+    % catch it but ignore it:
+    addOptional(parser,'side','upper',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
     addParameter(parser,'mu',zeros(dim,1),@isnumeric);
     addParameter(parser,'v',eye(dim),@isnumeric);
     addParameter(parser,'dom_type','quad');
@@ -38,29 +41,19 @@ function [init_sign,z,samp_correct]=standard_ray_trace(dom,n,varargin)
             init_sign=[];
             z=[];
         else
-            if isnumeric(n)
-                n=n./vecnorm(n); % normalize direction vectors
-            end
+            n=n./vecnorm(n); % normalize direction vectors
 
             % standardized boundary coefficients
             quad_s=standard_quad(dom,mu,v);
 
             q2=dot(n,quad_s.q2*n);
             q1=quad_s.q1'*n;
-            q0=quad_s.q0;
+            q0=quad_s.q0-fun_level;
 
             % sign of the quadratic at -inf:
-            % if isnumeric(n)
-                % init_sign=sign(q2); % square term sets the sign
-                % init_sign(~init_sign)=-sign(q1(~init_sign)); % linear term sets the sign for leftovers
-                % init_sign(~init_sign)=sign(q0);% constant term sets the sign for the leftovers
-            % elseif isa(n,'sym')
-                % init_sign=piecewise(q2~=0,sign(q2),(q2==0)&&(q1~=0),-sign(q1),(q2^2+q1^2==0),sign(q0));
-                init_sign=sign(4*sign(q2)-2*sign(q1)+sign(q0));
-            % end
+            init_sign=sign(4*sign(q2)-2*sign(q1)+sign(q0));
 
             z=arrayfun(@roots_ray_quad,q2,q1,q0*ones(1,size(n,2)),'un',0); % this allows function to calculate on multiple directions at once
-
         end
 
     elseif strcmpi(dom_type,'fun')

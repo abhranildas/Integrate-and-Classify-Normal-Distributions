@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="3787467380" file="C:\Users\abhra\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\abhra\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="3787467380" file="C:\Users\ad36226\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.prj" location="C:\Users\ad36226\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm" name="Integrate and Classify Normal Distributions" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>Integrate and Classify Normal Distributions</param.appname>
     <param.authnamewatermark>Abhranil Das</param.authnamewatermark>
     <param.email>abhranil.das@utexas.edu</param.email>
@@ -9,7 +9,7 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>2.8</param.version>
+    <param.version>2.9.1</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -85,13 +85,19 @@ dprime_scaling.gif
       <item>/gx2/doc</item>
       <item>/gx2/doc/html</item>
       <item>/gx2</item>
+      <item>/deprecated</item>
+      <item>/paper</item>
+      <item>/paper/examples</item>
+      <item>/paper/examples_vision</item>
+      <item>/wiki</item>
+      <item>/deprecated/html</item>
     </param.matlabpath.excludes>
     <param.javaclasspath.excludes />
     <param.exported.on.package>false</param.exported.on.package>
     <param.required.addons>
       <requiredaddons>
         <requiredAddOn earliest="earliest" fromRepository="true" id="e5a0fecc-4a80-11e4-9553-005056977bd0" include="true" latest="latest">nearestSPD</requiredAddOn>
-        <requiredAddOn earliest="1.8.2" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
+        <requiredAddOn earliest="earliest" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
       </requiredaddons>
     </param.required.addons>
     <param.matlab.project.id />
@@ -110,8 +116,6 @@ dprime_scaling.gif
     <param.additional.sw.mac.url />
     <param.additional.sw.linux.url />
     <unset>
-      <param.authnamewatermark />
-      <param.email />
       <param.output />
       <param.platforms />
       <param.exclude.pcodedmfiles />
@@ -148,20 +152,15 @@ dprime_scaling.gif
       <file>${PROJECT_ROOT}\fibonacci_sphere.m</file>
       <file>${PROJECT_ROOT}\histogram_overlap_err.m</file>
       <file>${PROJECT_ROOT}\int_norm_quad_gx2.m</file>
-      <file>${PROJECT_ROOT}\int_norm_ray.m</file>
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
       <file>${PROJECT_ROOT}\invert_ray_trace_dom.m</file>
       <file>${PROJECT_ROOT}\line_ray_trace.m</file>
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
       <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
       <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
-      <file>${PROJECT_ROOT}\norm_prob_across_angles.m</file>
-      <file>${PROJECT_ROOT}\norm_prob_across_rays.m</file>
       <file>${PROJECT_ROOT}\opt_class_multi.m</file>
       <file>${PROJECT_ROOT}\opt_class_quad.m</file>
       <file>${PROJECT_ROOT}\optimize_samp_bd.m</file>
-      <file>${PROJECT_ROOT}\phi_ray.m</file>
-      <file>${PROJECT_ROOT}\Phibar_ray_split.m</file>
       <file>${PROJECT_ROOT}\plot_boundary.m</file>
       <file>${PROJECT_ROOT}\plot_norm_fun.m</file>
       <file>${PROJECT_ROOT}\plot_normal.m</file>
@@ -178,23 +177,28 @@ dprime_scaling.gif
       <file>${PROJECT_ROOT}\samp_value_flat.m</file>
       <file>${PROJECT_ROOT}\smooth_acc_demo.m</file>
       <file>${PROJECT_ROOT}\standard_fun_grad.m</file>
-      <file>${PROJECT_ROOT}\standard_quad.m</file>
       <file>${PROJECT_ROOT}\standard_ray_fun.m</file>
       <file>${PROJECT_ROOT}\standard_ray_trace.m</file>
       <file>${PROJECT_ROOT}\target_absent.txt</file>
       <file>${PROJECT_ROOT}\target_present.txt</file>
-      <file>${PROJECT_ROOT}\valid_quad_roots.m</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\abhra\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.mltbx</file>
+      <file location="${PROJECT_ROOT}" name="Integrate and Classify Normal Distributions.mltbx" optional="false">C:\Users\ad36226\OneDrive - The University of Texas at Austin\Geisler Lab\IntClassNorm\Integrate and Classify Normal Distributions.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
       <root>C:\Program Files\MATLAB\R2023b</root>
-      <toolboxes />
+      <toolboxes>
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
     </matlab>
     <platform>
       <unix>false</unix>

@@ -120,8 +120,10 @@ function results=classify_normals_multi(dists,varargin)
 	% compute accuracy and boundary for each normal, and combine
 	for i=1:n_dists % integrate each normal
 		for j=1:n_dists % within the boundary of each normal
-			[p,pc,bd_pts]=integrate_normal(normals(i).mu,normals(i).v,...
+			[p,~,bd_pts]=integrate_normal(normals(i).mu,normals(i).v,...
 				doms{j},'dom_type','ray_trace',varargin{:},'plotmode',false);
+			pc=integrate_normal(normals(i).mu,normals(i).v,...
+				doms{j},'lower','dom_type','ray_trace',varargin{:},'plotmode',false);
 			fprintf('Integrating normal %d in domain %d\n',[i j])
 			norm_errmat(i,j)=p*priors(i);
 			if j==i

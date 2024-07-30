@@ -56,7 +56,7 @@ function x=norm_fun_inv(p,mu,v,fun,varargin)
         options=optimset('TolX',InvTol);
 		x=arrayfun(@(p) fzero(@(x) norm_fun_cdf(x,mu,v,fun,varargin{:})-p,0,options),p);
 	elseif isstruct(fun)
-		[w,k,lambda,m,s]=norm_quad_to_gx2_params(mu,v,fun);
-		x=gx2inv(p,w,k,lambda,m,s,varargin{:});
+		[w,k,lambda,s,m]=norm_quad_to_gx2_params(mu,v,fun);
+		x=gx2inv(p,w,k,lambda,s,m,varargin{:});
 	end
 end

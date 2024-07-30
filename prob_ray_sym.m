@@ -22,7 +22,7 @@ function p_ray=prob_ray_sym(init_sign_ray,z_ray,dim,side)
 
     p_ray=sgns+1+2*sgns*sum((-1).^(1:length(z_ray)).*Phibars);
 
-    if exist('side','var') && strcmpi(side,'complement')
+    if exist('side','var') && strcmpi(side,'lower')
         p_ray=2-p_ray;
     end
 

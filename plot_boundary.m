@@ -2,8 +2,9 @@ function bd_handle=plot_boundary(dom,dim,varargin)
     parser = inputParser;
     parser.KeepUnmatched=true;
     addRequired(parser,'dom',@(x) isnumeric(x)||isstruct(x)|| isa(x,'function_handle'));
-    addParameter(parser,'dom_type','quad');
     addRequired(parser,'dim',@(x) ismember(x,1:x));
+    addOptional(parser,'side','upper',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
+    addParameter(parser,'dom_type','quad');
     addParameter(parser,'mu',zeros(dim,1), @isnumeric);
     addParameter(parser,'v',eye(dim), @isnumeric);
     addParameter(parser,'fun_level',0);
@@ -14,6 +15,7 @@ function bd_handle=plot_boundary(dom,dim,varargin)
     addParameter(parser,'fill_colors',flipud(.1*colors(1:2,:)+.9*[1 1 1]));
     
     parse(parser,dom,dim,varargin{:});
+    side=parser.Results.side;
     dom_type=parser.Results.dom_type;
     mu=parser.Results.mu;
     v=parser.Results.v;
@@ -40,20 +42,24 @@ function bd_handle=plot_boundary(dom,dim,varargin)
                     f=@(x,y,z) dom(x,y,z)-fun_level;
                 end
             elseif strcmpi(dom_type,'quad')
-                f=quad2fun(dom,1);
+                f=quad2fun(dom,fun_level,1);
             end
             
             if dim==1 || dim==2
-                xl=xlim; yl= ylim;
+                xl=xlim; yl=ylim;
                 if strcmpi(plot_type,'line')
                     bd_handle=fimplicit(f,'color',line_color,'linewidth',.75);
                 elseif strcmpi(plot_type,'fill')
                     fh=fcontour(f,'Fill','on');
                     clim([-eps eps])
-                    colormap(fill_colors)
+                    if strcmpi(side,'upper')
+                        colormap(fill_colors)
+                    elseif strcmpi(side,'lower')
+                        colormap(flipud(fill_colors))
+                    end
                     uistack(fh,'bottom')
                 end
-                xlim(xl); ylim (yl);
+                xlim(xl); ylim(yl);
             elseif dim==3
                 fimplicit3(f,'facecolor',line_color,'facealpha',0.1,'edgecolor','none','meshdensity',20)
             end
@@ -62,7 +68,8 @@ function bd_handle=plot_boundary(dom,dim,varargin)
             
             if strcmpi(dom_type,'ray_trace')
                 global bd_pts
-                [~,bd_pts]=int_norm_along_angles(mu,v,dom,varargin{:});
+                bd_pts=[];
+                [~,bd_pts]=norm_prob_across_angles(mu,v,dom,varargin{:},'bd_pts',true);
             elseif strcmpi(dom_type,'bd_pts')
                 bd_pts=dom;
             end

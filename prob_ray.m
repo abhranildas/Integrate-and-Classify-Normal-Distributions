@@ -3,10 +3,11 @@ function p_ray=prob_ray(init_sign_ray,z_ray,dim,varargin)
     % parse inputs
     parser=inputParser;
     parser.KeepUnmatched=true;
+    parser.PartialMatching=false;
     addRequired(parser,'init_sign_ray',@isnumeric);
     addRequired(parser,'z_ray',@isnumeric);
     addRequired(parser,'dim',@isnumeric);
-    addParameter(parser,'side','normal',@(x) strcmpi(x,'normal') || strcmpi(x,'complement'));
+    addOptional(parser,'side','upper',@(x) strcmpi(x,'lower') || strcmpi(x,'upper') );
     addParameter(parser,'vpa',false,@islogical);
 
     parse(parser,init_sign_ray,z_ray,dim,varargin{:});
@@ -17,9 +18,9 @@ function p_ray=prob_ray(init_sign_ray,z_ray,dim,varargin)
     [f_big,f_small]=Phibar_ray_split(z_ray,dim);
     p_ray_big=init_sign_ray+1+init_sign_ray*sum((-1).^(1:length(z_ray)).*f_big);
     p_ray_small=init_sign_ray*sum((-1).^(1:length(z_ray)).*f_small);
-    if strcmpi(side,'normal')
+    if strcmpi(side,'upper')
         p_ray=p_ray_big+p_ray_small;
-    elseif strcmpi(side,'complement')
+    elseif strcmpi(side,'lower')
         p_ray=2-p_ray_big-p_ray_small;
     end
 

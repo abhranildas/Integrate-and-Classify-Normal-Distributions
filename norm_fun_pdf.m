@@ -26,13 +26,13 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
     % Optional name-value inputs:
     % pdf_method    method to compute the pdf. 'diff' for numerically
     %               differentiating the cdf, or 'ray' for directly using
-    %               the ray method.
+    %               the ray method (requires supplying fun_grad).
     % fun_span      trace radius (in Mahalanobis distance) for function.
     %               Default=5.
     % fun_resol     resolution of tracing (finding roots) of function.
     %               Default=100.
-    % fun_grad      handle to a function that returns the vector gradient
-    %               of fun
+    % fun_grad      handle to a function that returns the scalar or vector 
+    %               gradient of fun
     % dx            step-size for numerically differentiating cdf
     % AbsTol        absolute tolerance to compute the cdf in 'diff' method
     % RelTol        relative tolerance to compute the cdf in 'diff' method
@@ -53,7 +53,7 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
     addRequired(parser,'mu',@isnumeric);
     addRequired(parser,'v',@isnumeric);
     addRequired(parser,'fun',@(x) isstruct(x)|| isa(x,'function_handle'));
-    addParameter(parser,'pdf_method','ray');
+    addParameter(parser,'pdf_method','diff');
     addParameter(parser,'dx',1e-3,@(x) isreal(x) && isscalar(x) && (x>=0));
 
     parse(parser,x,mu,v,fun,varargin{:});
@@ -64,12 +64,12 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
             f=arrayfun(@(x_each) int_norm_ray(mu,v,fun,'dom_type','fun','output','prob_dens','fun_level',x_each,varargin{:}), x);
         elseif strcmpi(pdf_method,'diff')
             dx=parser.Results.dx;
-    		p_left=norm_fun_cdf(x-dx,mu,v,fun,varargin{:});
-    		p_right=norm_fun_cdf(x+dx,mu,v,fun,varargin{:});
+    		p_left=norm_fun_cdf(x-dx,mu,v,fun,'lower',varargin{:});
+    		p_right=norm_fun_cdf(x+dx,mu,v,fun,'lower',varargin{:});
     		f=max((p_right-p_left)/(2*dx),0);
         end
     elseif isstruct(fun)
-        [w,k,lambda,m,s]=norm_quad_to_gx2_params(mu,v,fun);
-        f=gx2pdf(x,w,k,lambda,m,s,varargin{:});
+        [w,k,lambda,s,m]=norm_quad_to_gx2_params(mu,v,fun);
+        f=gx2pdf(x,w,k,lambda,s,m,varargin{:});
     end
 end

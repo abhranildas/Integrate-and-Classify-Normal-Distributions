@@ -42,7 +42,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               types resp.
     % force_mc      set to true to force the ray method to use Monte-Carlo
     %               integration instead of grid integration, even for dimensions <=3.
-    % mc_samples    No. of Monte-Carlo samples of rays to compute error rates. Default=500.
+    % n_rays        No. of Monte-Carlo samples of rays to compute error rates. Default=500.
     % fun_span      trace radius (in Mahalanobis distance) for implicit function
     %               domains. Default=5.
     % fun_resol     resolution of tracing (finding roots) of implicit domain.
@@ -55,15 +55,22 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               of contributions to d' from each dimension (measured using the
     %               amount by which norm_d_b drops when that dimension is
     %               removed; see paper), and plot contains a colorbar of these contributions.
+    % d_scale       a non-negative scale factor used to scale the
+    %               discriminability of the two distributions. Default=1.
+    % d_scale_type  type of discriminability scaling. 'squeeze_dist' for
+    %               squeezing distribution b towards a by interpolating the mean and covariance.
+    %               'squeeze dv' to pull the decision variables (log-likelihood ratios) towards 0.
     % samp_opt      true (default) if boundary will be optimized for the
     %               sample, otherwise false.
     % AbsTol        absolute tolerance for the error rate computations. Default=1e-10.
     % RelTol        relative tolerance for the error rate computations. Default=1e-2.
     %               The absolute OR the relative tolerance will be satisfied.
     %               They are not used if the no. of dimensions is >3 and
-    %               the domain is not a quadratic. Use mc_samples instead.
+    %               the domain is not a quadratic. Use n_rays instead.
     % vpa           false (default) to do ray method or Imhof's method integrals numerically,
     %               true to do them symbolically with variable precision.
+    % bd_pts        default=false. true for also returning and plotting boundary points
+    %               computed when using ray method.
     % n_samp_bd_pts number of sample boundary points to be computed
     % plotmode      'norm_prob' (default): normal probability picture, i.e.
     %               plot of the normals and their classification domains,
@@ -175,8 +182,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     addParameter(parser,'fun_resol',100);
     addParameter(parser,'input_type','norm', @(s) strcmpi(s,'norm') || strcmpi(s,'samp'));
     addParameter(parser,'samp_opt','step', @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || x==false);
-    addParameter(parser,'d_scale_type','squeeze_dv', @(s) strcmpi(s,'squeeze_dv') || strcmpi(s,'squeeze_dist'));
+    addParameter(parser,'d_scale_type','squeeze_dist', @(s) strcmpi(s,'squeeze_dv') || strcmpi(s,'squeeze_dist'));
     addParameter(parser,'d_scale',1);
+    addParameter(parser,'bd_pts',false);
     addParameter(parser,'n_samp_bd_pts',1e4);
     addParameter(parser,'plotmode','norm_prob',@(s) strcmpi(s,'norm_prob') || strcmpi(s,'fun_prob') || s==false);
     addParameter(parser,'d_con',false,@islogical);
@@ -204,7 +212,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         if strcmpi(d_scale_type,'squeeze_dist') && d_scale ~=1
             S_1=sqrtm(v_1); S_2=sqrtm(v_2);
 
-            % interpolate dist 2 (signal) towards dist 1 (noise) using efficiency scalar
+            % interpolate dist 2 (signal) towards dist 1 (noise) using d' scalar
             mu_2=d_scale*mu_2+(1-d_scale)*mu_1;
             S_2=d_scale*S_2+(1-d_scale)*S_1;
             v_2=S_2^2;
@@ -220,7 +228,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
             % whiten samp 2
             z_2=S_2\(dist_2'-mu_2);
 
-            % interpolate dist 2 (signal) towards dist 1 (noise) using efficiency scalar
+            % interpolate dist 2 (signal) towards dist 1 (noise) using d' scalar
             mu_2=d_scale*mu_2+(1-d_scale)*mu_1;
             S_2=d_scale*S_2+(1-d_scale)*S_1;
 
@@ -276,14 +284,15 @@ function results=classify_normals(dist_1,dist_2,varargin)
     dim=length(mu_1); % dimension
 
     colors=colororder;
-    if strcmpi('dom_type','ray_trace') && dim>3
+    if strcmpi(dom_type,'ray_trace') && dim>3
         plotmode=false;
     end
     if ~isequal(plotmode,false)
-        figure; hold on
+        figure;
+        hold on
         if dim>3
             plotmode='fun_prob';
-        elseif strcmpi('dom_type','ray_trace')
+        elseif strcmpi(dom_type,'ray_trace')
             plotmode='norm_prob';
         end
     end
@@ -305,28 +314,41 @@ function results=classify_normals(dist_1,dist_2,varargin)
         end
 
         if strcmpi(dom_type,'ray_trace') % ray-traced region functions
-            [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
-            dom_inv=@(n,orig) invert_ray_trace_dom(dom,n,'orig',orig);
-            [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom_inv,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
-        else
-            if strcmpi(dom_type,'quad') % quadratic domain
-                [norm_acc_1,norm_bd_pts_1a]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
-                [norm_err_1,norm_bd_pts_1b]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'side','complement',varargin{:},'plotmode',0);
+                [norm_acc_1,~,norm_bd_pts_1a]=integrate_normal(mu_1,v_1,dom,'upper','prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                [norm_err_1,~,norm_bd_pts_1b]=integrate_normal(mu_1,v_1,dom,'lower','prior',priors(1),varargin{:},'plotmode',0);
                 norm_bd_pts_1=uniquetol([norm_bd_pts_1a,norm_bd_pts_1b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
 
-                [norm_err_2,norm_bd_pts_2a]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
-                [norm_acc_2,norm_bd_pts_2b]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'side','complement',varargin{:},'plotmode',0);
+                [norm_acc_2,~,norm_bd_pts_2a]=integrate_normal(mu_2,v_2,dom,'lower','prior',priors(2),'plot_color',colors(2,:),varargin{:});
+                [norm_err_2,~,norm_bd_pts_2b]=integrate_normal(mu_2,v_2,dom,'upper','prior',priors(2),varargin{:},'plotmode',0);
+                norm_bd_pts_2=uniquetol([norm_bd_pts_2a,norm_bd_pts_2b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
+            % [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
+            % dom_inv=@(n,orig) invert_ray_trace_dom(dom,n,'orig',orig);
+            % [norm_acc_2,norm_err_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom_inv,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+        else
+            if strcmpi(dom_type,'quad') % quadratic domain
+                [norm_acc_1,~,norm_bd_pts_1a]=integrate_normal(mu_1,v_1,dom,'upper','prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                [norm_err_1,~,norm_bd_pts_1b]=integrate_normal(mu_1,v_1,dom,'lower','prior',priors(1),varargin{:},'plotmode',0);
+                norm_bd_pts_1=uniquetol([norm_bd_pts_1a,norm_bd_pts_1b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
+
+                [norm_acc_2,~,norm_bd_pts_2a]=integrate_normal(mu_2,v_2,dom,'lower','prior',priors(2),'plot_color',colors(2,:),varargin{:});
+                [norm_err_2,~,norm_bd_pts_2b]=integrate_normal(mu_2,v_2,dom,'upper','prior',priors(2),varargin{:},'plotmode',0);
                 norm_bd_pts_2=uniquetol([norm_bd_pts_2a,norm_bd_pts_2b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
             elseif strcmpi(dom_type,'fun') % function domain
-                [norm_acc_1,norm_err_1,norm_bd_pts_1]=integrate_normal(mu_1,v_1,dom,'prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                [norm_acc_1,~,norm_bd_pts_1a]=integrate_normal(mu_1,v_1,dom,'upper','prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                [norm_err_1,~,norm_bd_pts_1b]=integrate_normal(mu_1,v_1,dom,'lower','prior',priors(1),'plot_color',colors(1,:),varargin{:});
+                norm_bd_pts_1=uniquetol([norm_bd_pts_1a,norm_bd_pts_1b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
                 if strcmpi(plotmode,'norm_prob'), hold on, plot_boundary(norm_bd_pts_1,dim,'dom_type','bd_pts'), end
-                [norm_err_2,norm_acc_2,norm_bd_pts_2]=integrate_normal(mu_2,v_2,dom,'prior',priors(2),'plot_color',colors(2,:),varargin{:});
+
+                [norm_acc_2,~,norm_bd_pts_2a]=integrate_normal(mu_2,v_2,dom,'lower','prior',priors(2),'plot_color',colors(2,:),varargin{:});
+                [norm_err_2,~,norm_bd_pts_2b]=integrate_normal(mu_2,v_2,dom,'upper','prior',priors(2),varargin{:},'plotmode',0);
+                norm_bd_pts_2=uniquetol([norm_bd_pts_2a,norm_bd_pts_2b]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
                 if strcmpi(plotmode,'norm_prob'), hold on, plot_boundary(norm_bd_pts_2,dim,'dom_type','bd_pts'), end
             end
+            
             % plot boundary
             if strcmpi(plotmode,'norm_prob')
                 plot_boundary(dom,dim,'dom_type',dom_type);
-                if strcmpi(method,'gx2')
+                if ~strcmpi(method,'ray') || ~parser.Results.bd_pts
                     plot_boundary(dom,dim,'dom_type',dom_type,'plot_type','line');
                 end
             elseif strcmpi(plotmode,'fun_prob')
@@ -341,6 +363,12 @@ function results=classify_normals(dist_1,dist_2,varargin)
         results.norm_bd_pts=norm_bd_pts;
     end
 
+    % convert cells to syms
+    if iscell(norm_acc_1), norm_acc_1=cell2sym(norm_acc_1); end
+    if iscell(norm_err_1), norm_err_1=cell2sym(norm_err_1); end
+    if iscell(norm_acc_2), norm_acc_2=cell2sym(norm_acc_2); end
+    if iscell(norm_err_2), norm_err_2=cell2sym(norm_err_2); end
+    
     norm_errmat=[[norm_acc_1, norm_err_1]*priors(1); [norm_err_2, norm_acc_2]*priors(2)];
     if isa(norm_errmat,'sym')
         warning('Outcome probabilities too small for double precision. Returning as symbols, use vpa to evaluate.')
@@ -380,7 +408,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         for i=1:dim
             idx=[1:i-1 i+1:dim]; % indices of all except ith dimension
             % avoid adding to global boundary points
-            results_each=classify_normals([mu_1(idx) v_1(idx,idx)],[mu_2(idx) v_2(idx,idx)],'plotmode',0,'add_bd_pts',false);
+            results_each=classify_normals([mu_1(idx) v_1(idx,idx)],[mu_2(idx) v_2(idx,idx)],'plotmode',0,'bd_pts',false);
             d_con_list(i)=sqrt(norm_d_b^2-results_each.norm_d_b^2);
         end
         results.d_con=d_con_list;
@@ -425,7 +453,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         end
         results.samp_correct={samp_1_correct,samp_2_correct};
 
-        samp_errcount=samp_value(dist_1,dist_2,dom,'vals',1-eye(2),'dom_type',dom_type);
+        samp_errcount=samp_value(dist_1,dist_2,dom,'vals',1-eye(2),'dom_type',dom_type,'d_scale',d_scale,'d_scale_type',d_scale_type);
         samp_err=samp_errcount/sum(samp_countmat(:));
 
         results.samp_errmat=samp_countmat;
@@ -468,15 +496,17 @@ function results=classify_normals(dist_1,dist_2,varargin)
             samp_dom_2=structfun(@uminus,samp_dom_1,'un',0);
 
             % Decision variables with samp-opt classifier
-            f=quad2fun(samp_dom_1);
-            dv_samp_1=f(dist_1')';
-            dv_samp_2=f(dist_2')';
-            results.samp_opt_dv={dv_samp_1,dv_samp_2};
+            f=quad2fun(samp_dom_1,0);
+            samp_opt_dv_1=f(dist_1')';
+            samp_opt_dv_2=f(dist_2')';
+            results.samp_opt_dv={samp_opt_dv_1,samp_opt_dv_2};
 
             if dim<=3
                 % boundary points
-                [~,samp_bd_pts_1]=int_norm_across_angles(mu_1,v_1,samp_dom_1,'n_bd_pts',n_samp_bd_pts);
-                [~,samp_bd_pts_2]=int_norm_across_angles(mu_2,v_2,samp_dom_2,'n_bd_pts',n_samp_bd_pts);
+                global bd_pts;
+                bd_pts=[];
+                [~,samp_bd_pts_1]=norm_prob_across_angles(mu_1,v_1,samp_dom_1,'bd_pts',true,'n_bd_pts',n_samp_bd_pts);
+                [~,samp_bd_pts_2]=norm_prob_across_angles(mu_2,v_2,samp_dom_2,'bd_pts',true,'n_bd_pts',n_samp_bd_pts);
                 samp_bd_pts=uniquetol([samp_bd_pts_1,samp_bd_pts_2]',1e-12,'Byrows',true,'Datascale',1)'; % trim to unique boundary points
                 results.samp_opt_bd_pts=samp_bd_pts;
             end
@@ -509,13 +539,6 @@ function results=classify_normals(dist_1,dist_2,varargin)
 
     %% Plot samples
     if ~isequal(plotmode,false)
-        if strcmpi(plotmode,'fun_prob')
-            if isequal(vals,eye(2))
-                xlabel('Bayes decision variable: $\ln \frac{p(N_1 | \mbox{\boldmath $x$})}{p(N_2 | \mbox{\boldmath $x$})}$','interpreter','latex','fontsize',15)
-            else
-                xlabel('Bayes decision variable: $\ln \frac{ \langle v(N_1 | \mbox{\boldmath $x$}) \rangle }{ \langle v(N_2 | \mbox{\boldmath $x$}) \rangle}$','interpreter','latex','fontsize',15)
-            end
-        end
 
         if strcmpi(parser.Results.input_type,'norm')
             title(sprintf("$p_e = %g$",norm_err),'interpreter','latex') % plot title
@@ -526,12 +549,12 @@ function results=classify_normals(dist_1,dist_2,varargin)
                 plot_sample(dist_2,priors(2),colors(2,:));
             elseif strcmpi(plotmode,'fun_prob')
                 % plot sample log posterior ratios
-                plot_sample(dv_1,priors(1),colors(1,:))
-                plot_sample(dv_2,priors(2),colors(2,:))
+                plot_sample(samp_1_dv,priors(1),colors(1,:))
+                plot_sample(samp_2_dv,priors(2),colors(2,:))
             end
             if ~exist('samp_opt_err','var') % if custom boundary
                 title(sprintf("$p_e = %g / %g$",[norm_err,samp_err]),'interpreter','latex') % plot title
-                % don't plot sample boundary
+                % don't plot sample-optimal boundary
             else
                 title(sprintf("$p_e = %g / %g / %g$",[norm_err,samp_err,samp_opt_err]),'interpreter','latex') % plot title
                 if strcmpi(plotmode,'norm_prob')
@@ -545,5 +568,21 @@ function results=classify_normals(dist_1,dist_2,varargin)
                 legend box off
             end
         end
+
+        % set xlabel
+        if strcmpi(plotmode,'fun_prob')
+            if isequal(vals,eye(2))
+                xlabel('Bayes decision variable: $\ln \frac{p(N_1 | \mbox{\boldmath $x$})}{p(N_2 | \mbox{\boldmath $x$})}$','interpreter','latex','fontsize',15)
+            else
+                xlabel('Bayes decision variable: $\ln \frac{ \langle v(N_1 | \mbox{\boldmath $x$}) \rangle }{ \langle v(N_2 | \mbox{\boldmath $x$}) \rangle}$','interpreter','latex','fontsize',15)
+            end
+        end
+
+        % set ylim to start from 0
+        if dim==1 || strcmpi(plotmode,'fun_prob')
+            yl=ylim;
+            ylim([0 yl(2)])
+        end
+        
         hold off
     end
