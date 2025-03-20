@@ -9,7 +9,7 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>2.8.3</param.version>
+    <param.version>2.8.4</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -96,7 +96,6 @@ dprime_scaling.gif
     <param.exported.on.package>false</param.exported.on.package>
     <param.required.addons>
       <requiredaddons>
-        <requiredAddOn earliest="earliest" fromRepository="true" id="e5a0fecc-4a80-11e4-9553-005056977bd0" include="true" latest="latest">nearestSPD</requiredAddOn>
         <requiredAddOn earliest="earliest" fromRepository="true" id="6f9f2474-f422-495e-a245-dd928544dd14" include="true" latest="latest">Generalized chi-square distribution</requiredAddOn>
       </requiredaddons>
     </param.required.addons>
