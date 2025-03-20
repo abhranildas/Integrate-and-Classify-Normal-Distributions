@@ -257,3 +257,127 @@ p=mvncdf(L,U,mu',v)
 figure
 p=integrate_normal(mu,v,[L;U],'dom_type','rect','add_bd_pts',true)
 
+%% non-orthogonal contributions to d'
+% mu_1=[2;3];
+% mu_2=[7;9];
+% v=[1 -1.3; -1.3 4];
+
+mu_1=[0;0];
+mu_2=[9;9];
+v=[1 .8; .8 1];
+
+S=sqrtm(v);
+
+samp_1=mvnrnd(mu_1,v,1e3);
+samp_2=mvnrnd(mu_2,v,1e3);
+
+classify_normals(samp_1,samp_2,'input_type','samp','samp_opt',false);
+hold on
+% axis normal
+
+% plot line between means
+plot([mu_1(1), mu_2(1)], [mu_1(2), mu_2(2)], '-k')
+
+% plot rectangular grid
+s=sqrt(diag(v));
+x_min=mu_1(1)-s(1);
+x_max=mu_2(1)+s(1);
+y_min=mu_1(2)-s(2);
+y_max=mu_2(2)+s(2);
+
+x_grid = x_min:s(1):x_max; % X-coordinates for vertical lines
+y_grid = y_min:s(2):y_max; % Y-coordinates for horizontal lines
+
+% Generate endpoints for vertical lines
+X_vertical = [x_grid; x_grid]; % Each column is a vertical line
+Y_vertical = [y_min * ones(size(x_grid)); y_max * ones(size(x_grid))];
+
+% Generate endpoints for horizontal lines
+Y_horizontal = [y_grid; y_grid]; % Each column is a horizontal line
+X_horizontal = [x_min * ones(size(y_grid)); x_max * ones(size(y_grid))];
+
+% Plot all vertical and horizontal lines at once
+% plot(X_vertical, Y_vertical, 'k-', X_horizontal, Y_horizontal, 'k-');
+
+% plot quarter unit circles
+th=linspace(0,2*pi,100);
+circ=[sin(th);cos(th)];
+circ_x=sqrt(diag(v)).*circ+mu_1;
+circ_z=S*circ+mu_1;
+
+plot(circ_z(1,:),circ_z(2,:),'-r')
+plot(circ_x(1,:),circ_x(2,:),'-k')
+
+% axis([-1 10 -3 15])
+title ''
+% set(gca,'xtick',[],'ytick',[],'fontsize',13)
+
+hold on
+
+% plot basis vectors of z
+quiver(mu_1(1), mu_1(2), S(1,1), S(2,1), 0, '-r','showarrowhead',0);
+quiver(mu_1(1), mu_1(2), S(1,2), S(2,2), 0, '-r','showarrowhead',0);
+
+% whitened space:
+samp_1_w=samp_1/S;
+samp_2_w=samp_2/S;
+
+mu_1_w=S\mu_1;
+mu_2_w=S\mu_2;
+v_w=eye(2);
+
+results=classify_normals(samp_1_w,samp_2_w,'input_type','samp','samp_opt',false);
+
+T=inv(S);
+hold on
+
+% d' vector
+dprime_w=mu_2_w-mu_1_w;
+quiver(mu_1_w(1), mu_1_w(2), dprime_w(1), dprime_w(2), 0, 'k','showarrowhead',0);
+
+% projections of d' along original axes
+d_1=dot(dprime_w,T(:,1))*T(:,1)/norm(T(:,1))^2;
+d_2=dot(dprime_w,T(:,2))*T(:,2)/norm(T(:,2))^2;
+
+% individual dprimes
+d=mu_2-mu_1;
+dprimes_ind=d./sqrt(diag(v))
+dprimes_ind(2)/dprimes_ind(1);
+
+% vector contribution lengths
+% delta=d.*(vecnorm(T,2,1))'
+delta=d.*sqrt(diag(inv(v)))
+delta(2)/delta(1);
+c=d;
+
+% plot parallelogram
+quiver(mu_1_w(1), mu_1_w(2), c(1)*T(1,1), c(1)*T(2,1), 0, 'k','showarrowhead',0);
+quiver(mu_1_w(1), mu_1_w(2), c(2)*T(1,2), c(2)*T(2,2), 0, 'k','showarrowhead',0);
+
+quiver(mu_1_w(1)+c(1)*T(1,1), mu_1_w(2)+c(1)*T(2,1), c(2)*T(1,2), c(2)*T(2,2), 0, 'k','showarrowhead',0);
+quiver(mu_1_w(1)+c(2)*T(1,2), mu_1_w(2)+c(2)*T(2,2), c(1)*T(1,1), c(1)*T(2,1), 0, 'k','showarrowhead',0);
+
+
+% plot original basis
+quiver(mu_1_w(1), mu_1_w(2), T(1,1), T(2,1), 0, 'b','showarrowhead',0);
+quiver(mu_1_w(1), mu_1_w(2), T(1,2), T(2,2), 0, 'b','showarrowhead',0);
+
+% angles between d' vector and original axes
+acosd(sum(dprime_w.*T)./(norm(dprime_w)*vecnorm(T)))
+
+title ''
+% axis([0 14.5 -1 10.5])
+% set(gca,'xtick',[],'ytick',[],'fontsize',13)
+
+%% d_con_vec
+mu_1=[0;0;0];
+mu_2=[1;1;1];
+v=[1 0  0;
+  0  1   0;
+  0  0   1];
+results=classify_normals([mu_1 v],[mu_2 v]);
+S=sqrtm(v);
+dprime_w=S\(mu_2-mu_1);
+T=inv(S);
+
+sum(dprime_w.*T)./(norm(dprime_w)*vecnorm(T))

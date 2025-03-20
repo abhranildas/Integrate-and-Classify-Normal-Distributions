@@ -9,7 +9,7 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>2.8.1</param.version>
+    <param.version>2.8.3</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
@@ -155,6 +155,7 @@ dprime_scaling.gif
       <file>${PROJECT_ROOT}\integrate_normal.m</file>
       <file>${PROJECT_ROOT}\invert_ray_trace_dom.m</file>
       <file>${PROJECT_ROOT}\line_ray_trace.m</file>
+      <file>${PROJECT_ROOT}\nearestSPD.m</file>
       <file>${PROJECT_ROOT}\norm_fun_cdf.m</file>
       <file>${PROJECT_ROOT}\norm_fun_inv.m</file>
       <file>${PROJECT_ROOT}\norm_fun_pdf.m</file>
@@ -177,6 +178,7 @@ dprime_scaling.gif
       <file>${PROJECT_ROOT}\samp_value_flat.m</file>
       <file>${PROJECT_ROOT}\smooth_acc_demo.m</file>
       <file>${PROJECT_ROOT}\standard_fun_grad.m</file>
+      <file>${PROJECT_ROOT}\standard_quad.m</file>
       <file>${PROJECT_ROOT}\standard_ray_fun.m</file>
       <file>${PROJECT_ROOT}\standard_ray_trace.m</file>
       <file>${PROJECT_ROOT}\target_absent.txt</file>

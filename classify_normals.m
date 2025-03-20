@@ -89,8 +89,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % norm_bd_pts   points on the above boundary computed by the ray-trace
     %               integration method.
     % norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
-    %               normal i as j.
-    % norm_err      overall error rate
+    %               normal i as j. Probabilities < realmin=1e-308 are
+    %               returned as their log10 values, which are negative.
+    % norm_err      overall error rate. Value < realmin=1e-308 is
+    %               returned as its log10 value, which is negative.
     % norm_d_b      Bayes-optimal discriminability index between the
     %               distributions. Equal to the separation between two
     %               unit-variance normals that have the same overlap.
@@ -369,20 +371,39 @@ function results=classify_normals(dist_1,dist_2,varargin)
     if iscell(norm_acc_2), norm_acc_2=cell2sym(norm_acc_2); end
     if iscell(norm_err_2), norm_err_2=cell2sym(norm_err_2); end
     
-    norm_errmat=[[norm_acc_1, norm_err_1]*priors(1); [norm_err_2, norm_acc_2]*priors(2)];
+    % multiply errors with priors to form error matrix, accounting for log10 values
+    norm_errmat_row_1=[norm_acc_1 norm_err_1];
+    norm_errmat_row_1(norm_errmat_row_1>0)=norm_errmat_row_1(norm_errmat_row_1>0)*priors(1);
+    norm_errmat_row_1(norm_errmat_row_1<0)=norm_errmat_row_1(norm_errmat_row_1<0)+log10(priors(1));
+
+    norm_errmat_row_2=[norm_err_2 norm_acc_2];
+    norm_errmat_row_2(norm_errmat_row_2>0)=norm_errmat_row_2(norm_errmat_row_2>0)*priors(2);
+    norm_errmat_row_2(norm_errmat_row_2<0)=norm_errmat_row_2(norm_errmat_row_2<0)+log10(priors(2));
+
+    norm_errmat=[norm_errmat_row_1; norm_errmat_row_2];
+    % norm_errmat=[[norm_acc_1, norm_err_1]*priors(1); [norm_err_2, norm_acc_2]*priors(2)];
     if isa(norm_errmat,'sym')
         warning('Outcome probabilities too small for double precision. Returning as symbols, use vpa to evaluate.')
     end
     results.norm_errmat=norm_errmat;
-    norm_err=sum(norm_errmat(~eye(2))); % sum of off-diagonal elements
+    norm_errmat_off=norm_errmat(~eye(2)); % off-diagonal elements
+    if all(norm_errmat_off>0) % if all errors are > realmin
+        norm_err=sum(norm_errmat_off); % sum of all errors
+    elseif all(norm_errmat_off<0) % if they are all < realmin, represented as log10 values
+        norm_err=signed_log_sum_exp(norm_errmat_off); % use log-sum-exp
+    else % if some are > realmin, and others are < realmin
+        norm_err=sum(norm_errmat_off(norm_errmat_off>0)); % sum only the ones > realmin
+    end
     results.norm_err=norm_err;
 
     % d'_b
     if optimal_case
-        try % try to compute it all symbolically
-            norm_d_b=-2*double(norminv(norm_err));
-        catch % if you can't, evaluate norm_err first
-            norm_d_b=-2*double(norminv(vpa(norm_err)));
+        if norm_err>0
+            norm_d_b=-2*norminv(norm_err);
+        else % if norm_err is small and represented as its log10
+            % Asymptotic expression for norm_d_b upto 2nd order:
+            w=-2*norm_err*log(10)-log(2*pi);
+            norm_d_b=2*sqrt(w-log(w));
         end
     else
         results_opt=classify_normals([mu_1,v_1],[mu_2,v_2],'plotmode',0);
@@ -403,6 +424,12 @@ function results=classify_normals(dist_1,dist_2,varargin)
     end
 
     % d' contributions from each dimension
+    % d_con_vec
+    v=(v_1+v_2)/2; % pooled covariance
+    % TODO weight by sample size when data input
+    Q=inv(v); % precision matrix
+    % results.d_con_vec=abs(mu_2-mu_1).*sqrt(diag(Q));
+
     if d_con && dim>1
         d_con_list=nan(dim,1);
         for i=1:dim
