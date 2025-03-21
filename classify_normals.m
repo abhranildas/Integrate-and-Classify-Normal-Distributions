@@ -398,7 +398,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
 
     % d'_b
     if optimal_case
-        if norm_err>0
+        if norm_err>=0
             norm_d_b=-2*norminv(norm_err);
         else % if norm_err is small and represented as its log10
             % Asymptotic expression for norm_d_b upto 2nd order:

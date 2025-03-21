@@ -29,9 +29,9 @@ function p=int_norm_quad_gx2(mu,v,quad,varargin)
     if ~nnz(quad.q2) % if q2 is zero, linear discriminant
         quad_s=standard_quad(quad,mu,v); % standardize quad
         if strcmpi(side,'lower')
-            p=normcdf(quad_s.q0/norm(quad_s.q1));
-        elseif strcmpi(side,'upper')
             p=normcdf(quad_s.q0/norm(quad_s.q1),'upper');
+        elseif strcmpi(side,'upper')
+            p=normcdf(quad_s.q0/norm(quad_s.q1));
         end
         %     pc=normcdf(-quad_s.q0/norm(quad_s.q1));
     else
