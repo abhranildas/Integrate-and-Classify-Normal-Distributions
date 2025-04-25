@@ -38,6 +38,8 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
     % RelTol        relative tolerance to compute the cdf in 'diff' method
     %               The absolute OR the relative tolerance will be satisfied.
     %
+    % also supports some of the name-value inputs of integrate_normal.
+    %
     % Outputs:
     % f             pdf
     %
@@ -53,7 +55,7 @@ function f=norm_fun_pdf(x,mu,v,fun,varargin)
     addRequired(parser,'mu',@isnumeric);
     addRequired(parser,'v',@isnumeric);
     addRequired(parser,'fun',@(x) isstruct(x)|| isa(x,'function_handle'));
-    addParameter(parser,'pdf_method','diff');
+    addParameter(parser,'pdf_method','ray');
     addParameter(parser,'dx',1e-3,@(x) isreal(x) && isscalar(x) && (x>=0));
 
     parse(parser,x,mu,v,fun,varargin{:});

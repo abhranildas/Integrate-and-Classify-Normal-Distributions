@@ -54,7 +54,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % d_con         false by default. If true, output contains a vector d_con
     %               of contributions to d' from each dimension (measured using the
     %               amount by which norm_d_b drops when that dimension is
-    %               removed; see paper), and plot contains a colorbar of these contributions.
+    %               removed; see paper), and plot contains a colorbar of these contributions
+    %               (dimensions 1 to d are ordered from bottom to top).
     % d_scale       a non-negative scale factor used to scale the
     %               discriminability of the two distributions. Default=1.
     % d_scale_type  type of discriminability scaling. 'squeeze_dist' for
@@ -442,7 +443,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
 
         % colorbar of d' contributions
         if plotmode
-            dim_colors=cool(dim);
+            dim_colors=lines(dim);
             if strcmpi(plotmode,'norm_prob')
                 xlabel('dim 1','color',dim_colors(1,:));
                 ylabel('dim 2','color',dim_colors(2,:));

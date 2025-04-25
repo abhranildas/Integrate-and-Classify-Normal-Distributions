@@ -35,6 +35,8 @@ function p=norm_fun_cdf(x,mu,v,fun,varargin)
 % RelTol        relative tolerance for the output
 %               The absolute OR the relative tolerance will be satisfied.
 %
+% also supports some of the name-value inputs of integrate_normal.
+%
 % Outputs:
 % p             cdf
 %
