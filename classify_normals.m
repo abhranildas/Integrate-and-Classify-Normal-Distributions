@@ -61,8 +61,19 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % d_scale_type  type of discriminability scaling. 'squeeze_dist' for
     %               squeezing distribution b towards a by interpolating the mean and covariance.
     %               'squeeze dv' to pull the decision variables (log-likelihood ratios) towards 0.
-    % samp_opt      true (default) if boundary will be optimized for the
-    %               sample, otherwise false.
+    % samp_opt      true (default) if the optimal classification boundary 
+    %               between the fitted (multi)normals will be further optimized to minimize samp_err
+    %               (or maximize samp_val if custom vals are supplied) for the
+    %               input sample, otherwise false. If samp_balance=true,
+    %               this optimizes the class-balanced samp_err or samp_val.
+    % samp_balance  if the classes are unbalanced in the input samples, set this to true
+    %               to return class-balanced samp_err (error rates of the two classes averaged,
+    %               instead of overall error rate), and, if additionally using custom vals,
+    %               to return class-balanced samp_val (average of the per-point expected values               
+    %               in the two classes, instead of total value). samp_opt will then also
+    %               optimize this class-balanced samp_err or samp_val (and return them as
+    %               samp_opt_err and samp_opt_val), instead of the overall error rate 
+    %               or value. Default=false.
     % AbsTol        absolute tolerance for the error rate computations. Default=1e-10.
     % RelTol        relative tolerance for the error rate computations. Default=1e-2.
     %               The absolute OR the relative tolerance will be satisfied.
@@ -89,9 +100,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               covariances and priors) are estimated.
     % norm_bd_pts   points on the above boundary computed by the ray-trace
     %               integration method.
-    % norm_errmat   error matrix. e(i,j)=prob. of classifying a sample from
-    %               normal i as j. Probabilities < realmin=1e-308 are
-    %               returned as their log10 values, which are negative.
+    % norm_errmat   error matrix. e(i,j)=prob. that a sample came from
+    %               normal i, and was classified as normal j. Matrix sums to 1.
+    %               Probabilities < realmin=1e-308 are returned as their
+    %               log10 values, which are negative.
     % norm_err      overall error rate. Value < realmin=1e-308 is
     %               returned as its log10 value, which is negative.
     % norm_d_b      Bayes-optimal discriminability index between the
@@ -117,6 +129,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               e(i,j)= no. of i samples classified as j.
     % samp_err      overall error rate of classifying the samples, using the
     %               optimal boundary between the normals fitted to the samples.
+    %               If samp_balance=true, this is class-balanced 
+    %               (error rates of the two classes averaged, instead of
+    %               overall error rate).
     % samp_d_b      Bayes-optimal discriminability using samp_err.
     %               Returned only when sample sizes are equal, values are
     %               default, and the classifier is optimal.
@@ -137,7 +152,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % samp_valmat   matrix of total sample classification outcome values using
     %               norm_bd. Returned only when custom values are supplied.
     % samp_val      total value of classifying the samples using norm_bd.
-    %               Returned only when custom values are supplied.
+    %               Returned only when custom values are supplied. If samp_balance=true,
+    %               this is class-balanced (average of the per-point expected values               
+    %               in the two classes, instead of total value)
     % samp_opt_bd   struct containing coefficients of the boundary optimized
     %               for the samples
     % samp_opt_bd_pts   points on samp_opt_bd computed by the ray-trace
@@ -149,7 +166,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % samp_opt_errmat   error matrix (counts) of supplied samples using
     %                   samp_opt_bd.
     % samp_opt_err  overall error rate of classifying the samples using
-    %               samp_opt_bd
+    %               samp_opt_bd. If samp_balance=true, this is
+    %               class-balanced (error rates of the two classes averaged, instead of
+    %               overall error rate).
     % samp_opt_d_b  Bayes-optimal discriminability based on samp_opt_err.
     %               Returned only when sample sizes are equal, values are
     %               default, and the classifier is optimal.
@@ -160,7 +179,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %                   supplied.
     % samp_opt_val      total value of classifying the samples using
     %                   samp_opt_bd. Returned only when custom values are
-    %                   supplied.
+    %                   supplied. if samp_balance=true, this is class-balanced 
+    %                   (average of the per-point expected values in the two classes,
+    %                   instead of total value).
     % v_1_corrected,
     % v_2_corrected     if either of the input covariance matrices are not
     %                   symmetric and positive-definite (SPD), these are the
@@ -184,7 +205,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
     addParameter(parser,'fun_span',5);
     addParameter(parser,'fun_resol',100);
     addParameter(parser,'input_type','norm', @(s) strcmpi(s,'norm') || strcmpi(s,'samp'));
-    addParameter(parser,'samp_opt','step', @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || x==false);
+    addParameter(parser,'samp_opt','step', @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || islogical(x));
+    addParameter(parser,'samp_balance',false,@islogical);
     addParameter(parser,'d_scale_type','squeeze_dist', @(s) strcmpi(s,'squeeze_dv') || strcmpi(s,'squeeze_dist'));
     addParameter(parser,'d_scale',1);
     addParameter(parser,'bd_pts',false);
@@ -198,6 +220,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     dom_type=parser.Results.dom_type;
     method=parser.Results.method;
     samp_opt=parser.Results.samp_opt;
+    samp_balance=parser.Results.samp_balance;
     vals=parser.Results.vals;
     d_scale_type=parser.Results.d_scale_type;
     d_scale=parser.Results.d_scale;
@@ -482,8 +505,13 @@ function results=classify_normals(dist_1,dist_2,varargin)
         results.samp_correct={samp_1_correct,samp_2_correct};
 
         samp_errcount=samp_value(dist_1,dist_2,dom,'vals',1-eye(2),'dom_type',dom_type,'d_scale',d_scale,'d_scale_type',d_scale_type);
-        samp_err=samp_errcount/sum(samp_countmat(:));
-
+        if ~samp_balance % if it is not required to be class-balanced
+            samp_err=samp_errcount/sum(samp_countmat(:));
+        else
+            % class-balanced sample error rate, i.e. average of error
+            % rates of each class
+            samp_err=mean(diag(fliplr(samp_countmat))./sum(samp_countmat,2));
+        end
         results.samp_errmat=samp_countmat;
         results.samp_err=samp_err;
 
@@ -544,13 +572,21 @@ function results=classify_normals(dist_1,dist_2,varargin)
             %             end
 
             % compute outcome counts and error with optimized sample boundary
-            [~,samp_opt_counts,samp_1_opt_correct,samp_2_opt_correct]=samp_value(dist_1,dist_2,samp_dom_1,'vals',ones(2));
-            samp_opt_errcount=samp_value(dist_1,dist_2,samp_dom_1,'vals',1-eye(2));
-            samp_opt_err=samp_opt_errcount/sum(samp_countmat(:));
+            [~,samp_opt_countmat,samp_1_opt_correct,samp_2_opt_correct]=samp_value(dist_1,dist_2,samp_dom_1,'vals',ones(2));
+
+            if ~samp_balance % if it is not required to be class-balanced
+                samp_opt_errcount=samp_value(dist_1,dist_2,samp_dom_1,'vals',1-eye(2));
+                samp_opt_err=samp_opt_errcount/sum(samp_countmat(:));
+            else
+                % class-balanced sample error rate, i.e. average of error
+                % rates of each class
+                samp_opt_err=mean(diag(fliplr(samp_opt_countmat))./sum(samp_opt_countmat,2));
+            end
+
 
             results.samp_1_opt_correct=samp_1_opt_correct;
             results.samp_2_opt_correct=samp_2_opt_correct;
-            results.samp_opt_errmat=samp_opt_counts;
+            results.samp_opt_errmat=samp_opt_countmat;
             results.samp_opt_err=samp_opt_err;
 
             if optimal_case

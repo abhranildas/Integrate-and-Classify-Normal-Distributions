@@ -3,7 +3,6 @@ function [samp_val,samp_val_mat,samp_1_correct,samp_2_correct,samp_1_dv,samp_2_d
 % are not additionally specified, this is the classification accuracy.
 % Credits:
 %   Abhranil Das <abhranil.das@utexas.edu>
-%	R Calen Walshe
 %	Wilson S Geisler
 %	Center for Perceptual Systems, University of Texas at Austin
 % If you use this code, please cite:
@@ -21,6 +20,7 @@ addParameter(parser,'d_scale_type','squeeze_dv', @(s) strcmpi(s,'squeeze_dv') ||
 addParameter(parser,'d_scale',1);
 addParameter(parser,'acc_sharpness',inf,@isscalar); % sharpness of sigmoidal accuracy function. Inf means exact step function.
 addParameter(parser,'vals',eye(2), @(x) isnumeric(x) && ismatrix(x));
+addParameter(parser,'samp_balance',false,@islogical);
 
 parse(parser,samp_1,samp_2,dom,varargin{:});
 dom_type=parser.Results.dom_type;
@@ -28,6 +28,7 @@ acc_sharpness=parser.Results.acc_sharpness;
 vals=parser.Results.vals;
 d_scale_type=parser.Results.d_scale_type;
 d_scale=parser.Results.d_scale;
+samp_balance=parser.Results.samp_balance;
 
 if strcmpi(dom_type,'ray_trace')
     [~,~,samp_1_correct]=dom(samp_1',[]);
@@ -70,13 +71,18 @@ else
     end
 end
 
-samp_val_mat=zeros(2);
-samp_val_mat(1,1)=sum(samp_1_correct)*vals(1,1);
-samp_val_mat(1,2)=sum(~samp_1_correct)*vals(1,2);
-samp_val_mat(2,2)=sum(samp_2_correct)*vals(2,2);
-samp_val_mat(2,1)=sum(~samp_2_correct)*vals(2,1);
+samp_count_mat=[sum(samp_1_correct) sum(~samp_1_correct);
+                sum(~samp_2_correct)  sum(samp_2_correct)];
 
-samp_val=sum(samp_val_mat(:));
+samp_val_mat=samp_count_mat.*vals;
+
+if ~samp_balance % if it is not required to be class-balanced
+    samp_val=sum(samp_val_mat(:));
+else
+    % class-balanced expected value per sample point, i.e. average of the expected values per point in
+    % each class
+    samp_val=mean(sum(samp_val_mat,2)./sum(samp_count_mat,2));
+end
 
 end
 

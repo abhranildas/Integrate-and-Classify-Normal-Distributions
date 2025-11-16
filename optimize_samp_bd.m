@@ -4,7 +4,7 @@ function samp_bd_current=optimize_samp_bd(samp_1,samp_2,norm_bd,varargin)
     addRequired(parser,'samp_1',@isnumeric);
     addRequired(parser,'samp_2',@isnumeric);
     addRequired(parser,'norm_bd',@isstruct);
-    addParameter(parser,'samp_opt','step', @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || x==false);
+    addParameter(parser,'samp_opt',true, @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || islogical(x));
     addParameter(parser,'samp_opt_plot','step', @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || x==false);
     addParameter(parser,'plots',false, @islogical);
 
@@ -19,10 +19,10 @@ function samp_bd_current=optimize_samp_bd(samp_1,samp_2,norm_bd,varargin)
     samp_bd_current=norm_bd_flat;
     samp_val_current=samp_value_flat(samp_bd_current,samp_1,samp_2,varargin{:});
 
-    if strcmpi(samp_opt,'step') % if exact accuracy, use fminsearch
+    if samp_opt % if exact accuracy, use fminsearch
         obj_fun=@(x) -samp_value_flat(x,samp_1,samp_2,varargin{:}); % step objective function
         [samp_bd_current,samp_val_best]=fminsearch(obj_fun,samp_bd_current,optimset('Display','notify','TolX',0,'TolFun',1/(size(samp_1,1)+size(samp_2,1))));
-%         fprintf('one-shot: %d %d \n',[samp_val_current, -samp_val_best])
+        fprintf('Sample classification accuracy/value optimized from %g to %g \n',[samp_val_current, -samp_val_best])
 
     elseif strcmpi(samp_opt,'smooth') % if smoothened accuracy, use fminunc
         if plots
