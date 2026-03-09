@@ -34,7 +34,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               forms:
     %               • struct containing coefficients a2 (matrix), a1 (column
     %                 vector) and a0 (scalar) of a quadratic domain:
-    %                 x'*a2*x + a1'*x + a0 > 0
+    %                 x'*q2*x + q1'*x + q0 > 0
     %               • handle to a ray-trace function, returning the starting sign
     %                 and roots of the domain along any ray
     %               • handle to an implicit function f(x) defining the domain f(x)>0.
@@ -61,11 +61,22 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % d_scale_type  type of discriminability scaling. 'squeeze_dist' for
     %               squeezing distribution b towards a by interpolating the mean and covariance.
     %               'squeeze dv' to pull the decision variables (log-likelihood ratios) towards 0.
-    % samp_opt      true (default) if the optimal classification boundary 
-    %               between the fitted (multi)normals will be further optimized to minimize samp_err
+    % samp_opt      If =0, no sample-specific classification boundary is returned.
+    %               If =1, norm_bd, the optimal classification boundary
+    %               between the fitted (multi)normals,
+    %               is further optimized to minimize samp_err
     %               (or maximize samp_val if custom vals are supplied) for the
-    %               input sample, otherwise false. If samp_balance=true,
-    %               this optimizes the class-balanced samp_err or samp_val.
+    %               specific sample points, and returned as samp_opt_bd. If samp_balance=true,
+    %               this optimizes the class-balanced samp_err or class-balanced samp_val.
+    %               The optimization is an fminsearch with a single start point (faster).
+    %               If >1, the optimization first does the above step, then from there
+    %               does a multi-start fminunc with the number of starting points equal to samp_opt (slower).
+    %               If set to 'svm' (default), it finds a quadratic SVM classifier,
+    %               taking care of samp_balance if it's true, and also
+    %               vals. But SVM does not explicitly optimize the
+    %               classification error of the given sample, so the
+    %               error or value with this sample boundary may be worse
+    %               than with norm_bd.
     % samp_balance  if the classes are unbalanced in the input samples, set this to true
     %               to return class-balanced samp_err (error rates of the two classes averaged,
     %               instead of overall error rate), and, if additionally using custom vals,
@@ -85,10 +96,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               computed when using ray method.
     % n_samp_bd_pts number of sample boundary points to be computed
     % plotmode      'norm_prob' (default): normal probability picture, i.e.
-    %               plot of the normals and their classification domains,
+    %               plot of the (multi)normals and their classification domains,
     %               'fun_prob': function probability picture, i.e. plot of
-    %               the 1d pdfs of the scalar function of the normals that
-    %               defines the domain. For >3 dimensions, only fun_prob is
+    %               the 1d pdfs of the scalar function of the (multi)normals that
+    %               defines the domain (the Bayes decision variable). For >3 dimensions, only fun_prob is
     %               possible. For ray-trace domains, only norm_prob is
     %               possible.
     %               false or 0, for no plot.
@@ -205,7 +216,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     addParameter(parser,'fun_span',5);
     addParameter(parser,'fun_resol',100);
     addParameter(parser,'input_type','norm', @(s) strcmpi(s,'norm') || strcmpi(s,'samp'));
-    addParameter(parser,'samp_opt','step', @(x) strcmpi(x,'step') || strcmpi(x,'smooth') || islogical(x));
+    addParameter(parser,'samp_opt',100);
     addParameter(parser,'samp_balance',false,@islogical);
     addParameter(parser,'d_scale_type','squeeze_dist', @(s) strcmpi(s,'squeeze_dv') || strcmpi(s,'squeeze_dist'));
     addParameter(parser,'d_scale',1);
@@ -244,6 +255,13 @@ function results=classify_normals(dist_1,dist_2,varargin)
             v_2=S_2^2;
         end
     elseif strcmpi(parser.Results.input_type,'samp')
+        % drop nans
+        [dist_1,idx_1]=rmmissing(dist_1);
+        [dist_2,idx_2]=rmmissing(dist_2);
+        n_missing=nnz([idx_1;idx_2]);
+        if n_missing
+            warning('%d observation(s) with missing variables dropped. This changes sample counts.',n_missing)
+        end
         mu_1=mean(dist_1)';
         v_1=cov(dist_1);
         mu_2=mean(dist_2)';
@@ -533,7 +551,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         end
 
         %% sample-optimal boundary
-        if ~isequal(samp_opt,false) && strcmpi(dom_type,'quad') % if default boundary,
+        if ~isequal(samp_opt,0) && strcmpi(dom_type,'quad') % if default boundary,
             %             try
             % find quad boundary that optimizes expected value / accuracy
 
@@ -627,7 +645,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
             end
             % boundary legends
             legend_marker=line(nan, nan,'color','none','linestyle','none');
-            if ~isequal(parser.Results.samp_opt,false) && strcmpi(plotmode,'norm_prob')
+            if ~isequal(samp_opt,0) && strcmpi(plotmode,'norm_prob')
                 legend(legend_marker,'\color[rgb]{0,.7,0}sample-optimized boundary')
                 legend box off
             end

@@ -381,3 +381,5 @@ dprime_w=S\(mu_2-mu_1);
 T=inv(S);
 
 sum(dprime_w.*T)./(norm(dprime_w)*vecnorm(T))
+
+
