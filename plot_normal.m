@@ -94,7 +94,7 @@ if dim>1
     ax_curr=reshape(axis,2,[])';
     ax_this=mu+3*sqrt(diag(v)).*[-1 1];
     ax_combined=[min([ax_curr(:,1) ax_this(:,1)],[],2),max([ax_curr(:,2) ax_this(:,2)],[],2)];
-    axis image; axis(reshape(ax_combined',1,[]));
+    axis(reshape(ax_combined',1,[]));
 end
 
 if ~holdon

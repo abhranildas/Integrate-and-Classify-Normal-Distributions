@@ -382,4 +382,14 @@ T=inv(S);
 
 sum(dprime_w.*T)./(norm(dprime_w)*vecnorm(T))
 
+%% fix Bill's bug
+results=classify_normals([rbs',rcs'],[rbd',rcd'],'input_type','samp');
+% axis normal
+xlabel border
+ylabel content
 
+results=classify_normals(rbs',rbd','input_type','samp');
+xlabel border
+
+results=classify_normals(rcs',rcd','input_type','samp');
+xlabel content
