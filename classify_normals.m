@@ -111,6 +111,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               covariances and priors) are estimated.
     % norm_bd_pts   points on the above boundary computed by the ray-trace
     %               integration method.
+    % norm_linear_bd    Struct of coefficients of the optimal linear
+    %               (Anderson-Bahadur) boundary.
     % norm_errmat   error matrix. e(i,j)=prob. that a sample came from
     %               normal i, and was classified as normal j. Matrix sums to 1.
     %               Probabilities < realmin=1e-308 are returned as their
@@ -355,6 +357,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
             % compute optimal boundary coefficients
             dom=opt_class_quad([mu_1,v_1],[mu_2,v_2],'vals',vals,'prior_1',priors(1));
             results.norm_bd=dom;
+            % compute best linear boundary as well
+            results.norm_linear_bd=best_linear_classifier(mu_1, v_1, mu_2, v_2,priors(1),vals);
         end
 
         if strcmpi(dom_type,'ray_trace') % ray-traced region functions

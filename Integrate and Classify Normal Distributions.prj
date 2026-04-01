@@ -9,22 +9,19 @@
 
 Begin with the Getting Started live script with interactive examples.</param.description>
     <param.screenshot>${PROJECT_ROOT}\icon.png</param.screenshot>
-    <param.version>3.0.0</param.version>
+    <param.version>3.1.0</param.version>
     <param.output>${PROJECT_ROOT}\Integrate and Classify Normal Distributions.mltbx</param.output>
     <param.products.name>
       <item>MATLAB</item>
       <item>Statistics and Machine Learning Toolbox</item>
       <item>Symbolic Math Toolbox</item>
-      <item>UAV Toolbox</item>
     </param.products.name>
     <param.products.id>
       <item>1</item>
       <item>19</item>
       <item>15</item>
-      <item>182</item>
     </param.products.id>
     <param.products.version>
-      <item>24.2</item>
       <item>24.2</item>
       <item>24.2</item>
       <item>24.2</item>
@@ -141,6 +138,7 @@ dprime_scaling.gif
       <file>${PROJECT_ROOT}</file>
     </fileset.rootdir>
     <fileset.rootfiles>
+      <file>${PROJECT_ROOT}\best_linear_classifier.m</file>
       <file>${PROJECT_ROOT}\camouflage_edge_data.mat</file>
       <file>${PROJECT_ROOT}\classify_normals.m</file>
       <file>${PROJECT_ROOT}\classify_normals_multi.m</file>
