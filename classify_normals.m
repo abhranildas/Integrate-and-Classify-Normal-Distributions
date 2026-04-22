@@ -62,8 +62,8 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               squeezing distribution b towards a by interpolating the mean and covariance.
     %               'squeeze dv' to pull the decision variables (log-likelihood ratios) towards 0.
     % samp_opt      If =0, no sample-specific classification boundary is returned.
-    %               If =1, norm_bd, the optimal classification boundary
-    %               between the fitted (multi)normals,
+    %               If =1, norm_bd, the optimal boundary between the fitted
+    %               (multi)normals, or the supplied custom boundary,
     %               is further optimized to minimize samp_err
     %               (or maximize samp_val if custom vals are supplied) for the
     %               specific sample points, and returned as samp_opt_bd. If samp_balance=true,
@@ -73,7 +73,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               does a multi-start fminunc with the number of starting points equal to samp_opt (slower).
     %               If set to 'svm' (default), it finds a quadratic SVM classifier,
     %               taking care of samp_balance if it's true, and also
-    %               vals. But SVM does not explicitly optimize the
+    %               vals. Note that SVM does not explicitly optimize the
     %               classification error of the given sample, so the
     %               error or value with this sample boundary may be worse
     %               than with norm_bd.
@@ -120,14 +120,18 @@ function results=classify_normals(dist_1,dist_2,varargin)
     % norm_err      overall error rate. Value < realmin=1e-308 is
     %               returned as its log10 value, which is negative.
     % norm_d_b      Bayes-optimal discriminability index between the
-    %               distributions. Equal to the separation between two
-    %               unit-variance normals that have the same overlap.
+    %               (multi)normals. Returned only when no custom outcome vals
+    %               are supplied. Computed as Z(hit rate)-Z(false alarm rate).
+    %               If in addition, priors are equal and the boundary is
+    %               optimal, it is computed as -2Z(error rate), and is then
+    %               equal to the separation between two unit-variance normals 
+    %               that have the same overlap.
     % norm_d_a      Simpson and Fitter's discriminability index. Mahalanobis
     %               distance between the normals, that averages the two
     %               covariance matrices.
     % norm_d_e      Egan and Clarke's discriminability index. Mahalanobis
     %               distance between the normals, that averages the two
-    %               square roots of the covariance matrices (i.e. the sd's).
+    %               square roots of the covariance matrices (i.e. the sd matrices).
     % d_con         vector of contributions to d' from each dimension, measured
     %               using the amount by which norm_d_b drops when that dimension
     %               is removed (see paper). Returned only when input d_con is true.
@@ -145,9 +149,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               If samp_balance=true, this is class-balanced 
     %               (error rates of the two classes averaged, instead of
     %               overall error rate).
-    % samp_d_b      Bayes-optimal discriminability using samp_err.
-    %               Returned only when sample sizes are equal, values are
-    %               default, and the classifier is optimal.
+    % samp_d_b      Bayes-optimal discriminability index between the samples.
+    %               Returned only when no custom outcome vals are
+    %               supplied. Computed as Z(hit rate)-Z(false alarm rate)
+    %               using the normal-optimal boundary norm_bd, or the supplied custom boundary.
     % samp_ov_err   overall error rate of classifying the samples, computed using
     %               the overlap area of the two histograms. This is useful
     %               when the optimal classification boundary is unknown,
@@ -182,9 +187,9 @@ function results=classify_normals(dist_1,dist_2,varargin)
     %               samp_opt_bd. If samp_balance=true, this is
     %               class-balanced (error rates of the two classes averaged, instead of
     %               overall error rate).
-    % samp_opt_d_b  Bayes-optimal discriminability based on samp_opt_err.
-    %               Returned only when sample sizes are equal, values are
-    %               default, and the classifier is optimal.
+    % samp_opt_d_b  Bayes-optimal discriminability based on samp_opt_bd.
+    %               Returned only when no custom outcome vals are
+    %               supplied. Computed as Z(hit rate)-Z(false alarm rate) using samp_opt_bd.
     % samp_opt_dv   scalar decision variables that the supplied samples are
     %               mapped to using samp_opt_bd
     % samp_opt_valmat   matrix of total sample classification outcome values
@@ -262,7 +267,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         [dist_2,idx_2]=rmmissing(dist_2);
         n_missing=nnz([idx_1;idx_2]);
         if n_missing
-            warning('%d observation(s) with missing variables dropped. This changes sample counts.',n_missing)
+            % warning('%d observation(s) with missing variable(s) dropped. Calculations will adjust for the changed counts.',n_missing)
         end
         mu_1=mean(dist_1)';
         v_1=cov(dist_1);
@@ -320,11 +325,14 @@ function results=classify_normals(dist_1,dist_2,varargin)
     end
     priors(2)=1-priors(1);
 
-    % check if optimal case
-    if priors(1)==0.5 && isequal(vals,eye(2)) && isempty(dom)
-        optimal_case=true;
+    % check the optimality condition
+    if isequal(vals,eye(2))
+        optimal_cond=1; % d_b can be computed using hits and false alarms
+        if priors(1)==0.5 && isempty(dom) % d_b can be computed from error rate
+            optimal_cond=2;
+        end
     else
-        optimal_case=false;
+        optimal_cond=0;
     end
 
     dim=length(mu_1); % dimension
@@ -442,32 +450,34 @@ function results=classify_normals(dist_1,dist_2,varargin)
     end
     results.norm_err=norm_err;
 
+    % d'_e
+    s_avg=(sqrtm(v_1)+sqrtm(v_2))/2;
+    results.norm_d_e=norm(s_avg\(mu_1-mu_2));
+
     % d'_b
-    if optimal_case
-        if norm_err>=0
-            norm_d_b=-2*norminv(norm_err);
-        else % if norm_err is small and represented as its log10
-            % Asymptotic expression for norm_d_b upto 2nd order:
-            w=-2*norm_err*log(10)-log(2*pi);
-            norm_d_b=2*sqrt(w-log(w));
+    if optimal_cond>0
+        if optimal_cond==1 % compute using Z(hit rate) - Z(false alarm rate)            
+            norm_d_b=norminv(norm_errmat(1,1)/priors(1))-norminv(norm_errmat(2,1)/priors(2));
+        elseif optimal_cond==2
+            if norm_err>=0
+                norm_d_b=-2*norminv(norm_err);
+            else % if norm_err is small and represented as its log10
+                % Asymptotic expression for norm_d_b upto 2nd order:
+                w=-2*norm_err*log(10)-log(2*pi);
+                norm_d_b=2*sqrt(w-log(w));
+            end
         end
-    else
-        results_opt=classify_normals([mu_1,v_1],[mu_2,v_2],'plotmode',0);
-        norm_d_b=results_opt.norm_d_b;
+        % if d'_b is too large to compute in 1d, supply d'_e instead.
+        if dim==1 && isinf(norm_d_b)
+            norm_d_b=results.norm_d_e;
+        end
+        results.norm_d_b=norm_d_b;
     end
-    results.norm_d_b=norm_d_b;
 
     % d'_a
     s_rms=sqrtm((v_1+v_2)/2);
     results.norm_d_a=norm(s_rms\(mu_1-mu_2));
 
-    % d'_e
-    s_avg=(sqrtm(v_1)+sqrtm(v_2))/2;
-    results.norm_d_e=norm(s_avg\(mu_1-mu_2));
-    % if d'_b is too large to compute in 1d, supply d'_e instead.
-    if dim==1 && isinf(norm_d_b)
-        results.norm_d_b=results.norm_d_e;
-    end
 
     % d' contributions from each dimension
     % d_con_vec
@@ -543,8 +553,10 @@ function results=classify_normals(dist_1,dist_2,varargin)
             results.samp_ov_err=samp_ov_err;
         end
 
-        if optimal_case
-            results.samp_d_b=-2*norminv(samp_err); % samp error can be used to compute samp d'
+        if optimal_cond>0
+            % compute only using Z(hit rate) - Z(false alarm rate)
+            samp_d_b=norminv(samp_countmat(1,1)/size(dist_1,1))-norminv(samp_countmat(2,1)/size(dist_2,1));
+            results.samp_d_b=samp_d_b;
             if exist('samp_ov_err','var')
                 results.samp_ov_d_b=-2*norminv(samp_ov_err); % samp overlap error can be used to compute samp overlap d'
             end
@@ -555,7 +567,7 @@ function results=classify_normals(dist_1,dist_2,varargin)
         end
 
         %% sample-optimal boundary
-        if ~isequal(samp_opt,0) && strcmpi(dom_type,'quad') % if default boundary,
+        if ~isequal(samp_opt,0) && strcmpi(dom_type,'quad')
             %             try
             % find quad boundary that optimizes expected value / accuracy
 
@@ -611,13 +623,16 @@ function results=classify_normals(dist_1,dist_2,varargin)
             results.samp_opt_errmat=samp_opt_countmat;
             results.samp_opt_err=samp_opt_err;
 
-            if optimal_case
-                results.samp_opt_d_b=-2*norminv(samp_opt_err); % samp error can be used to compute samp d'
+            if optimal_cond>0
+                % compute only using Z(hit rate) - Z(false alarm rate)
+                samp_opt_d_b=norminv(samp_opt_countmat(1,1)/size(dist_1,1))-norminv(samp_opt_countmat(2,1)/size(dist_2,1));
+                results.samp_opt_d_b=samp_opt_d_b;
             elseif ~isequal(vals,eye(2)) % if outcome values are supplied
                 [samp_opt_val,samp_opt_valmat]=samp_value(dist_1,dist_2,samp_dom_1,'vals',vals);
                 results.samp_opt_valmat=samp_opt_valmat;
                 results.samp_opt_val=samp_opt_val;
             end
+            
         end
 
 

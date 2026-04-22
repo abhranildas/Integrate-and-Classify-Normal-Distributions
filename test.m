@@ -4,22 +4,6 @@ results=classify_normals(samp_1,samp_2,'input_type','samp','samp_opt',false,'val
 axis([-6 12 0 .15])
 
 %%
-mu_1=[2;2]; v_1=[1 1.5; 1.5 3];
-mu_2=[3;0]; v_2=[3 0; 0 1];
-
-n_samp=1e3;
-samp_1=mvnrnd(mu_1,v_1,n_samp);
-samp_2=mvnrnd(mu_2,v_2,n_samp);
-
-results=classify_normals(samp_1,samp_2,'input_type','samp','samp_opt',false,'vals',[4 0; 0 1])
-
-%%
-absent=importdata('target_absent.txt',',',1);
-present=importdata('target_present.txt',',',1);
-
-results=classify_normals(present.data,absent.data,'input_type','samp','d_con',true)
-
-%%
 normals=struct;
 normals(1).mu=[1;0]; normals(1).v=.1*eye(2);
 normals(2).mu=[0;1]; normals(2).v=.1*eye(2);
@@ -50,7 +34,6 @@ for i=1:length(d_scale_list)
     pause
 end
 
-%% test efficiency scalar: 2d data
 %% d' scaling animation
 
 mu_1=[0;4]; v_1=[1 1.5; 1.5 3];
@@ -232,31 +215,6 @@ samp_2=mvnrnd(mu_2,v_2,n_samp);
 
 results=classify_normals(samp_1,samp_2,'input_type','samp','samp_opt',false,'d_scale',0);
 
-%% test flipping
-
-mu=[-1; -1]; v=[1 0.5; 0.5 2];
-
-quad.q2=[1 1; 1 1];
-quad.q1=[-1;0];
-quad.q0=-1;
-
-p=integrate_normal(mu,v,quad,'method','gx2') % gx2 method
-
-figure
-[p,~,bd_pts]=integrate_normal(mu,v,quad,'method','ray','add_bd_pts',true)
-% [p,~,bd_pts]=int_norm_ray(mu,v,quad)
-
-% mu=[0;0;0];
-% v=[ 1    0   .1;
-%     0    2    1;
-%    .1    1    4];
-
-L=[.5 -1]; U=[1 3];
-p=mvncdf(L,U,mu',v)
-
-figure
-p=integrate_normal(mu,v,[L;U],'dom_type','rect','add_bd_pts',true)
-
 %% non-orthogonal contributions to d'
 % mu_1=[2;3];
 % mu_2=[7;9];
@@ -382,4 +340,47 @@ T=inv(S);
 
 sum(dprime_w.*T)./(norm(dprime_w)*vecnorm(T))
 
+%% d' from suboptimal conditions
 
+% 1D, normals
+mu_1=0; v_1=1;
+mu_2=5; v_2=1;
+
+results=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7)
+
+bd.q2=0;
+bd.q1=-1;
+bd.q0=4;
+
+results_sub=classify_normals([mu_1,v_1],[mu_2,v_2],'prior_1',.7,'dom',bd)
+
+% 1D, samples
+n_samp=1e4;
+samp_1=normrnd(mu_1,sqrt(v_1),[7e4 1]);
+samp_2=normrnd(mu_2,sqrt(v_2),[3e4 1]);
+
+results=classify_normals(samp_1,samp_2,'input_type','samp')
+
+results_sub=classify_normals(samp_1,samp_2,'input_type','samp','dom',bd)
+
+
+% 2D, normals
+mu_1=[2;4]; v_1=[1 1.5; 1.5 3];
+mu_2=[5;0]; v_2=[3 0; 0 1];
+
+results=classify_normals([mu_1,v_1],[mu_2,v_2])
+
+linear_bd.q2=zeros(2);
+linear_bd.q1=[-.7;1];
+linear_bd.q0=0;
+
+results_sub=classify_normals([mu_1,v_1],[mu_2,v_2],'dom',linear_bd)
+
+% 2D, samples
+n_samp=1e3;
+samp_1=mvnrnd(mu_1,v_1,n_samp);
+samp_2=mvnrnd(mu_2,v_2,n_samp);
+
+results=classify_normals(samp_1,samp_2,'input_type','samp','samp_opt',100)
+
+results_sub=classify_normals(samp_1,samp_2,'input_type','samp','dom',linear_bd,'samp_opt',100)
